@@ -196,10 +196,9 @@ setup(
             # _xblock suffix is added for testing only.
             "annotatable_xblock = xblocks_contrib:AnnotatableXBlock",
             "poll_xblock = xblocks_contrib:PollXBlock",
-            "word_cloud_xblock = xblocks_contrib:WordCloudXBlock",
         ]
     },
     package_data=package_data(
-        "xblocks_contrib", ["annotatable", "poll", "wordcloud"], ["static", "public"]
+        "xblocks_contrib", ["annotatable", "poll"], ["static", "public"]
     ),
 )
