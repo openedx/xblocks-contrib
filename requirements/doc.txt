@@ -75,6 +75,7 @@ django==4.2.13
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-appconf
+    #   django-pyfs
     #   django-statici18n
     #   edx-i18n-tools
     #   xblock-sdk
@@ -82,6 +83,8 @@ django-appconf==1.0.6
     # via
     #   -r requirements/test.txt
     #   django-statici18n
+django-pyfs==3.2.0
+    # via -r requirements/test.txt
 django-statici18n==2.5.0
     # via -r requirements/test.txt
 doc8==1.1.1
@@ -98,11 +101,13 @@ edx-i18n-tools==1.6.0
 fs==2.4.16
     # via
     #   -r requirements/test.txt
+    #   django-pyfs
     #   fs-s3fs
     #   xblock
 fs-s3fs==1.1.1
     # via
     #   -r requirements/test.txt
+    #   django-pyfs
     #   xblock-sdk
 idna==3.7
     # via

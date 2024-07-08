@@ -1,6 +1,7 @@
 """TO-DO: Write a description of what this XBlock is."""
 
-from importlib_resources import files
+from importlib.resources import files
+
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Integer, Scope
@@ -23,7 +24,7 @@ class PollXBlock(XBlock):
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
-        return files(__name__).joinpath(path).read_text()
+        return files(__package__).joinpath(path).read_text()
 
     # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):

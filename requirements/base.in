@@ -3,5 +3,5 @@
 
 django-statici18n
 edx-i18n-tools
-Mako
 XBlock
+django-pyfs
