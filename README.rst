@@ -1,6 +1,25 @@
 core xblocks
 #############################
 
+Developing a new XBlock
+***********************
+
+There's a handy script `utils/create_xblock.sh` that you can use to create XBlock here. just run
+
+    $ utils/create_xblock.sh
+
+It will ask for XBlock name and XBlock class name that you want to use. Just enter these values and XBlock should be ready
+to work.
+
+Troubleshooting
+***************
+
+If faced with permission or access error run:
+
+    $ chmod +x utils/create_xblock.sh
+
+and run it.
+
 Testing with Docker
 ********************
 
