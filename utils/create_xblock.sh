@@ -54,8 +54,8 @@ insert_import_before_version() {
 }
 
 # Prompt user for input
-read -p "Enter XBlock name: " xblock_name
-read -p "Enter XBlock class: " xblock_class
+read -p "Enter XBlock name e.g thumbs: " xblock_name
+read -p "Enter XBlock class e.g ThumbsXBlock: " xblock_class
 
 # Define paths and filenames
 base_dir="xblocks_contrib/$xblock_name"
@@ -64,7 +64,7 @@ xblock_file="$base_dir/$xblock_name.py"
 tx_dir="$base_dir/.tx"
 static_dir="$base_dir/static"
 css_file="$static_dir/css/$xblock_name.css"
-js_file="$static_dir/js/$xblock_name.js"
+js_file="$static_dir/js/src/$xblock_name.js"
 templates_dir="$base_dir/templates"
 html_file="$templates_dir/$xblock_name.html"
 setup_file="setup.py"
