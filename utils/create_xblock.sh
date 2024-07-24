@@ -73,7 +73,7 @@ conf_locale_dir="$base_dir/conf/locale"
 utils_config_file="utils/config.yaml"
 
 # Create directories
-mkdir -p "$base_dir" "$tx_dir" "$static_dir/css" "$static_dir/js" "$templates_dir" "$conf_locale_dir"
+mkdir -p "$base_dir" "$tx_dir" "$static_dir/css" "$static_dir/js" "$static_dir/js/src" "$templates_dir" "$conf_locale_dir"
 
 # Create empty files
 touch "$init_file" "$xblock_file" "$css_file" "$js_file" "$html_file" "$conf_locale_dir/__init__.py"
