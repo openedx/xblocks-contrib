@@ -1,0 +1,26 @@
+/* line 564, /openedx/edx-platform/cms/static/sass/elements/_xblocks.scss */
+.wrapper-comp-editor {
+    display: block;
+}
+/* line 569, /openedx/edx-platform/cms/static/sass/elements/_xblocks.scss */
+.wrapper-comp-editor.is-inactive {
+    display: none;
+}
+
+.wrapper-comp-editor.latex-problem {
+    margin-top: 50px;
+}
+
+/* line 967, /openedx/edx-platform/cms/static/sass/elements/_xblocks.scss */
+div.wrapper-comp-editor.is-inactive ~ div.launch-latex-compiler {
+    display: none;
+}
+
+/* line 82, /openedx/edx-platform/cms/static/sass/_shame.scss */
+.wrapper-comp-editor.latex-problem {
+    margin-top: 50px;
+}
+
+div.wrapper-comp-editor.is-inactive ~ div.launch-latex-compiler {
+    display: none;
+}
