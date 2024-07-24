@@ -1,9 +1,0 @@
-/* CSS for AnnotatableXBlock */
-
-.annotatable_xblock .count {
-    font-weight: bold;
-}
-
-.annotatable_xblock p {
-    cursor: pointer;
-}

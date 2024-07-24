@@ -194,7 +194,6 @@ setup(
     entry_points={
         "xblock.v1": [
             # _xblock suffix is added for testing only.
-            "annotatable_xblock = xblocks_contrib:AnnotatableXBlock",
             "poll_xblock = xblocks_contrib:PollXBlock",
         ]
     },
