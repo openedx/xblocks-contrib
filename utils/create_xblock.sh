@@ -115,7 +115,7 @@ class $xblock_class(XBlock):
         """
         if context:
             pass  # TO-DO: do something based on the context.
-        html = self.resource_string("static/html/$xblock_name.html")
+        html = self.resource_string("templates/$xblock_name.html")
         frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/$xblock_name.css"))
 
@@ -150,7 +150,7 @@ EOL
 # Add content to templates/xblock_name.html
 cat > "$html_file" <<EOL
 <div class="$xblock_name">
-
+Congratulations XBlock is running.
 </div>
 EOL
 
