@@ -198,6 +198,6 @@ setup(
         ]
     },
     package_data=package_data(
-        "xblocks_contrib", ["annotatable", "poll"], ["static", "public"]
+        "xblocks_contrib", ["annotatable", "poll"], ["static", "public", "templates"]
     ),
 )
