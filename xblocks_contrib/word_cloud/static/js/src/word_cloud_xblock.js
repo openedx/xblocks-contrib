@@ -213,9 +213,7 @@ function drawWordCloud(element, response, words, bounds) {
   setHtml(
     cloudSectionEl.find('.your_words').end().find('.total_num_words'),
     interpolateHtml(
-      // TODO: update all code related to gettext
-      // gettext('{start_strong}{total}{end_strong} words submitted in total.'),
-      '{start_strong}{total}{end_strong} words submitted in total.',
+      gettext('{start_strong}{total}{end_strong} words submitted in total.'),
       {
         start_strong: HTML('<strong>'),
         end_strong: HTML('</strong>'),
@@ -242,8 +240,7 @@ function drawWordCloud(element, response, words, bounds) {
       return wcCount;
     })
     .attr('aria-describedby', () => interpolateHtml(
-      // gettext('text_word_{uniqueId} title_word_{uniqueId}'),
-      'text_word_{uniqueId} title_word_{uniqueId}',
+      gettext('text_word_{uniqueId} title_word_{uniqueId}'),
       {
         // eslint-disable-next-line no-undef
         uniqueId: generateUniqueId(cloudSectionEl.attr('id'), $(this).data('id')),
@@ -253,8 +250,7 @@ function drawWordCloud(element, response, words, bounds) {
   groupEl
     .append('title')
     .attr('id', () => interpolateHtml(
-      // gettext('title_word_{uniqueId}'),
-      'title_word_{uniqueId}',
+      gettext('title_word_{uniqueId}'),
       {
         // eslint-disable-next-line no-undef
         uniqueId: generateUniqueId(cloudSectionEl.attr('id'), $(this).parent().data('id')),
@@ -276,8 +272,7 @@ function drawWordCloud(element, response, words, bounds) {
   groupEl
     .append('text')
     .attr('id', () => interpolateHtml(
-      // gettext('text_word_{uniqueId}'),
-      'text_word_{uniqueId}',
+      gettext('text_word_{uniqueId}'),
       {
         // eslint-disable-next-line no-undef
         uniqueId: generateUniqueId(cloudSectionEl.attr('id'), $(this).parent().data('id')),
