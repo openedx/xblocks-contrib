@@ -195,6 +195,7 @@ setup(
         "xblock.v1": [
             # _xblock suffix is added for testing only.
             "poll_xblock = xblocks_contrib:PollXBlock",
+            "word_cloud = xblocks_contrib:WordCloudXBlock",
         ]
     },
     package_data=package_data(
