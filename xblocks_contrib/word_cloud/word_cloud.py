@@ -9,7 +9,6 @@ import importlib.resources
 import uuid
 
 from web_fragments.fragment import Fragment
-
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, Integer, List, Scope, String
 from xblock.utils.resources import ResourceLoader
@@ -17,9 +16,14 @@ from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
 resource_loader = ResourceLoader(__name__)
 
+
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
+def noop(text):
+    return text
+
+
+_ = noop
 
 
 def pretty_bool(value):
@@ -53,8 +57,8 @@ class WordCloudXBlock(StudioEditableXBlockMixin, XBlock):
     instructions = String(
         display_name=_("Instructions"),
         help=_(
-            "Add instructions to help learners understand how to use the word cloud. Clear instructions are important, especially for learners who have accessibility requirements."),
-        # nopep8 pylint: disable=C0301
+            "Add instructions to help learners understand how to use the word cloud. Clear instructions are "
+            "important, especially for learners who have accessibility requirements."),
         scope=Scope.settings,
     )
     num_inputs = Integer(
@@ -114,7 +118,7 @@ class WordCloudXBlock(StudioEditableXBlockMixin, XBlock):
              """),
         ]
 
-    def student_view(self, context=None):
+    def student_view(self, context=None):  # pylint: disable=W0613
         """
         Create primary view of the WordCloudXBlock, shown to students when viewing courses.
         """
