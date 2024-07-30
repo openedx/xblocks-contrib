@@ -258,9 +258,8 @@ class WordCloudXBlock(StudioEditableXBlockMixin, XBlock):
         :type top_words: dict
         :param total_count: Total number of words
         :type total_count: int
-
         :rtype: list of dicts. Every dict is 3 keys: text - actual word,
-        size - counter of word, percent - percent in top_words dataset.
+            size - counter of word, percent - percent in top_words dataset.
 
         Calculates corrected percents for every top word:
 
