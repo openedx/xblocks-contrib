@@ -51,7 +51,7 @@ dev.build:
 dev.run: dev.clean dev.build ## Clean, build and run test image
 	docker run -p 8000:8000 -v $(CURDIR):/usr/local/src/$(REPO_NAME) --name $(REPO_NAME)-dev $(REPO_NAME)-dev
 
-# Auto-detect all XBlock directories
+# XBlock directories
 XBLOCKS=$(shell find $(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
 
 ## Localization targets
@@ -62,6 +62,7 @@ extract_translations: ## extract strings to be translated, outputting .po files 
 		cd $$xblock && i18n_tool extract --no-segment --merge-po-files; \
 		if [ -f $(EXTRACT_DIR)/django.po ]; then \
 			mv $(EXTRACT_DIR)/django.po $(EXTRACT_DIR)/text.po; \
+		for i in `ls`; do echo $i; done; \
 		fi; \
 	done
 
