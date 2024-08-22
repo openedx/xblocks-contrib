@@ -10,6 +10,7 @@ from xblock.utils.resources import ResourceLoader
 
 resource_loader = ResourceLoader(__name__)
 
+
 # This Xblock is just to test the strucutre of xblocks-contrib
 @XBlock.needs('i18n')
 class PollBlock(XBlock):
