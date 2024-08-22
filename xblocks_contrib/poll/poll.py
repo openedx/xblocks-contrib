@@ -2,12 +2,17 @@
 
 from importlib.resources import files
 
+from django.utils import translation
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Integer, Scope
+from xblock.utils.resources import ResourceLoader
 
+resource_loader = ResourceLoader(__name__)
 
-class PollXBlock(XBlock):
+# This Xblock is just to test the strucutre of xblocks-contrib
+@XBlock.needs('i18n')
+class PollBlock(XBlock):
     """
     TO-DO: document what your XBlock does.
     """
@@ -24,20 +29,28 @@ class PollXBlock(XBlock):
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
-        return files(__package__).joinpath(path).read_text()
+        return files(__package__).joinpath(path).read_text(encoding="utf-8")
 
     # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
-        Create primary view of the PollXBlock, shown to students when viewing courses.
+        Create primary view of the PollBlock, shown to students when viewing courses.
         """
         if context:
             pass  # TO-DO: do something based on the context.
-        html = self.resource_string("static/html/poll.html")
-        frag = Fragment(html.format(self=self))
+
+        frag = Fragment()
+        frag.add_content(resource_loader.render_django_template(
+            'static/html/poll.html',
+            {
+                'count': self.count,
+            },
+            i18n_service=self.runtime.service(self, 'i18n')
+        ))
+
         frag.add_css(self.resource_string("static/css/poll.css"))
         frag.add_javascript(self.resource_string("static/js/src/poll.js"))
-        frag.initialize_js("PollXBlock")
+        frag.initialize_js("PollBlock")
         return frag
 
     # TO-DO: change this handler to perform your own actions.  You may need more
@@ -62,17 +75,24 @@ class PollXBlock(XBlock):
         """Create canned scenario for display in the workbench."""
         return [
             (
-                "PollXBlock",
+                "PollBlock",
                 """<poll_xblock/>
-             """,
+                """,
             ),
             (
-                "Multiple PollXBlock",
+                "Multiple PollBlock",
                 """<vertical_demo>
                 <poll_xblock/>
                 <poll_xblock/>
                 <poll_xblock/>
                 </vertical_demo>
-             """,
+                """,
             ),
         ]
+
+    @staticmethod
+    def get_dummy():
+        """
+        Generate initial i18n with dummy method.
+        """
+        return translation.gettext_noop("Dummy")

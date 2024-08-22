@@ -1,5 +1,5 @@
-/* Javascript for PollXBlock. */
-function PollXBlock(runtime, element) {
+/* Javascript for PollBlock. */
+function PollBlock(runtime, element) {
 
     function updateCount(result) {
         $('.count', element).text(result.count);
@@ -20,7 +20,7 @@ function PollXBlock(runtime, element) {
         /*
         Use `gettext` provided by django-statici18n for static translations
 
-        var gettext = PollXBlocki18n.gettext;
+        var gettext = PollBlocki18n.gettext;
         */
 
         /* Here's where you'd do things on page load. */

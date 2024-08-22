@@ -194,7 +194,7 @@ setup(
     entry_points={
         "xblock.v1": [
             # _xblock suffix is added for testing only.
-            "poll_xblock = xblocks_contrib:PollXBlock",
+            "poll_xblock = xblocks_contrib:PollBlock",
         ]
     },
     package_data=package_data(

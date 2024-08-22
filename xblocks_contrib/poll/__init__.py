@@ -1,5 +1,5 @@
 """
-Init for the PollXBlock package.
+Init for the PollBlock package.
 """
 
-from .poll import PollXBlock
+from .poll import PollBlock

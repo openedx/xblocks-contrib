@@ -17,7 +17,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET", "open_secret")
 
 INSTALLED_APPS = (
     "statici18n",
-    "xblocks-contrib",
+    "xblocks_contrib",
 )
 
 # Internationalization
@@ -46,6 +46,6 @@ LOCALE_PATHS = [os.path.join(BASE_DIR, "xblocks-contrib", "conf", "locale")]
 
 STATICI18N_DOMAIN = "text"
 STATICI18N_NAMESPACE = "Xblocks-contribI18n"
-STATICI18N_PACKAGES = ("xblocks-contrib",)
-STATICI18N_ROOT = "xblocks-contrib/public/js"
+STATICI18N_PACKAGES = ("xblocks_contrib",)
+STATICI18N_ROOT = "xblocks_contrib/public/js"
 STATICI18N_OUTPUT_DIR = "translations"

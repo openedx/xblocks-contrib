@@ -51,31 +51,54 @@ dev.build:
 dev.run: dev.clean dev.build ## Clean, build and run test image
 	docker run -p 8000:8000 -v $(CURDIR):/usr/local/src/$(REPO_NAME) --name $(REPO_NAME)-dev $(REPO_NAME)-dev
 
+# Auto-detect all XBlock directories
+XBLOCKS=$(shell find $(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
+
 ## Localization targets
 
-extract_translations: ## extract strings to be translated, outputting .po files
-	cd $(PACKAGE_NAME) && i18n_tool extract --no-segment --merge-po-files
-	mv $(EXTRACT_DIR)/django.po $(EXTRACT_DIR)/text.po
+extract_translations: ## extract strings to be translated, outputting .po files for each XBlock
+	@for xblock in $(XBLOCKS); do \
+		echo "Extracting translations for $$xblock..."; \
+		cd $$xblock && i18n_tool extract --no-segment --merge-po-files; \
+		if [ -f $(EXTRACT_DIR)/django.po ]; then \
+			mv $(EXTRACT_DIR)/django.po $(EXTRACT_DIR)/text.po; \
+		fi; \
+	done
 
-compile_translations: ## compile translation files, outputting .mo files for each supported language
-	cd $(PACKAGE_NAME) && i18n_tool generate
-	python manage.py compilejsi18n --namespace Xblocks-contribI18n --output $(JS_TARGET)
+compile_translations: ## compile translation files, outputting .mo files for each supported language for each XBlock
+	@for xblock in $(XBLOCKS); do \
+		echo "Compiling translations for $$xblock..."; \
+		cd $$xblock && i18n_tool generate; \
+		python ../../manage.py compilejsi18n --namespace Xblocks-contribI18n --output $(JS_TARGET); \
+	done
 
 detect_changed_source_translations:
-	cd $(PACKAGE_NAME) && i18n_tool changed
+	@for xblock in $(XBLOCKS); do \
+		echo "Detecting changed translations for $$xblock..."; \
+		cd $$xblock && i18n_tool changed; \
+	done
 
-dummy_translations: ## generate dummy translation (.po) files
-	cd $(PACKAGE_NAME) && i18n_tool dummy
+dummy_translations: ## generate dummy translation (.po) files for each XBlock
+	@for xblock in $(XBLOCKS); do \
+		echo "Generating dummy translations for $$xblock..."; \
+		cd $$xblock && i18n_tool dummy; \
+	done
 
 build_dummy_translations: dummy_translations compile_translations ## generate and compile dummy translation files
 
 validate_translations: build_dummy_translations detect_changed_source_translations ## validate translations
 
-pull_translations: ## pull translations from transifex
-	cd $(PACKAGE_NAME) && i18n_tool transifex pull
+pull_translations: ## pull translations from Transifex for each XBlock
+	@for xblock in $(XBLOCKS); do \
+		echo "Pulling translations for $$xblock..."; \
+		cd $$xblock && i18n_tool transifex pull; \
+	done
 
-push_translations: extract_translations ## push translations to transifex
-	cd $(PACKAGE_NAME) && i18n_tool transifex push
+push_translations: extract_translations ## push translations to Transifex for each XBlock
+	@for xblock in $(XBLOCKS); do \
+		echo "Pushing translations for $$xblock..."; \
+		cd $$xblock && i18n_tool transifex push; \
+	done
 
 install_transifex_client: ## Install the Transifex client
 	# Instaling client will skip CHANGELOG and LICENSE files from git changes

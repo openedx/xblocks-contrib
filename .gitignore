@@ -63,3 +63,9 @@ docs/xblocks_contrib.*.rst
 # Private requirements
 requirements/private.in
 requirements/private.txt
+
+# Translations
+*.mo
+*.pot
+*.po
+*/translation
