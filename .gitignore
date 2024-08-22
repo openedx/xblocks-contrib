@@ -68,4 +68,3 @@ requirements/private.txt
 *.mo
 *.pot
 *.po
-*/translation

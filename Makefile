@@ -52,7 +52,7 @@ dev.run: dev.clean dev.build ## Clean, build and run test image
 	docker run -p 8000:8000 -v $(CURDIR):/usr/local/src/$(REPO_NAME) --name $(REPO_NAME)-dev $(REPO_NAME)-dev
 
 # XBlock directories
-XBLOCKS=$(shell find $(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
+XBLOCKS=$(shell find $(shell pwd)/$(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
 
 ## Localization targets
 
@@ -62,7 +62,6 @@ extract_translations: ## extract strings to be translated, outputting .po files 
 		cd $$xblock && i18n_tool extract --no-segment --merge-po-files; \
 		if [ -f $(EXTRACT_DIR)/django.po ]; then \
 			mv $(EXTRACT_DIR)/django.po $(EXTRACT_DIR)/text.po; \
-		for i in `ls`; do echo $i; done; \
 		fi; \
 	done
 
@@ -70,7 +69,7 @@ compile_translations: ## compile translation files, outputting .mo files for eac
 	@for xblock in $(XBLOCKS); do \
 		echo "Compiling translations for $$xblock..."; \
 		cd $$xblock && i18n_tool generate; \
-		python ../../manage.py compilejsi18n --namespace Xblocks-contribI18n --output $(JS_TARGET); \
+		python ../../manage.py compilejsi18n --namespace Xblocks-contribI18n --output public/js; \
 	done
 
 detect_changed_source_translations:
