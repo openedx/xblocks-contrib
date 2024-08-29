@@ -1,20 +1,47 @@
-core xblocks
-#############################
+===============
+xblocks-contrib
+===============
+
+This repository is the new home for XBlocks, a core component of the Open edX ecosystem.
+This project involves the extraction of XBlocks from the edx-platform.
+
+Project Overview
+=======================
+
+XBlocks are modular components that enable rich interactive learning experiences in Open edX courses.
+Historically, the XBlock code was tightly coupled with the edx-platform, making it challenging to manage and extend.
+By extracting XBlocks into this dedicated repository, we can reduce the complexity of the edx-platform, making it more maintainable and scalable.
+
+Xblocks being moved here are::
+    poll_question
+
+    word_cloud
+
+    annotatable
+
+    lti
+
+    html
+
+    discussion
+
+    problem
+
+    video
+
+    videoalpha
+
 
 Developing a new XBlock
-***********************
+=======================
 
-There's a handy script `utils/create_xblock.sh` that you can use to create XBlock here. just run
+There's a handy script ``utils/create_xblock.sh`` that you can use to create XBlock here. just run ::
 
     $ utils/create_xblock.sh
 
-It will ask for XBlock name and XBlock class name that you want to use. Just enter these values and XBlock should be ready
-to work.
+It will ask for XBlock name and XBlock class name that you want to use. Just enter these values and XBlock should be ready to work.
 
-Troubleshooting
-***************
-
-If faced with permission or access error run:
+If faced with permission or access error run::
 
     $ chmod +x utils/create_xblock.sh
 
@@ -35,12 +62,7 @@ Translating
 Internationalization (i18n) is when a program is made aware of multiple languages.
 Localization (l10n) is adapting a program to local language and cultural habits.
 
-Use the locale directory to provide internationalized strings for your XBlock project.
-For more information on how to enable translations, visit the
-`Open edX XBlock tutorial on Internationalization <https://edx.readthedocs.org/projects/xblock-tutorial/en/latest/edx_platform/edx_lms.html>`_.
-
-This cookiecutter template uses `django-statici18n <https://django-statici18n.readthedocs.io/en/latest/>`_
-to provide translations to static javascript using ``gettext``.
+For information on how to enable translations, visit the `Open edX XBlock tutorial on Internationalization <https://docs.openedx.org/projects/xblock/en/latest/xblock-tutorial/edx_platform/edx_lms.html#internationalization-support>`_.
 
 The included Makefile contains targets for extracting, compiling and validating translatable strings.
 The general steps to provide multilingual messages for a Python program (or an XBlock) are:
@@ -50,18 +72,17 @@ The general steps to provide multilingual messages for a Python program (or an X
 3. Create language specific translations for each message in the catalogs.
 4. Use ``gettext`` to translate strings.
 
-1. Mark translatable strings
-=============================
+5. Mark translatable strings
+----------------------------
 
 Mark translatable strings in python::
-
 
     from django.utils.translation import ugettext as _
 
     # Translators: This comment will appear in the `.po` file.
     message = _("This will be marked.")
 
-See `edx-developer-guide <https://edx.readthedocs.io/projects/edx-developer-guide/en/latest/internationalization/i18n.html#python-source-code>`__
+See `edx-developer-guide <https://docs.openedx.org/en/latest/developers/references/developer_guide/internationalization/i18n.html#python-source-code>`__
 for more information.
 
 You can also use ``gettext`` to mark strings in javascript::
@@ -70,34 +91,30 @@ You can also use ``gettext`` to mark strings in javascript::
     // Translators: This comment will appear in the `.po` file.
     var message = gettext("Custom message.");
 
-See `edx-developer-guide <https://edx.readthedocs.io/projects/edx-developer-guide/en/latest/internationalization/i18n.html#javascript-files>`__
+See `edx-developer-guide <https://docs.openedx.org/en/latest/developers/references/developer_guide/internationalization/i18n.html#javascript-files>`__
 for more information.
 
 2. Run i18n tools to create Raw message catalogs
-=================================================
-
-This cookiecutter template offers multiple make targets which are shortcuts to
-use `edx-i18n-tools <https://github.com/openedx/i18n-tools>`_.
+------------------------------------------------
 
 After marking strings as translatable we have to create the raw message catalogs.
 These catalogs are created in ``.po`` files. For more information see
 `GNU PO file documentation <https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html>`_.
 These catalogs can be created by running::
 
-
     $ make extract_translations
 
-The previous command will create the necessary ``.po`` files under
-``xblocks-contrib/xblocks_contrib/conf/locale/en/LC_MESSAGES/text.po``.
+This command will create the necessary ``.po`` files under
+``xblocks-contrib/xblocks_contrib/<xblock name>/conf/locale/en/LC_MESSAGES/text.po``.
 The ``text.po`` file is created from the ``django-partial.po`` file created by
 ``django-admin makemessages`` (`makemessages documentation <https://docs.djangoproject.com/en/5.1/topics/i18n/translation/#message-files>`_),
 this is why you will not see a ``django-partial.po`` file.
 
 3. Create language specific translations
-==============================================
+----------------------------------------
 
 3.1 Add translated strings
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After creating the raw message catalogs, all translations should be filled out by the translator.
 One or more translators must edit the entries created in the message catalog, i.e. the ``.po`` file(s).
@@ -121,11 +138,11 @@ To use translations from transifex use the follow Make target to pull translatio
 See `config instructions <https://github.com/openedx/i18n-tools#transifex-commands>`_ for information on how to set up your
 transifex credentials.
 
-See `transifex documentation <https://docs.transifex.com/integrations/django>`_ for more details about integrating
+See `transifex documentation <https://developers.transifex.com/docs/django-file-based>`_ for more details about integrating
 django with transiflex.
 
 3.2 Compile translations
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once translations are in place, use the following Make target to compile the translation catalogs ``.po`` into
 ``.mo`` message files::
@@ -135,7 +152,7 @@ Once translations are in place, use the following Make target to compile the tra
 The previous command will compile ``.po`` files using
 ``django-admin compilemessages`` (`compilemessages documentation <https://docs.djangoproject.com/en/5.1/topics/i18n/translation/#compiling-message-files>`_).
 After compiling the ``.po`` file(s), ``django-statici18n`` is used to create language specific catalogs. See
-``django-statici18n`` `documentation <https://django-statici18n.readthedocs.io/en/latest/>`_ for more information.
+``django-statici18n`` `documentation <https://django-statici18n.readthedocs.io/en/v2.5.0/>`_ for more information.
 
 To upload translations to transiflex use the follow Make target::
 
@@ -144,22 +161,22 @@ To upload translations to transiflex use the follow Make target::
 See `config instructions <https://github.com/openedx/i18n-tools#transifex-commands>`_ for information on how to set up your
 transifex credentials.
 
-See `transifex documentation <https://docs.transifex.com/integrations/django>`_ for more details about integrating
+See `transifex documentation <https://developers.transifex.com/docs/django-file-based>`_ for more details about integrating
 django with transiflex.
 
  **Note:** The ``dev.run`` make target will automatically compile any translations.
 
  **Note:** To check if the source translation files (``.po``) are up-to-date run::
 
-     $ make detect_changed_source_translations
+    $ make detect_changed_source_translations
 
 4. Use ``gettext`` to translate strings
-========================================
+---------------------------------------
 
 Django will automatically use ``gettext`` and the compiled translations to translate strings.
 
 Troubleshooting
-****************
+~~~~~~~~~~~~~~~
 
 If there are any errors compiling ``.po`` files run the following command to validate your ``.po`` files::
 

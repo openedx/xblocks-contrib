@@ -16,11 +16,11 @@ asgiref==3.8.1
     #   django
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.35.3
+boto3==1.35.8
     # via
     #   -r requirements/base.txt
     #   fs-s3fs
-botocore==1.35.3
+botocore==1.35.8
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -68,7 +68,7 @@ fs-s3fs==1.1.1
     #   -r requirements/base.txt
     #   openedx-django-pyfs
     #   xblock-sdk
-idna==3.7
+idna==3.8
     # via requests
 iniconfig==2.0.0
     # via pytest
@@ -101,7 +101,7 @@ markupsafe==2.1.5
     #   xblock
 mdurl==0.1.2
     # via markdown-it-py
-openedx-django-pyfs @ git+https://github.com/irtazaakram/django-pyfs.git@py312-django51
+openedx-django-pyfs==3.7.0
     # via -r requirements/base.txt
 packaging==24.1
     # via pytest
@@ -109,7 +109,7 @@ path==16.16.0
     # via
     #   -r requirements/base.txt
     #   edx-i18n-tools
-pbr==6.0.0
+pbr==6.1.0
     # via stevedore
 pluggy==1.5.0
     # via pytest
@@ -154,7 +154,7 @@ requests==2.32.3
     # via
     #   cookiecutter
     #   xblock-sdk
-rich==13.7.1
+rich==13.8.0
     # via cookiecutter
 s3transfer==0.10.2
     # via
@@ -175,7 +175,7 @@ sqlparse==0.5.1
     # via
     #   -r requirements/base.txt
     #   django
-stevedore==5.2.0
+stevedore==5.3.0
     # via code-annotations
 text-unidecode==1.3
     # via python-slugify

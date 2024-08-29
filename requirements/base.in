@@ -4,7 +4,4 @@
 django-statici18n
 edx-i18n-tools
 XBlock
-# openedx-django-pyfs
-
-# temporary test related PR https://github.com/openedx/django-pyfs/pull/219
-git+https://github.com/irtazaakram/django-pyfs.git@py312-django51#egg=openedx-django-pyfs
+openedx-django-pyfs

@@ -66,11 +66,7 @@ extract_translations: ## extract strings to be translated, outputting .po files 
 	done
 
 compile_translations: ## compile translation files, outputting .mo files for each supported language for each XBlock
-	@for xblock in $(XBLOCKS); do \
-		echo "Compiling translations for $$xblock..."; \
-		cd $$xblock && i18n_tool generate; \
-		python ../../manage.py compilejsi18n --namespace Xblocks-contribI18n --output public/js; \
-	done
+	django-admin compilemessages --locale en
 
 detect_changed_source_translations:
 	@for xblock in $(XBLOCKS); do \
@@ -88,17 +84,11 @@ build_dummy_translations: dummy_translations compile_translations ## generate an
 
 validate_translations: build_dummy_translations detect_changed_source_translations ## validate translations
 
-pull_translations: ## pull translations from Transifex for each XBlock
-	@for xblock in $(XBLOCKS); do \
-		echo "Pulling translations for $$xblock..."; \
-		cd $$xblock && i18n_tool transifex pull; \
-	done
+pull_translations: ## pull translations from transifex
+	cd $(PACKAGE_NAME) && i18n_tool transifex pull
 
-push_translations: extract_translations ## push translations to Transifex for each XBlock
-	@for xblock in $(XBLOCKS); do \
-		echo "Pushing translations for $$xblock..."; \
-		cd $$xblock && i18n_tool transifex push; \
-	done
+push_translations: extract_translations ## push translations to transifex
+	cd $(PACKAGE_NAME) && i18n_tool transifex push
 
 install_transifex_client: ## Install the Transifex client
 	# Instaling client will skip CHANGELOG and LICENSE files from git changes
