@@ -100,6 +100,7 @@ from xblock.utils.resources import ResourceLoader
 resource_loader = ResourceLoader(__name__)
 
 
+# This Xblock is just to test the strucutre of xblocks-contrib
 @XBlock.needs('i18n')
 class $xblock_class(XBlock):
     """
@@ -123,7 +124,7 @@ class $xblock_class(XBlock):
     # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
-        Create primary view of the XBlock, shown to students when viewing courses.
+        Create primary view of the $xblock_class, shown to students when viewing courses.
         """
         if context:
             pass  # TO-DO: do something based on the context.
@@ -185,54 +186,72 @@ class $xblock_class(XBlock):
         Generate initial i18n with dummy method.
         """
         return translation.gettext_noop("Dummy")
-
 EOL
 
 # Add content to templates/xblock_name.html
 cat > "$html_file" <<EOL
+{% load i18n %}
+
 <div class="$xblock_name">
-<p>$xblock_class: count is now
-    <span class='count'>{self.count}</span> (click me to increment).
+<p>
+    $xblock_class: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}
 </p>
 </div>
 EOL
 
 # Add content to js file
 cat > "$js_file" <<EOL
-/* Javascript for $xblock_class. */
-function $xblock_class(runtime, element) {
 
-    function updateCount(result) {
+/* JavaScript for ${xblock_class}. */
+function ${xblock_class}(runtime, element) {
+    const updateCount = (result) => {
         \$('.count', element).text(result.count);
-    }
+    };
 
-    var handlerUrl = runtime.handlerUrl(element, 'increment_count');
+    const handlerUrl = runtime.handlerUrl(element, 'increment_count');
 
-    \$('p', element).click(function(eventObject) {
+    \$('p', element).on('click', (eventObject) => {
         \$.ajax({
-            type: "POST",
+            type: 'POST',
             url: handlerUrl,
-            data: JSON.stringify({"hello": "world"}),
+            contentType: 'application/json',
+            data: JSON.stringify({hello: 'world'}),
             success: updateCount
         });
     });
 
-    \$(function (\$) {
+    \$(() => {
         /*
         Use \`gettext\` provided by django-statici18n for static translations
-
-        var gettext = Xblocks-contribI18n.gettext;
         */
 
-        /* Here's where you'd do things on page load. */
+        // eslint-disable-next-line no-undef
+        const dummyText = gettext('Hello World');
 
-        // dummy_text is to have at least one string to translate in JS files. If you remove this line,
-        // and you don't have any other string to translate in JS files; then you must remove the (--merge-po-files)
-        // option from the "extract_translations" command in the Makefile
-        const dummy_text = gettext("Hello World");
+        // Example usage of interpolation for translated strings
+        // eslint-disable-next-line no-undef
+        const message = StringUtils.interpolate(
+            gettext('You are enrolling in {courseName}'),
+            {
+                courseName: 'Rock & Roll 101'
+            }
+        );
+        console.log(message); // This is just for demonstration purposes
     });
 }
+EOL
 
+# Add content to css file
+cat > "$css_file" <<EOL
+/* CSS for $xblock_class */
+
+.$xblock_name .count {
+    font-weight: bold;
+}
+
+.$xblock_name p {
+    cursor: pointer;
+}
 EOL
 
 # Add config file to .tx folder
@@ -258,4 +277,44 @@ insert_import_before_version "$import_entry" "$main_init_file"
 # Update xblock_name/__init__.py
 echo "$import_entry" > "$init_file"
 
-echo "XBlock $xblock_name with class $xblock_class created successfully."
+
+# Define test file paths and content
+tests_dir="tests"
+test_file="$tests_dir/test_${xblock_name}.py"
+
+# Create tests directory if it doesn't exist
+mkdir -p "$tests_dir"
+
+# Add content to test file
+cat > "$test_file" <<EOL
+"""
+Tests for ${xblock_class}
+"""
+
+
+from django.test import TestCase
+from xblock.fields import ScopeIds
+from xblock.test.toy_runtime import ToyRuntime
+
+from xblocks_contrib import ${xblock_class}
+
+
+class Test${xblock_class}(TestCase):
+    """Tests for ${xblock_class}"""
+
+    def test_my_student_view(self):
+        """Test the basic view loads."""
+        scope_ids = ScopeIds("1", "2", "3", "4")
+        block = ${xblock_class}(ToyRuntime(), scope_ids=scope_ids)
+        frag = block.student_view()
+        as_dict = frag.to_dict()
+        content = as_dict["content"]
+        self.assertIn(
+            "${xblock_class}: count is now",
+            content,
+            "XBlock did not render correct student view",
+        )
+EOL
+
+
+echo "XBlock $xblock_name with class $xblock_class created successfully, with test file generated."

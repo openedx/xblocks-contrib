@@ -35,14 +35,14 @@ class PollBlock(XBlock):
     # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
-        Create primary view of the PollBlock, shown to students when viewing courses.
+        Create primary view of the XBlock, shown to students when viewing courses.
         """
         if context:
             pass  # TO-DO: do something based on the context.
 
         frag = Fragment()
         frag.add_content(resource_loader.render_django_template(
-            'static/html/poll.html',
+            'templates/poll.html',
             {
                 'count': self.count,
             },
@@ -77,15 +77,15 @@ class PollBlock(XBlock):
         return [
             (
                 "PollBlock",
-                """<poll_xblock/>
+                """<poll_question_xblock/>
                 """,
             ),
             (
                 "Multiple PollBlock",
                 """<vertical_demo>
-                <poll_xblock/>
-                <poll_xblock/>
-                <poll_xblock/>
+                <poll_question_xblock/>
+                <poll_question_xblock/>
+                <poll_question_xblock/>
                 </vertical_demo>
                 """,
             ),

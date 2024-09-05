@@ -13,23 +13,15 @@ Historically, the XBlock code was tightly coupled with the edx-platform, making 
 By extracting XBlocks into this dedicated repository, we can reduce the complexity of the edx-platform, making it more maintainable and scalable.
 
 Xblocks being moved here are::
-    poll_question
-
-    word_cloud
-
-    annotatable
-
-    lti
-
-    html
-
-    discussion
-
-    problem
-
-    video
-
-    videoalpha
+* poll_question
+* word_cloud
+* annotatable
+* lti
+* html
+* discussion
+* problem
+* video
+* videoalpha
 
 
 Developing a new XBlock

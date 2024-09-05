@@ -1,33 +1,38 @@
-/* Javascript for PollBlock. */
+
+/* JavaScript for PollBlock. */
 function PollBlock(runtime, element) {
-
-    function updateCount(result) {
+    const updateCount = (result) => {
         $('.count', element).text(result.count);
-    }
+    };
 
-    var handlerUrl = runtime.handlerUrl(element, 'increment_count');
+    const handlerUrl = runtime.handlerUrl(element, 'increment_count');
 
-    $('p', element).click(function(eventObject) {
+    $('p', element).on('click', (eventObject) => {
         $.ajax({
-            type: "POST",
+            type: 'POST',
             url: handlerUrl,
-            data: JSON.stringify({"hello": "world"}),
+            contentType: 'application/json',
+            data: JSON.stringify({hello: 'world'}),
             success: updateCount
         });
     });
 
-    $(function ($) {
+    $(() => {
         /*
         Use `gettext` provided by django-statici18n for static translations
-
-        var gettext = PollBlocki18n.gettext;
         */
 
-        /* Here's where you'd do things on page load. */
+        // eslint-disable-next-line no-undef
+        const dummyText = gettext('Hello World');
 
-        // dummy_text is to have at least one string to translate in JS files. If you remove this line,
-        // and you don't have any other string to translate in JS files; then you must remove the (--merge-po-files)
-        // option from the "extract_translations" command in the Makefile
-        const dummy_text = gettext("Hello World");
+        // Example usage of interpolation for translated strings
+        // eslint-disable-next-line no-undef
+        const message = StringUtils.interpolate(
+            gettext('You are enrolling in {courseName}'),
+            {
+                courseName: 'Rock & Roll 101'
+            }
+        );
+        console.log(message); // This is just for demonstration purposes
     });
 }

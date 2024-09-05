@@ -194,7 +194,14 @@ setup(
     entry_points={
         "xblock.v1": [
             # _xblock suffix is added for testing only.
-            "poll_xblock = xblocks_contrib:PollBlock",
+            "annotatable_xblock = xblocks_contrib:AnnotatableBlock",
+            "discussion_xblock = xblocks_contrib:DiscussionXBlock",
+            "html_xblock = xblocks_contrib:HtmlBlock",
+            "lti_xblock = xblocks_contrib:LTIBlock",
+            "poll_question_xblock = xblocks_contrib:PollBlock",
+            "problem_xblock = xblocks_contrib:ProblemBlock",
+            "video_xblock = xblocks_contrib:VideoBlock",
+            "word_cloud_xblock = xblocks_contrib:WordCloudBlock",
         ]
     },
     package_data=package_data(
