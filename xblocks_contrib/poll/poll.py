@@ -77,15 +77,15 @@ class PollBlock(XBlock):
         return [
             (
                 "PollBlock",
-                """<poll_question_xblock/>
+                """<_poll_question_extracted/>
                 """,
             ),
             (
                 "Multiple PollBlock",
                 """<vertical_demo>
-                <poll_question_xblock/>
-                <poll_question_xblock/>
-                <poll_question_xblock/>
+                <_poll_question_extracted/>
+                <_poll_question_extracted/>
+                <_poll_question_extracted/>
                 </vertical_demo>
                 """,
             ),

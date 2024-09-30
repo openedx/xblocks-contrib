@@ -78,15 +78,15 @@ class VideoBlock(XBlock):
         return [
             (
                 "VideoBlock",
-                """<video_xblock/>
+                """<_video_extracted/>
                 """,
             ),
             (
                 "Multiple VideoBlock",
                 """<vertical_demo>
-                <video_xblock/>
-                <video_xblock/>
-                <video_xblock/>
+                <_video_extracted/>
+                <_video_extracted/>
+                <_video_extracted/>
                 </vertical_demo>
                 """,
             ),

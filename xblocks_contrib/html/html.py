@@ -77,15 +77,15 @@ class HtmlBlock(XBlock):
         return [
             (
                 "HtmlBlock",
-                """<html_xblock/>
+                """<_html_extracted/>
                 """,
             ),
             (
                 "Multiple HtmlBlock",
                 """<vertical_demo>
-                <html_xblock/>
-                <html_xblock/>
-                <html_xblock/>
+                <_html_extracted/>
+                <_html_extracted/>
+                <_html_extracted/>
                 </vertical_demo>
                 """,
             ),

@@ -19,10 +19,10 @@ The XBlocks will be extracted from the edx-platform and placed in this repositor
 Consequences
 ************
 
-    - Easier refactoring, testing, and development of XBlocks.
-    - Simplified edx-platform leading to potential performance improvements and reduced complexity.
-
-    - Potential challenges in synchronizing changes across multiple repositories.
+- Easier refactoring, testing, and development of XBlocks.
+- Simplified edx-platform leading to potential performance improvements and reduced complexity.
+- Potential challenges in synchronizing changes across multiple repositories.
+- xblock Sass and JS can be removed from the legacy edx-platform static assets build.
 
 References
 **********

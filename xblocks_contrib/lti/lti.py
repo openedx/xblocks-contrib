@@ -77,15 +77,15 @@ class LTIBlock(XBlock):
         return [
             (
                 "LTIBlock",
-                """<lti_xblock/>
+                """<_lti_extracted/>
                 """,
             ),
             (
                 "Multiple LTIBlock",
                 """<vertical_demo>
-                <lti_xblock/>
-                <lti_xblock/>
-                <lti_xblock/>
+                <_lti_extracted/>
+                <_lti_extracted/>
+                <_lti_extracted/>
                 </vertical_demo>
                 """,
             ),

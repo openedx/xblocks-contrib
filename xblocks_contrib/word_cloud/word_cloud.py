@@ -77,15 +77,15 @@ class WordCloudBlock(XBlock):
         return [
             (
                 "WordCloudBlock",
-                """<word_cloud_xblock/>
+                """<_word_cloud_extracted/>
                 """,
             ),
             (
                 "Multiple WordCloudBlock",
                 """<vertical_demo>
-                <word_cloud_xblock/>
-                <word_cloud_xblock/>
-                <word_cloud_xblock/>
+                <_word_cloud_extracted/>
+                <_word_cloud_extracted/>
+                <_word_cloud_extracted/>
                 </vertical_demo>
                 """,
             ),

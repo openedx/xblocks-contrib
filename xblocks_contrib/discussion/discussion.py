@@ -77,15 +77,15 @@ class DiscussionXBlock(XBlock):
         return [
             (
                 "DiscussionXBlock",
-                """<discussion_xblock/>
+                """<_discussion_extracted/>
                 """,
             ),
             (
                 "Multiple DiscussionXBlock",
                 """<vertical_demo>
-                <discussion_xblock/>
-                <discussion_xblock/>
-                <discussion_xblock/>
+                <_discussion_extracted/>
+                <_discussion_extracted/>
+                <_discussion_extracted/>
                 </vertical_demo>
                 """,
             ),

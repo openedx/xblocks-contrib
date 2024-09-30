@@ -77,15 +77,15 @@ class AnnotatableBlock(XBlock):
         return [
             (
                 "AnnotatableBlock",
-                """<annotatable_xblock/>
+                """<_annotatable_extracted/>
                 """,
             ),
             (
                 "Multiple AnnotatableBlock",
                 """<vertical_demo>
-                <annotatable_xblock/>
-                <annotatable_xblock/>
-                <annotatable_xblock/>
+                <_annotatable_extracted/>
+                <_annotatable_extracted/>
+                <_annotatable_extracted/>
                 </vertical_demo>
                 """,
             ),

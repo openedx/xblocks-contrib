@@ -193,15 +193,15 @@ setup(
     ],
     entry_points={
         "xblock.v1": [
-            # _xblock suffix is added for testing only.
-            "annotatable_xblock = xblocks_contrib:AnnotatableBlock",
-            "discussion_xblock = xblocks_contrib:DiscussionXBlock",
-            "html_xblock = xblocks_contrib:HtmlBlock",
-            "lti_xblock = xblocks_contrib:LTIBlock",
-            "poll_question_xblock = xblocks_contrib:PollBlock",
-            "problem_xblock = xblocks_contrib:ProblemBlock",
-            "video_xblock = xblocks_contrib:VideoBlock",
-            "word_cloud_xblock = xblocks_contrib:WordCloudBlock",
+            # _extracted suffix is added for testing only.
+            "_annotatable_extracted = xblocks_contrib:AnnotatableBlock",
+            "_discussion_extracted = xblocks_contrib:DiscussionXBlock",
+            "_html_extracted = xblocks_contrib:HtmlBlock",
+            "_lti_extracted = xblocks_contrib:LTIBlock",
+            "_poll_question_extracted = xblocks_contrib:PollBlock",
+            "_problem_extracted = xblocks_contrib:ProblemBlock",
+            "_video_extracted = xblocks_contrib:VideoBlock",
+            "_word_cloud_extracted = xblocks_contrib:WordCloudBlock",
         ]
     },
     package_data=package_data(

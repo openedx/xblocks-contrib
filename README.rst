@@ -12,16 +12,26 @@ XBlocks are modular components that enable rich interactive learning experiences
 Historically, the XBlock code was tightly coupled with the edx-platform, making it challenging to manage and extend.
 By extracting XBlocks into this dedicated repository, we can reduce the complexity of the edx-platform, making it more maintainable and scalable.
 
-Xblocks being moved here are::
-* poll_question
-* word_cloud
-* annotatable
-* lti
-* html
-* discussion
-* problem
-* video
-* videoalpha
+XBlocks Being Moved Here
+************************
+
+These are the XBlocks being moved here, and each of their statuses:
+
+* ``poll_question`` -- Placeholder
+* ``word_cloud`` -- Placeholder
+* ``annotatable`` -- Placeholder
+* ``lti`` -- Placeholder
+* ``html`` -- Placeholder
+* ``discussion`` -- Placeholder
+* ``problem`` -- Placeholder
+* ``video`` -- Placeholder
+
+The possible XBlock statuses are:
+
+* Placeholder: It's just a cookiecutter thumbs-up block.
+* In Development: We're building and testing this block.
+* Ready to Use: You can try this on your site using the Waffle flag.
+* Done The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
 
 
 Developing a new XBlock

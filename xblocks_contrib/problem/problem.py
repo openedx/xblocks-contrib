@@ -77,15 +77,15 @@ class ProblemBlock(XBlock):
         return [
             (
                 "ProblemBlock",
-                """<problem_xblock/>
+                """<_problem_extracted/>
                 """,
             ),
             (
                 "Multiple ProblemBlock",
                 """<vertical_demo>
-                <problem_xblock/>
-                <problem_xblock/>
-                <problem_xblock/>
+                <_problem_extracted/>
+                <_problem_extracted/>
+                <_problem_extracted/>
                 </vertical_demo>
                 """,
             ),
