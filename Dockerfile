@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY . /usr/local/src/xblocks-contrib/
 
-RUN pip install -r requirements/dev.txt && pip install -e .
+RUN pip install -r requirements/dev.txt && pip install --force-reinstall -e .
 RUN make compile_translations
 
 ENTRYPOINT ["bash", "-c", "python /usr/local/src/xblock-sdk/manage.py migrate && exec python /usr/local/src/xblock-sdk/manage.py runserver 0.0.0.0:8000"]

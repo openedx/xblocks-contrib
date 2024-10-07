@@ -112,6 +112,10 @@ The ``text.po`` file is created from the ``django-partial.po`` file created by
 ``django-admin makemessages`` (`makemessages documentation <https://docs.djangoproject.com/en/5.1/topics/i18n/translation/#message-files>`_),
 this is why you will not see a ``django-partial.po`` file.
 
+You will need to have `edx-i18n-tools` that you can get by:
+
+    $ make requirements
+
 3. Create language specific translations
 ----------------------------------------
 
