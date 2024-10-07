@@ -15,15 +15,11 @@ insert_in_alphabetical_order() {
       indent = substr($0, RSTART, RLENGTH)
     }
     while (getline > 0) {
-      if ($0 ~ /^\s*\]/) {
-        if (added == 0) {
-          print indent new_entry ","
-          added = 1
-        }
-        print
-        next
+      if ($0 ~ /^\s*\]/ && !added) {
+        print indent new_entry ","
+        added = 1
       }
-      if (added == 0 && $0 > indent new_entry) {
+      if (!added && $0 > indent new_entry) {
         print indent new_entry ","
         added = 1
       }
@@ -43,9 +39,8 @@ insert_import_before_version() {
   awk -v new_import="$import_entry" '
   BEGIN { added = 0 }
   {
-    if (added == 0 && /^__version__/) {
-      print new_import
-      print ""
+    if (!added && /^__version__/) {
+      print new_import "\n"
       added = 1
     }
     print
@@ -53,7 +48,7 @@ insert_import_before_version() {
   ' "$init_file" > temp_init.py && mv temp_init.py "$init_file"
 }
 
-# Prompt user for input
+# Prompt user for XBlock name and class
 read -p "Enter XBlock name e.g thumbs: " xblock_name
 read -p "Enter XBlock class e.g ThumbsXBlock: " xblock_class
 
@@ -61,36 +56,26 @@ read -p "Enter XBlock class e.g ThumbsXBlock: " xblock_class
 base_dir="xblocks_contrib/$xblock_name"
 init_file="$base_dir/__init__.py"
 xblock_file="$base_dir/$xblock_name.py"
-tx_dir="$base_dir/.tx"
 static_dir="$base_dir/static"
-css_file="$static_dir/css/$xblock_name.css"
-js_file="$static_dir/js/src/$xblock_name.js"
 templates_dir="$base_dir/templates"
-html_file="$templates_dir/$xblock_name.html"
+conf_locale_dir="$base_dir/conf/locale"
+tests_dir="$base_dir/tests"
 setup_file="setup.py"
 main_init_file="xblocks_contrib/__init__.py"
-conf_locale_dir="$base_dir/conf/locale"
 utils_config_file="utils/config.yaml"
 
 # Create directories
-mkdir -p "$base_dir" "$tx_dir" "$static_dir/css" "$static_dir/js" "$static_dir/js/src" "$templates_dir" "$conf_locale_dir"
+mkdir -p "$base_dir" "$static_dir/css" "$static_dir/js/src" "$templates_dir" "$conf_locale_dir" "$tests_dir"
 
 # Create empty files
-touch "$init_file" "$xblock_file" "$css_file" "$js_file" "$html_file" "$conf_locale_dir/__init__.py"
+touch "$init_file" "$xblock_file" "$static_dir/css/$xblock_name.css" "$static_dir/js/src/$xblock_name.js" "$templates_dir/$xblock_name.html" "$conf_locale_dir/__init__.py"
 
-# Copy config.yaml from utils folder to conf/locale
-if [ -f "$utils_config_file" ]; then
-  cp "$utils_config_file" "$conf_locale_dir/"
-else
-  echo "Warning: $utils_config_file does not exist."
-fi
+# Copy config.yaml to conf/locale if it exists
+[ -f "$utils_config_file" ] && cp "$utils_config_file" "$conf_locale_dir/" || echo "Warning: $utils_config_file does not exist."
 
-# Add content to xblock.py
+# Populate XBlock file with content
 cat > "$xblock_file" <<EOL
-"""TO-DO: Write a description of what this XBlock is."""
-
 from importlib.resources import files
-
 from django.utils import translation
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
@@ -99,222 +84,82 @@ from xblock.utils.resources import ResourceLoader
 
 resource_loader = ResourceLoader(__name__)
 
-
-# This Xblock is just to test the strucutre of xblocks-contrib
-@XBlock.needs('i18n')
+@XBlock.needs("i18n")
 class $xblock_class(XBlock):
-    """
-    TO-DO: document what your XBlock does.
-    """
+    count = Integer(default=0, scope=Scope.user_state, help="A simple counter")
 
-    # Fields are defined on the class.  You can access them in your code as
-    # self.<fieldname>.
-
-    # TO-DO: delete count, and define your own fields.
-    count = Integer(
-        default=0,
-        scope=Scope.user_state,
-        help="A simple counter, to show something happening",
-    )
+    is_extracted = True
 
     def resource_string(self, path):
-        """Handy helper for getting resources from our kit."""
         return files(__package__).joinpath(path).read_text(encoding="utf-8")
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
-        """
-        Create primary view of the $xblock_class, shown to students when viewing courses.
-        """
-        if context:
-            pass  # TO-DO: do something based on the context.
-
         frag = Fragment()
         frag.add_content(resource_loader.render_django_template(
-            'templates/$xblock_name.html',
-            {
-                'count': self.count,
-            },
-            i18n_service=self.runtime.service(self, 'i18n')
+            "templates/$xblock_name.html", {"count": self.count},
+            i18n_service=self.runtime.service(self, "i18n")
         ))
-
         frag.add_css(self.resource_string("static/css/$xblock_name.css"))
         frag.add_javascript(self.resource_string("static/js/src/$xblock_name.js"))
         frag.initialize_js("$xblock_class")
         return frag
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
     def increment_count(self, data, suffix=""):
-        """
-        Increments data. An example handler.
-        """
-        if suffix:
-            pass  # TO-DO: Use the suffix when storing data.
-        # Just to show data coming in...
-        assert data["hello"] == "world"
-
         self.count += 1
         return {"count": self.count}
 
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
     @staticmethod
     def workbench_scenarios():
-        """Create canned scenario for display in the workbench."""
         return [
-            (
-                "$xblock_class",
-                """<$xblock_name/>
-                """,
-            ),
-            (
-                "Multiple $xblock_class",
-                """<vertical_demo>
-                <$xblock_name/>
-                <$xblock_name/>
-                <$xblock_name/>
-                </vertical_demo>
-                """,
-            ),
+            ("$xblock_class", "<$xblock_name/>"),
+            ("Multiple $xblock_class", "<vertical_demo><$xblock_name/><$xblock_name/><$xblock_name/></vertical_demo>")
         ]
-
-    @staticmethod
-    def get_dummy():
-        """
-        Generate initial i18n with dummy method.
-        """
-        return translation.gettext_noop("Dummy")
 EOL
 
-# Add content to templates/xblock_name.html
-cat > "$html_file" <<EOL
+# Populate template HTML
+cat > "$templates_dir/$xblock_name.html" <<EOL
 {% load i18n %}
-
 <div class="$xblock_name">
-<p>
-    $xblock_class: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}
-</p>
+    <p>$xblock_class: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}</p>
 </div>
 EOL
 
-# Add content to js file
-cat > "$js_file" <<EOL
-
-/* JavaScript for ${xblock_class}. */
+# Populate JavaScript file
+cat > "$static_dir/js/src/$xblock_name.js" <<EOL
 function ${xblock_class}(runtime, element) {
-    const updateCount = (result) => {
-        \$('.count', element).text(result.count);
-    };
-
+    const updateCount = (result) => { \$('.count', element).text(result.count); };
     const handlerUrl = runtime.handlerUrl(element, 'increment_count');
-
-    \$('p', element).on('click', (eventObject) => {
-        \$.ajax({
-            type: 'POST',
-            url: handlerUrl,
-            contentType: 'application/json',
-            data: JSON.stringify({hello: 'world'}),
-            success: updateCount
-        });
-    });
-
-    \$(() => {
-        /*
-        Use \`gettext\` provided by django-statici18n for static translations
-        */
-
-        // eslint-disable-next-line no-undef
-        const dummyText = gettext('Hello World');
-
-        // Example usage of interpolation for translated strings
-        // eslint-disable-next-line no-undef
-        const message = StringUtils.interpolate(
-            gettext('You are enrolling in {courseName}'),
-            {
-                courseName: 'Rock & Roll 101'
-            }
-        );
-        console.log(message); // This is just for demonstration purposes
+    \$('p', element).on('click', () => {
+        \$.ajax({ type: 'POST', url: handlerUrl, contentType: 'application/json', data: JSON.stringify({hello: 'world'}), success: updateCount });
     });
 }
 EOL
 
-# Add content to css file
-cat > "$css_file" <<EOL
-/* CSS for $xblock_class */
-
-.$xblock_name .count {
-    font-weight: bold;
-}
-
-.$xblock_name p {
-    cursor: pointer;
-}
+# Populate CSS file
+cat > "$static_dir/css/$xblock_name.css" <<EOL
+.$xblock_name .count { font-weight: bold; }
+.$xblock_name p { cursor: pointer; }
 EOL
 
-# Add config file to .tx folder
-cat > "$tx_dir/config" <<EOL
-[main]
-host = https://www.transifex.com
-
-[o:open-edx:p:p:xblocks:r:$xblock_name]
-file_filter = $xblock_name/translations/<lang>/LC_MESSAGES/text.po
-source_file = $xblock_name/translations/en/LC_MESSAGES/text.po
-source_lang = en
-type        = PO
-EOL
-
-# Update setup.py
-entry="\"$xblock_name = xblocks_contrib:$xblock_class\""
-insert_in_alphabetical_order "$entry" "$setup_file"
-
-# Update xblocks_contrib/__init__.py
-import_entry="from .${xblock_name} import ${xblock_class}"
-insert_import_before_version "$import_entry" "$main_init_file"
-
-# Update xblock_name/__init__.py
-echo "$import_entry" > "$init_file"
-
-
-# Define test file paths and content
-tests_dir="tests"
-test_file="$tests_dir/test_${xblock_name}.py"
-
-# Create tests directory if it doesn't exist
-mkdir -p "$tests_dir"
-
-# Add content to test file
-cat > "$test_file" <<EOL
-"""
-Tests for ${xblock_class}
-"""
-
-
+# Populate test file in the XBlock tests directory
+cat > "$tests_dir/test_${xblock_name}.py" <<EOL
 from django.test import TestCase
 from xblock.fields import ScopeIds
 from xblock.test.toy_runtime import ToyRuntime
-
 from xblocks_contrib import ${xblock_class}
 
 
 class Test${xblock_class}(TestCase):
-    """Tests for ${xblock_class}"""
-
     def test_my_student_view(self):
-        """Test the basic view loads."""
-        scope_ids = ScopeIds("1", "2", "3", "4")
-        block = ${xblock_class}(ToyRuntime(), scope_ids=scope_ids)
+        block = ${xblock_class}(ToyRuntime(), scope_ids=ScopeIds("1", "2", "3", "4"))
         frag = block.student_view()
-        as_dict = frag.to_dict()
-        content = as_dict["content"]
-        self.assertIn(
-            "${xblock_class}: count is now",
-            content,
-            "XBlock did not render correct student view",
-        )
+        self.assertIn("${xblock_class}: count is now", frag.to_dict()["content"])
 EOL
 
+# Insert XBlock entry in setup.py and __init__.py
+insert_in_alphabetical_order "\"$xblock_name = xblocks_contrib:$xblock_class\"" "$setup_file"
+insert_import_before_version "from .${xblock_name} import ${xblock_class}" "$main_init_file"
+echo "from .${xblock_name} import ${xblock_class}" > "$init_file"
 
-echo "XBlock $xblock_name with class $xblock_class created successfully, with test file generated."
+echo "XBlock $xblock_name created successfully with test file."

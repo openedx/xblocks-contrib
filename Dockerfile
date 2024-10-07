@@ -4,14 +4,20 @@
 # - `make dev.build`: Builds the Docker image for the XBlock SDK environment.
 # - `make dev.run`: Cleans, builds, and runs the container, mapping the local project directory.
 
-FROM openedx/xblock-sdk
-RUN mkdir -p /usr/local/src/xblocks-contrib
+FROM openedx/xblock-sdk:latest
+
+WORKDIR /usr/local/src/xblocks-contrib
 VOLUME ["/usr/local/src/xblocks-contrib"]
-RUN apt-get update && apt-get install -y gettext
-RUN echo "pip install -r /usr/local/src/xblocks-contrib/requirements/dev.txt" >> /usr/local/src/xblock-sdk/install_and_run_xblock.sh
-RUN echo "pip install -e /usr/local/src/xblocks-contrib" >> /usr/local/src/xblock-sdk/install_and_run_xblock.sh
-RUN echo "cd /usr/local/src/xblocks-contrib && make compile_translations && cd /usr/local/src/xblock-sdk" >> /usr/local/src/xblock-sdk/install_and_run_xblock.sh
-RUN echo "exec python /usr/local/src/xblock-sdk/manage.py \"\$@\"" >> /usr/local/src/xblock-sdk/install_and_run_xblock.sh
-RUN chmod +x /usr/local/src/xblock-sdk/install_and_run_xblock.sh
-ENTRYPOINT ["/bin/bash", "/usr/local/src/xblock-sdk/install_and_run_xblock.sh"]
-CMD ["runserver", "0.0.0.0:8000"]
+
+RUN apt-get update && apt-get install -y \
+    gettext \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /usr/local/src/xblocks-contrib/
+
+RUN pip install -r requirements/dev.txt && pip install -e .
+RUN make compile_translations
+
+ENTRYPOINT ["bash", "-c", "python /usr/local/src/xblock-sdk/manage.py migrate && exec python /usr/local/src/xblock-sdk/manage.py runserver 0.0.0.0:8000"]
+EXPOSE 8000
