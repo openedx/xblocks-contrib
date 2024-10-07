@@ -29,9 +29,8 @@ class VideoBlock(XBlock):
         help="A simple counter, to show something happening",
     )
 
-    is_extracted = (
-        True  # Indicates that this XBlock has been extracted from edx-platform.
-    )
+    # Indicates that this XBlock has been extracted from edx-platform.
+    is_extracted = True
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
