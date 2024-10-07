@@ -195,6 +195,7 @@ setup(
     ],
     entry_points={
         "xblock.v1": [
+            # _extracted suffix is added for testing only.
             "_annotatable_extracted = xblocks_contrib:AnnotatableBlock",
             "_discussion_extracted = xblocks_contrib:DiscussionXBlock",
             "_html_extracted = xblocks_contrib:HtmlBlock",

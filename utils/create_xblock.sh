@@ -10,15 +10,21 @@ insert_in_alphabetical_order() {
   /entry_points/ { print; next }
   /"xblock.v1"/ {
     print;
-    getline
+    getline;
+    # Determine the indentation level
     if (match($0, /^[ \t]+/)) {
       indent = substr($0, RSTART, RLENGTH)
     }
+    # Iterate over the lines inside the xblock.v1 list
     while (getline > 0) {
+      # Stop when reaching the end of the list
       if ($0 ~ /^\s*\]/ && !added) {
         print indent new_entry ","
         added = 1
+        print $0  # Print the closing bracket
+        next
       }
+      # Insert the new entry if it fits alphabetically
       if (!added && $0 > indent new_entry) {
         print indent new_entry ","
         added = 1
@@ -75,7 +81,10 @@ touch "$init_file" "$xblock_file" "$static_dir/css/$xblock_name.css" "$static_di
 
 # Populate XBlock file with content
 cat > "$xblock_file" <<EOL
+"""TO-DO: Write a description of what this XBlock is."""
+
 from importlib.resources import files
+
 from django.utils import translation
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
@@ -84,82 +93,207 @@ from xblock.utils.resources import ResourceLoader
 
 resource_loader = ResourceLoader(__name__)
 
+
+# This Xblock is just to test the strucutre of xblocks-contrib
 @XBlock.needs("i18n")
 class $xblock_class(XBlock):
-    count = Integer(default=0, scope=Scope.user_state, help="A simple counter")
+    """
+    TO-DO: document what your XBlock does.
+    """
 
-    is_extracted = True
+    # Fields are defined on the class.  You can access them in your code as
+    # self.<fieldname>.
+
+    # TO-DO: delete count, and define your own fields.
+    count = Integer(
+        default=0,
+        scope=Scope.user_state,
+        help="A simple counter, to show something happening",
+    )
+
+    is_extracted = (
+        True  # Indicates that this XBlock has been extracted from edx-platform.
+    )
 
     def resource_string(self, path):
+        """Handy helper for getting resources from our kit."""
         return files(__package__).joinpath(path).read_text(encoding="utf-8")
 
+    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
+        """
+        Create primary view of the $xblock_class, shown to students when viewing courses.
+        """
+        if context:
+            pass  # TO-DO: do something based on the context.
+
         frag = Fragment()
-        frag.add_content(resource_loader.render_django_template(
-            "templates/$xblock_name.html", {"count": self.count},
-            i18n_service=self.runtime.service(self, "i18n")
-        ))
+        frag.add_content(
+            resource_loader.render_django_template(
+                "templates/$xblock_name.html",
+                {
+                    "count": self.count,
+                },
+                i18n_service=self.runtime.service(self, "i18n"),
+            )
+        )
+
         frag.add_css(self.resource_string("static/css/$xblock_name.css"))
         frag.add_javascript(self.resource_string("static/js/src/$xblock_name.js"))
         frag.initialize_js("$xblock_class")
         return frag
 
+    # TO-DO: change this handler to perform your own actions.  You may need more
+    # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
     def increment_count(self, data, suffix=""):
+        """
+        Increments data. An example handler.
+        """
+        if suffix:
+            pass  # TO-DO: Use the suffix when storing data.
+        # Just to show data coming in...
+        assert data["hello"] == "world"
+
         self.count += 1
         return {"count": self.count}
 
+    # TO-DO: change this to create the scenarios you'd like to see in the
+    # workbench while developing your XBlock.
     @staticmethod
     def workbench_scenarios():
+        """Create canned scenario for display in the workbench."""
         return [
-            ("$xblock_class", "<$xblock_name/>"),
-            ("Multiple $xblock_class", "<vertical_demo><$xblock_name/><$xblock_name/><$xblock_name/></vertical_demo>")
+            (
+                "$xblock_class",
+                """<$xblock_name/>
+                """,
+            ),
+            (
+                "Multiple $xblock_class",
+                """<vertical_demo>
+                <$xblock_name/>
+                <$xblock_name/>
+                <$xblock_name/>
+                </vertical_demo>
+                """,
+            ),
         ]
+
+    @staticmethod
+    def get_dummy():
+        """
+        Generate initial i18n with dummy method.
+        """
+        return translation.gettext_noop("Dummy")
 EOL
 
 # Populate template HTML
 cat > "$templates_dir/$xblock_name.html" <<EOL
 {% load i18n %}
+
 <div class="$xblock_name">
-    <p>$xblock_class: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}</p>
+<p>
+    $xblock_class: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}
+</p>
 </div>
 EOL
 
 # Populate JavaScript file
 cat > "$static_dir/js/src/$xblock_name.js" <<EOL
-function ${xblock_class}(runtime, element) {
-    const updateCount = (result) => { \$('.count', element).text(result.count); };
+/* JavaScript for $xblock_class. */
+function $xblock_class(runtime, element) {
+    const updateCount = (result) => {
+        \$('.count', element).text(result.count);
+    };
+
     const handlerUrl = runtime.handlerUrl(element, 'increment_count');
-    \$('p', element).on('click', () => {
-        \$.ajax({ type: 'POST', url: handlerUrl, contentType: 'application/json', data: JSON.stringify({hello: 'world'}), success: updateCount });
+
+    \$('p', element).on('click', (eventObject) => {
+        \$.ajax({
+            type: 'POST',
+            url: handlerUrl,
+            contentType: 'application/json',
+            data: JSON.stringify({hello: 'world'}),
+            success: updateCount
+        });
+    });
+
+    \$(() => {
+        /*
+        Use \`gettext\` provided by django-statici18n for static translations
+        */
+
+        // eslint-disable-next-line no-undef
+        const dummyText = gettext('Hello World');
+
+        // Example usage of interpolation for translated strings
+        // eslint-disable-next-line no-undef
+        const message = StringUtils.interpolate(
+            gettext('You are enrolling in {courseName}'),
+            {
+                courseName: 'Rock & Roll 101'
+            }
+        );
+        console.log(message); // This is just for demonstration purposes
     });
 }
 EOL
 
 # Populate CSS file
 cat > "$static_dir/css/$xblock_name.css" <<EOL
-.$xblock_name .count { font-weight: bold; }
-.$xblock_name p { cursor: pointer; }
+/* CSS for $xblock_class */
+
+.$xblock_name .count {
+    font-weight: bold;
+}
+
+.$xblock_name p {
+    cursor: pointer;
+}
 EOL
 
 # Populate test file in the XBlock tests directory
 cat > "$tests_dir/test_${xblock_name}.py" <<EOL
+"""
+Tests for $xblock_class
+"""
+
 from django.test import TestCase
 from xblock.fields import ScopeIds
 from xblock.test.toy_runtime import ToyRuntime
-from xblocks_contrib import ${xblock_class}
+
+from xblocks_contrib import $xblock_class
 
 
-class Test${xblock_class}(TestCase):
+class Test$xblock_class(TestCase):
+    """Tests for $xblock_class"""
+
     def test_my_student_view(self):
-        block = ${xblock_class}(ToyRuntime(), scope_ids=ScopeIds("1", "2", "3", "4"))
+        """Test the basic view loads."""
+        scope_ids = ScopeIds("1", "2", "3", "4")
+        block = $xblock_class(ToyRuntime(), scope_ids=scope_ids)
         frag = block.student_view()
-        self.assertIn("${xblock_class}: count is now", frag.to_dict()["content"])
+        as_dict = frag.to_dict()
+        content = as_dict["content"]
+        self.assertIn(
+            "$xblock_class: count is now",
+            content,
+            "XBlock did not render correct student view",
+        )
 EOL
 
-# Insert XBlock entry in setup.py and __init__.py
+# Populate __init__.py file in the XBlock directory
+cat > "$init_file" <<EOL
+"""
+Init for the $xblock_class.
+"""
+
+from .${xblock_name} import ${xblock_class}
+EOL
+
+# Insert XBlock entry in setup.py
 insert_in_alphabetical_order "\"$xblock_name = xblocks_contrib:$xblock_class\"" "$setup_file"
 insert_import_before_version "from .${xblock_name} import ${xblock_class}" "$main_init_file"
-echo "from .${xblock_name} import ${xblock_class}" > "$init_file"
 
 echo "XBlock $xblock_name created successfully with test file."
