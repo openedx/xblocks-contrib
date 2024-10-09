@@ -136,7 +136,7 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
             # TODO: Add i188n
             # i18n_service = self.runtime.service(self, 'i18n')
         ))
-        frag.add_css(resource_loader.load_unicode("static/css/word_cloud.css.css"))
+        frag.add_css(resource_loader.load_unicode("static/css/word_cloud.css"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/word_cloud.js"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/d3.min.js"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/d3.layout.cloud.js"))
