@@ -131,15 +131,17 @@ def is_requirement(line):
     )
 
 
-def package_data(pkg, roots, sub_roots):
+def package_data(pkg, sub_roots):
     """
-    Declare package_data based on `roots`.
+    Declare package_data based on all root directories inside `pkg`.
 
-    All of the files under each of the `roots` will be declared as package
-    data for package `pkg`.
+    All of the files under each of the sub_roots for every root directory
+    inside `pkg` will be declared as package data for package `pkg`.
 
     """
     data = []
+    roots = [d for d in os.listdir(pkg) if os.path.isdir(os.path.join(pkg, d))]
+
     for root in roots:
         for sub_root in sub_roots:
             for dirname, _, files in os.walk(os.path.join(pkg, root, sub_root)):
@@ -193,18 +195,16 @@ setup(
     ],
     entry_points={
         "xblock.v1": [
-            # _xblock suffix is added for testing only.
-            "annotatable_xblock = xblocks_contrib:AnnotatableBlock",
-            "discussion_xblock = xblocks_contrib:DiscussionXBlock",
-            "html_xblock = xblocks_contrib:HtmlBlock",
-            "lti_xblock = xblocks_contrib:LTIBlock",
-            "poll_question_xblock = xblocks_contrib:PollBlock",
-            "problem_xblock = xblocks_contrib:ProblemBlock",
-            "video_xblock = xblocks_contrib:VideoBlock",
-            "word_cloud_xblock = xblocks_contrib:WordCloudBlock",
+            # _extracted suffix is added for testing only.
+            "_annotatable_extracted = xblocks_contrib:AnnotatableBlock",
+            "_discussion_extracted = xblocks_contrib:DiscussionXBlock",
+            "_html_extracted = xblocks_contrib:HtmlBlock",
+            "_lti_extracted = xblocks_contrib:LTIBlock",
+            "_poll_question_extracted = xblocks_contrib:PollBlock",
+            "_problem_extracted = xblocks_contrib:ProblemBlock",
+            "_video_extracted = xblocks_contrib:VideoBlock",
+            "_word_cloud_extracted = xblocks_contrib:WordCloudBlock",
         ]
     },
-    package_data=package_data(
-        "xblocks_contrib", ["annotatable", "poll"], ["static", "public", "templates"]
-    ),
+    package_data=package_data("xblocks_contrib", ["static", "public", "templates"]),
 )

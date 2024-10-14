@@ -12,7 +12,7 @@ resource_loader = ResourceLoader(__name__)
 
 
 # This Xblock is just to test the strucutre of xblocks-contrib
-@XBlock.needs('i18n')
+@XBlock.needs("i18n")
 class AnnotatableBlock(XBlock):
     """
     TO-DO: document what your XBlock does.
@@ -28,6 +28,9 @@ class AnnotatableBlock(XBlock):
         help="A simple counter, to show something happening",
     )
 
+    # Indicates that this XBlock has been extracted from edx-platform.
+    is_extracted = True
+
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         return files(__package__).joinpath(path).read_text(encoding="utf-8")
@@ -41,13 +44,15 @@ class AnnotatableBlock(XBlock):
             pass  # TO-DO: do something based on the context.
 
         frag = Fragment()
-        frag.add_content(resource_loader.render_django_template(
-            'templates/annotatable.html',
-            {
-                'count': self.count,
-            },
-            i18n_service=self.runtime.service(self, 'i18n')
-        ))
+        frag.add_content(
+            resource_loader.render_django_template(
+                "templates/annotatable.html",
+                {
+                    "count": self.count,
+                },
+                i18n_service=self.runtime.service(self, "i18n"),
+            )
+        )
 
         frag.add_css(self.resource_string("static/css/annotatable.css"))
         frag.add_javascript(self.resource_string("static/js/src/annotatable.js"))
@@ -77,15 +82,15 @@ class AnnotatableBlock(XBlock):
         return [
             (
                 "AnnotatableBlock",
-                """<annotatable_xblock/>
+                """<_annotatable_extracted/>
                 """,
             ),
             (
                 "Multiple AnnotatableBlock",
                 """<vertical_demo>
-                <annotatable_xblock/>
-                <annotatable_xblock/>
-                <annotatable_xblock/>
+                <_annotatable_extracted/>
+                <_annotatable_extracted/>
+                <_annotatable_extracted/>
                 </vertical_demo>
                 """,
             ),
