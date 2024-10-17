@@ -13,11 +13,7 @@ resource_loader = ResourceLoader(__name__)
 # This Xblock is just to test the strucutre of xblocks-contrib
 
 
-<<<<<<< HEAD
-@XBlock.needs('i18n')
-=======
 @XBlock.needs("i18n")
->>>>>>> origin/main
 class VideoBlock(XBlock):
     """
     TO-DO: document what your XBlock does.
@@ -33,12 +29,9 @@ class VideoBlock(XBlock):
         help="A simple counter, to show something happening",
     )
 
-<<<<<<< HEAD
-=======
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
 
->>>>>>> origin/main
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         return files(__package__).joinpath(path).read_text(encoding="utf-8")
@@ -52,15 +45,6 @@ class VideoBlock(XBlock):
             pass  # TO-DO: do something based on the context.
 
         frag = Fragment()
-<<<<<<< HEAD
-        frag.add_content(resource_loader.render_django_template(
-            'templates/video.html',
-            {
-                'count': self.count,
-            },
-            i18n_service=self.runtime.service(self, 'i18n')
-        ))
-=======
         frag.add_content(
             resource_loader.render_django_template(
                 "templates/video.html",
@@ -70,7 +54,6 @@ class VideoBlock(XBlock):
                 i18n_service=self.runtime.service(self, "i18n"),
             )
         )
->>>>>>> origin/main
 
         frag.add_css(self.resource_string("static/css/video.css"))
         frag.add_javascript(self.resource_string("static/js/src/video.js"))
@@ -100,25 +83,15 @@ class VideoBlock(XBlock):
         return [
             (
                 "VideoBlock",
-<<<<<<< HEAD
-                """<video_xblock/>
-=======
                 """<_video_extracted/>
->>>>>>> origin/main
                 """,
             ),
             (
                 "Multiple VideoBlock",
                 """<vertical_demo>
-<<<<<<< HEAD
-                <video_xblock/>
-                <video_xblock/>
-                <video_xblock/>
-=======
                 <_video_extracted/>
                 <_video_extracted/>
                 <_video_extracted/>
->>>>>>> origin/main
                 </vertical_demo>
                 """,
             ),
