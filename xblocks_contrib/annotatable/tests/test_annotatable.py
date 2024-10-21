@@ -108,7 +108,11 @@ class AnnotatableBlockTestCase(unittest.TestCase):
             self.assertDictEqual(expected_attr, actual_attr)
 
     def test_render_annotation(self):
-        expected_html = '<span class="annotatable-span highlight highlight-yellow" data-comment-title="x" data-comment-body="y" data-problem-id="0">z</span>'
+        expected_html = (
+            '<span class="annotatable-span highlight highlight-yellow" '
+            'data-comment-title="x" data-comment-body="y" data-problem-id="0">'
+            'z</span>'
+        )
         expected_el = etree.fromstring(expected_html)
 
         actual_el = etree.fromstring('<annotation title="x" body="y" problem="0" highlight="yellow">z</annotation>')
