@@ -45,9 +45,19 @@ dev.clean:
 	-docker rmi $(REPO_NAME)-dev
 
 dev.build:
-	docker build -t $(REPO_NAME)-dev $(CURDIR)
+	docker build --no-cache -t $(REPO_NAME)-dev $(CURDIR)
 
-dev.run: dev.clean dev.build ## Clean, build and run test image
+check-log:
+	@if [ ! -d "$(CURDIR)/var" ]; then \
+		echo "Creating var directory"; \
+		mkdir -p $(CURDIR)/var; \
+	fi
+	@if [ ! -f "$(CURDIR)/var/workbench.log" ]; then \
+		echo "Creating empty workbench.log"; \
+		touch $(CURDIR)/var/workbench.log; \
+	fi
+
+dev.run: dev.clean dev.build check-log
 	docker run -p 8000:8000 -v $(CURDIR):/usr/local/src/$(REPO_NAME) --name $(REPO_NAME)-dev $(REPO_NAME)-dev
 
 # XBlock directories
