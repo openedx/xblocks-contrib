@@ -1,12 +1,27 @@
-"""TO-DO: Write a description of what this XBlock is."""
+"""
+Discussion XBlock
+"""
 
+import logging
+import urllib
 from importlib.resources import files
 
-from django.utils import translation
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.urls import reverse, translation
+from django.utils.translation import get_language_bidi
 from web_fragments.fragment import Fragment
+from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
-from xblock.fields import Integer, Scope
+from xblock.fields import UNIQUE_ID, Scope, String
 from xblock.utils.resources import ResourceLoader
+from xblock.utils.studio_editable import StudioEditableXBlockMixin
+
+from lms.djangoapps.discussion.django_comment_client.permissions import has_permission
+from openedx.core.djangoapps.discussions.models import DiscussionsConfiguration, Provider
+from openedx.core.djangolib.markup import HTML, Text
+from openedx.core.lib.xblock_utils import get_css_dependencies, get_js_dependencies
+from xmodule.xml_block import XmlMixin
+
 
 resource_loader = ResourceLoader(__name__)
 
