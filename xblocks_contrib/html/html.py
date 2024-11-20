@@ -1,81 +1,107 @@
-"""TO-DO: Write a description of what this XBlock is."""
+"""XBlock: HtmlBlock for rendering and managing HTML content with LaTeX support."""
 
-from importlib.resources import files
+import logging
 
-from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Integer, Scope
+from xblock.fields import Boolean, Scope, String
 from xblock.utils.resources import ResourceLoader
+from xblock.validation import ValidationMessage
 
+log = logging.getLogger(__name__)
 resource_loader = ResourceLoader(__name__)
 
 
-# This Xblock is just to test the strucutre of xblocks-contrib
 @XBlock.needs("i18n")
+@XBlock.needs("user")
 class HtmlBlock(XBlock):
     """
-    TO-DO: document what your XBlock does.
+    An XBlock to manage HTML content display and optional LaTeX compilation.
     """
 
-    # Fields are defined on the class.  You can access them in your code as
-    # self.<fieldname>.
-
-    # TO-DO: delete count, and define your own fields.
-    count = Integer(
-        default=0,
-        scope=Scope.user_state,
-        help="A simple counter, to show something happening",
+    display_name = String(
+        display_name=_("Display Name"),
+        help=_("The display name for this HTML content block."),
+        scope=Scope.settings,
+        default=_("Raw HTML"),
+    )
+    data = String(
+        help=_("HTML contents to display within the block."),
+        default=_(
+            "<p>This is a Raw HTML editor that saves your HTML exactly as you enter it."
+            "This means that even malformed HTML tags will be saved and rendered as-is."
+            "There is no way to switch between Raw and Visual Text editor types, so be"
+            "sure this is the editor you should be using!</p>"
+        ),
+        scope=Scope.content,
+    )
+    use_latex_compiler = Boolean(
+        help=_("Enable LaTeX templates for this block?"),
+        default=False,
+        scope=Scope.settings,
+    )
+    editor = String(
+        help=_(
+            "Choose 'Visual' for a WYSIWYG editor or 'Raw' for direct HTML editing. "
+            "Changing this setting requires a save and refresh."
+        ),
+        display_name=_("Editor"),
+        default="raw",
+        values=[
+            {"display_name": _("Visual"), "value": "visual"},
+            {"display_name": _("Raw"), "value": "raw"}
+        ],
+        scope=Scope.settings,
     )
 
-    # Indicates that this XBlock has been extracted from edx-platform.
-    is_extracted = True
-
     def resource_string(self, path):
-        """Handy helper for getting resources from our kit."""
-        return files(__package__).joinpath(path).read_text(encoding="utf-8")
+        """Utility to load static resources."""
+        return resource_loader.load_unicode(path)
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
-        Create primary view of the HtmlBlock, shown to students when viewing courses.
+        Render the main HTML view for students.
         """
-        if context:
-            pass  # TO-DO: do something based on the context.
+        fragment = Fragment()
+        fragment.add_content(self.get_html())
+        fragment.add_css(self.resource_string("static/css/html.css"))
+        fragment.add_javascript(self.resource_string("static/js/src/html.js"))
+        fragment.initialize_js('HtmlBlock')
+        return fragment
 
-        frag = Fragment()
-        frag.add_content(
-            resource_loader.render_django_template(
-                "templates/html.html",
-                {
-                    "count": self.count,
-                },
-                i18n_service=self.runtime.service(self, "i18n"),
-            )
+    def get_html(self):
+        """Generate and return the HTML for the student view."""
+        content = self.data or ""
+        if self.runtime.service(self, "user"):
+            user_id = self.runtime.service(self, 'user').get_current_user().opt_attrs.get("deprecated_anon_id")
+            content = content.replace("%%USER_ID%%", user_id or "Anonymous")
+        content = content.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
+        return content
+
+    def studio_view(self, context=None):
+        """
+        Render the view used in Studio for authoring this XBlock.
+        """
+        fragment = Fragment()
+        context = self.get_studio_context()
+        fragment.add_content(
+            resource_loader.render_django_template("templates/html_editor.html", context)
         )
+        fragment.add_css(self.resource_string("static/css/html_editor.css"))
+        fragment.add_javascript(self.resource_string("static/js/src/html_editor.js"))
+        fragment.initialize_js('HtmlBlockStudio')
+        return fragment
 
-        frag.add_css(self.resource_string("static/css/html.css"))
-        frag.add_javascript(self.resource_string("static/js/src/html.js"))
-        frag.initialize_js("HtmlBlock")
-        return frag
+    def get_studio_context(self):
+        """Context for Studio view, adding settings and editor choice."""
+        return {
+            "display_name": self.display_name,
+            "data": self.data,
+            "editor": self.editor,
+            "use_latex_compiler": self.use_latex_compiler,
+        }
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
-    @XBlock.json_handler
-    def increment_count(self, data, suffix=""):
-        """
-        Increments data. An example handler.
-        """
-        if suffix:
-            pass  # TO-DO: Use the suffix when storing data.
-        # Just to show data coming in...
-        assert data["hello"] == "world"
-
-        self.count += 1
-        return {"count": self.count}
-
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
     @staticmethod
     def workbench_scenarios():
         """Create canned scenario for display in the workbench."""
@@ -96,9 +122,8 @@ class HtmlBlock(XBlock):
             ),
         ]
 
-    @staticmethod
-    def get_dummy():
-        """
-        Generate initial i18n with dummy method.
-        """
-        return translation.gettext_noop("Dummy")
+    def validate_field_data(self, validation):
+        """Validate that required fields contain appropriate data."""
+        if not self.data:
+            validation.add(ValidationMessage(ValidationMessage.WARNING, _("No HTML content provided.")))
+        return validation

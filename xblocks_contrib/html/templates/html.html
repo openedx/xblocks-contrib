@@ -1,7 +1,12 @@
 {% load i18n %}
 
-<div class="html">
-<p>
-    HtmlBlock: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}
-</p>
+<div class="wrapper-comp-editor" id="editor-tab" data-base-asset-url="{{ base_asset_url }}" data-editor="{{ editor }}">
+    <section class="html-editor editor">
+        <div class="row">
+            {% if editor == 'visual' %}
+                <textarea class="tiny-mce">{{ data|safe }}</textarea>
+            {% endif %}
+            <textarea name="" class="edit-box">{{ data|safe }}</textarea>
+        </div>
+    </section>
 </div>
