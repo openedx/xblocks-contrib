@@ -5,6 +5,7 @@ On the client side we show:
 If student does not yet answered - `num_inputs` numbers of text inputs.
 If student have answered - words he entered and cloud.
 """
+import json
 import uuid
 
 from web_fragments.fragment import Fragment
@@ -49,7 +50,7 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
         display_name=_("Display Name"),
         help=_("The display name for this component."),
         scope=Scope.settings,
-        default="Word cloud"
+        default="Word Cloud Block"
     )
     instructions = String(
         display_name=_("Instructions"),
@@ -285,3 +286,56 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
                 }
             )
         return list_to_return
+
+    def handle_ajax(self, dispatch, data):
+        """Ajax handler.
+
+        Args:
+            dispatch: string request slug
+            data: dict request get parameters
+
+        Returns:
+            json string
+        """
+        if dispatch == 'submit':
+            if self.submitted:
+                return json.dumps({
+                    'status': 'fail',
+                    'error': 'You have already posted your data.'
+                })
+
+            # Student words from client.
+            # FIXME: we must use raw JSON, not a post data (multipart/form-data)
+            raw_student_words = data.getall('student_words[]')
+            student_words = [word for word in map(self.good_word, raw_student_words) if word]
+
+            self.student_words = student_words
+
+            # FIXME: fix this, when xblock will support mutable types.
+            # Now we use this hack.
+            # speed issues
+            temp_all_words = self.all_words
+
+            self.submitted = True
+
+            # Save in all_words.
+            for word in self.student_words:
+                temp_all_words[word] = temp_all_words.get(word, 0) + 1
+
+            # Update top_words.
+            self.top_words = self.top_dict(
+                temp_all_words,
+                self.num_top_words
+            )
+
+            # Save all_words in database.
+            self.all_words = temp_all_words
+
+            return self.get_state()
+        elif dispatch == 'get_state':
+            return self.get_state()
+        else:
+            return json.dumps({
+                'status': 'fail',
+                'error': 'Unknown Command!'
+            })
