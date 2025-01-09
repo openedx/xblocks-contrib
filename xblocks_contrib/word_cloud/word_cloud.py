@@ -285,3 +285,27 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
                 }
             )
         return list_to_return
+
+    def index_dictionary(self):
+        """
+        Return dictionary prepared with block content and type for indexing.
+        """
+        # return key/value fields in a Python dict object
+        # values may be numeric / string or dict
+        # default implementation is an empty dict
+
+        xblock_body = super().index_dictionary()
+
+        index_body = {
+            "display_name": self.display_name,
+            "instructions": self.instructions,
+        }
+
+        if "content" in xblock_body:
+            xblock_body["content"].update(index_body)
+        else:
+            xblock_body["content"] = index_body
+
+        xblock_body["content_type"] = "Word Cloud"
+
+        return xblock_body
