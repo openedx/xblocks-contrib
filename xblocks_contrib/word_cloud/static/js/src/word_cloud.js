@@ -16,26 +16,55 @@ if (typeof Logger === 'undefined') {
   };
 }
 
+/**
+ * Generates a unique ID for word cloud elements.
+ * @param {string} wordCloudId - ID of the word cloud block.
+ * @param {number} counter - Counter for uniqueness.
+ * @returns {string} - Unique identifier.
+ */
 function generateUniqueId(wordCloudId, counter) {
   return `_wc_${wordCloudId}_${counter}`;
 }
 
-
 function WordCloudBlock(runtime, element) {
-  $.ajax({
-    type: "POST",
-    url: runtime.handlerUrl(element, 'handle_get_state'),
-    data: JSON.stringify(null),
-    success: function (response) {
-      if (response && response.submitted) {
-        showWordCloud(element, response);
-      }
-    }
-  });
 
-  $('.save', element).on('click', () =>
-    submitAnswer(runtime, element)
-  );
+  // eslint-disable-next-line no-undef
+  const wordCloudEl = $(element).find(blockIdentifier);
+
+  // Get the URL to which we will post the users words.
+  const ajax_url = wordCloudEl.data('ajax-url');
+
+  // Hide WordCloud container until Ajax request is complete.
+  wordCloudEl.hide();
+
+  // Fetch initial state via AJAX request. Attach a callback that will
+  // be fired on server's response.
+  // eslint-disable-next-line no-undef
+  $.postWithPrefix(
+    `${ajax_url}/get_state`,
+    null,
+    (response) => {
+      if (response.status !== 'success') {
+        console.error('Failed to fetch state');
+        return;
+      }
+
+      configJson = response;
+      if (configJson && configJson.submitted) {
+        showWordCloud(configJson, wordCloudEl);
+      }
+
+    },
+  )
+    .done(() => {
+      // Show WordCloud container after Ajax request done
+      wordCloudEl.show();
+    });
+
+  // eslint-disable-next-line no-undef
+  $(element).find('.save').on('click', () => {
+    submitAnswer(ajax_url, wordCloudEl);
+  });
 }
 
 /**
@@ -45,29 +74,36 @@ function WordCloudBlock(runtime, element) {
  * server, and upon receiving correct response, will call the function to generate the
  * word cloud.
  */
-function submitAnswer(runtime, element) {
-  const wordCloudEl = $(element).find(blockIdentifier);
+function submitAnswer(ajax_url, wordCloudEl)
+{
   const data = {student_words: []};
 
+  // Populate the data to be sent to the server with user's words.
   wordCloudEl.find('input.input-cloud').each((index, value) => {
     // eslint-disable-next-line no-undef
     data.student_words.push($(value).val());
   });
 
-  $.ajax({
-    type: "POST",
-    url: runtime.handlerUrl(element, 'handle_submit_state'),
-    data: JSON.stringify(data),
-    success: function (response) {
-      showWordCloud(element, response);
-    }
-  });
+  // Send the data to the server as an AJAX request. Attach a callback that will
+  // be fired on server's response.
+  // eslint-disable-next-line no-undef
+  $.postWithPrefix(
+    `${ajax_url}/submit`,
+    // eslint-disable-next-line no-undef
+    $.param(data),
+    (response) => {
+      if (response.status !== 'success') {
+        console.error('Submission failed');
+        return;
+      }
+
+      showWordCloud(response, wordCloudEl);
+    },
+  );
 }
 
 /**
  * @function showWordCloud
- *
- * @param {HTMLElement} element - DOM element where the word cloud will be displayed.
  *
  * @param {object} response The response from the server that contains the user's entered words
  * along with all of the top words.
@@ -75,7 +111,8 @@ function submitAnswer(runtime, element) {
  * This function will set up everything for d3 and launch the draw method. Among other things,
  * iw will determine maximum word size.
  */
-function showWordCloud(element, response) {
+function showWordCloud(response, wordCloudEl)
+{
   const words = response.top_words;
   let maxSize = 0;
   let minSize = 10000;
@@ -83,7 +120,6 @@ function showWordCloud(element, response) {
   let maxFontSize = 200;
   const minFontSize = 16;
 
-  const wordCloudEl = $(element).find(blockIdentifier);
   wordCloudEl.find('.input_cloud_section').hide();
 
   // Find the word with the maximum percentage. I.e. the most popular word.
@@ -132,7 +168,7 @@ function showWordCloud(element, response) {
       return size;
     })
     // Draw the word cloud.
-    .on('end', (wds, bounds) => drawWordCloud(element, response, wds, bounds))
+    .on('end', (wds, bounds) => drawWordCloud(response, wds, bounds, wordCloudEl))
     .start();
 }
 
@@ -142,8 +178,6 @@ function showWordCloud(element, response) {
  * This function will be called when d3 has finished initing the state for our word cloud,
  * and it is ready to hand off the process to the drawing routine. Basically set up everything
  * necessary for the actual drwing of the words.
- *
- * @param {HTMLElement} element - DOM element where the word cloud will be displayed.
  *
  * @param {object} response The response from the server that contains the user's entered words
  * along with all of the top words.
@@ -156,7 +190,8 @@ function showWordCloud(element, response) {
  * box where all of the words fir, second object is the bottom-right coordinates of the bounding box. Each
  * coordinate object contains two properties: 'x', and 'y'.
  */
-function drawWordCloud(element, response, words, bounds) {
+function drawWordCloud(response, words, bounds, wordCloudEl)
+{
   // Color words in different colors.
   const fill = d3.scale.category20();
 
@@ -167,7 +202,6 @@ function drawWordCloud(element, response, words, bounds) {
   let scale = 1;
 
   // Caсhing of DOM element
-  const wordCloudEl = $(element).find(blockIdentifier);
   const cloudSectionEl = wordCloudEl.find('.result_cloud_section');
 
   // Iterator for word cloud count for uniqueness
