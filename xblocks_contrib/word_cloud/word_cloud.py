@@ -14,7 +14,7 @@ from xblock.fields import Boolean, Dict, Integer, List, Scope, String
 from xblock.utils.resources import ResourceLoader
 from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from utils.mixins.x_module import XModuleToXBlockMixin
+from xblocks_contrib.utils.mixins.x_module import XModuleToXBlockMixin
 
 resource_loader = ResourceLoader(__name__)
 
