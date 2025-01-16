@@ -8,9 +8,9 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-boto3==1.35.76
+boto3==1.35.97
     # via fs-s3fs
-botocore==1.35.76
+botocore==1.35.97
     # via
     #   boto3
     #   s3transfer
@@ -76,10 +76,12 @@ six==1.17.0
     #   fs
     #   fs-s3fs
     #   python-dateutil
-sqlparse==0.5.2
+sqlparse==0.5.3
     # via django
 urllib3==2.2.3
-    # via botocore
+    # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   botocore
 web-fragments==2.2.0
     # via xblock
 webob==1.8.9
