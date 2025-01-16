@@ -48,6 +48,9 @@ class WordCloudBlock(
 
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
+    # "data" class attribute is added to make the following test case pass in edx-platform repo.
+    # cms/djangoapps/contentstore/tests/test_contentstore.py::ImportRequiredTestCases::test_empty_data_roundtrip
+    data = String(default='', scope=Scope.content)
 
     editable_fields = ["display_name", "num_inputs", "instructions", "num_top_words", "display_student_percents"]
 
