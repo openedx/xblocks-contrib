@@ -27,44 +27,20 @@ function generateUniqueId(wordCloudId, counter) {
 }
 
 function WordCloudBlock(runtime, element) {
-
-  // eslint-disable-next-line no-undef
-  const wordCloudEl = $(element).find(blockIdentifier);
-
-  // Get the URL to which we will post the users words.
-  const ajax_url = wordCloudEl.data('ajax-url');
-
-  // Hide WordCloud container until Ajax request is complete.
-  wordCloudEl.hide();
-
-  // Fetch initial state via AJAX request. Attach a callback that will
-  // be fired on server's response.
-  // eslint-disable-next-line no-undef
-  $.postWithPrefix(
-    `${ajax_url}/get_state`,
-    null,
-    (response) => {
-      if (response.status !== 'success') {
-        console.error('Failed to fetch state');
-        return;
+  $.ajax({
+    type: "POST",
+    url: runtime.handlerUrl(element, 'handle_get_state'),
+    data: JSON.stringify(null),
+    success: function (response) {
+      if (response && response.submitted) {
+        showWordCloud(response, element);
       }
-
-      configJson = response;
-      if (configJson && configJson.submitted) {
-        showWordCloud(configJson, wordCloudEl);
-      }
-
-    },
-  )
-    .done(() => {
-      // Show WordCloud container after Ajax request done
-      wordCloudEl.show();
-    });
-
-  // eslint-disable-next-line no-undef
-  $(element).find('.save').on('click', () => {
-    submitAnswer(ajax_url, wordCloudEl);
+    }
   });
+
+  $('.save', element).on('click', () =>
+    submitAnswer(runtime, element)
+  );
 }
 
 /**
@@ -74,32 +50,23 @@ function WordCloudBlock(runtime, element) {
  * server, and upon receiving correct response, will call the function to generate the
  * word cloud.
  */
-function submitAnswer(ajax_url, wordCloudEl)
-{
+function submitAnswer(runtime, element) {
+  const wordCloudEl = $(element).find(blockIdentifier);
   const data = {student_words: []};
 
-  // Populate the data to be sent to the server with user's words.
   wordCloudEl.find('input.input-cloud').each((index, value) => {
     // eslint-disable-next-line no-undef
     data.student_words.push($(value).val());
   });
 
-  // Send the data to the server as an AJAX request. Attach a callback that will
-  // be fired on server's response.
-  // eslint-disable-next-line no-undef
-  $.postWithPrefix(
-    `${ajax_url}/submit`,
-    // eslint-disable-next-line no-undef
-    $.param(data),
-    (response) => {
-      if (response.status !== 'success') {
-        console.error('Submission failed');
-        return;
-      }
-
-      showWordCloud(response, wordCloudEl);
-    },
-  );
+  $.ajax({
+    type: "POST",
+    url: runtime.handlerUrl(element, 'handle_submit_state'),
+    data: JSON.stringify(data),
+    success: function (response) {
+      showWordCloud(response, element);
+    }
+  });
 }
 
 /**
@@ -111,7 +78,7 @@ function submitAnswer(ajax_url, wordCloudEl)
  * This function will set up everything for d3 and launch the draw method. Among other things,
  * iw will determine maximum word size.
  */
-function showWordCloud(response, wordCloudEl)
+function showWordCloud(response, element)
 {
   const words = response.top_words;
   let maxSize = 0;
@@ -120,6 +87,7 @@ function showWordCloud(response, wordCloudEl)
   let maxFontSize = 200;
   const minFontSize = 16;
 
+  const wordCloudEl = $(element).find(blockIdentifier);
   wordCloudEl.find('.input_cloud_section').hide();
 
   // Find the word with the maximum percentage. I.e. the most popular word.

@@ -13,8 +13,6 @@ from xblock.fields import Boolean, Dict, Integer, List, Scope, String
 from xblock.utils.resources import ResourceLoader
 from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from xblocks_contrib.utils.mixins.x_module import XModuleToXBlockMixin
-
 resource_loader = ResourceLoader(__name__)
 
 
@@ -37,11 +35,7 @@ def pretty_bool(value):
     return value in bool_dict
 
 
-class WordCloudBlock(
-    StudioEditableXBlockMixin,
-    XBlock,
-    XModuleToXBlockMixin,
-):
+class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
     """
     Word Cloud XBlock.
     """
@@ -135,7 +129,6 @@ class WordCloudBlock(
         frag = Fragment()
         frag.add_content(resource_loader.render_django_template(
             "templates/word_cloud.html", {
-                'ajax_url': self.ajax_url,
                 'display_name': self.display_name,
                 'instructions': self.instructions,
                 'element_id': self.scope_ids.usage_id.html_id(),
@@ -175,6 +168,92 @@ class WordCloudBlock(
                 reverse=True
             )[:amount]
         )
+
+    def get_state(self):
+        """Return success json answer for client."""
+        if self.submitted:
+            total_count = sum(self.all_words.values())
+            return {
+                'status': 'success',
+                'submitted': True,
+                'display_student_percents': pretty_bool(
+                    self.display_student_percents
+                ),
+                'student_words': {
+                    word: self.all_words[word] for word in self.student_words
+                },
+                'total_count': total_count,
+                'top_words': self.prepare_words(self.top_words, total_count),
+            }
+        else:
+            return {
+                'status': 'success',
+                'submitted': False,
+                'display_student_percents': False,
+                'student_words': {},
+                'total_count': 0,
+                'top_words': {}
+            }
+
+    @XBlock.json_handler
+    def handle_get_state(self, data, suffix=''):  # pylint: disable=unused-argument
+        """
+        AJAX handler to get the current state of the XBlock
+
+        Args:
+            data: dict having request get parameters
+
+        Returns:
+            json string
+        """
+        return self.get_state()
+
+    @XBlock.json_handler
+    def handle_submit_state(self, data, suffix=''):  # pylint: disable=unused-argument
+        """
+        AJAX handler to submit the current state of the XBlock
+
+        Args:
+            data: dict having request get parameters
+
+        Returns:
+            json string
+        """
+
+        if self.submitted:
+            return {
+                'status': 'fail',
+                'error': 'You have already posted your data.'
+            }
+
+        # Student words from client.
+        # FIXME: we must use raw JSON, not a post data (multipart/form-data)
+        raw_student_words = data.get('student_words')
+        student_words = [word for word in map(self.good_word, raw_student_words) if word]
+
+        self.student_words = student_words
+
+        # FIXME: fix this, when xblock will support mutable types.
+        # Now we use this hack.
+        # speed issues
+        temp_all_words = self.all_words
+
+        self.submitted = True
+
+        # Save in all_words.
+        for word in self.student_words:
+            temp_all_words[word] = temp_all_words.get(word, 0) + 1
+
+        # Update top_words.
+        self.top_words = self.top_dict(
+            temp_all_words,
+            self.num_top_words
+        )
+
+        # Save all_words in database.
+        self.all_words = temp_all_words
+
+        return self.get_state()
 
     def prepare_words(self, top_words, total_count):
         """Convert words dictionary for client API.
@@ -285,30 +364,4 @@ class WordCloudBlock(
             return json.dumps({
                 'status': 'fail',
                 'error': 'Unknown Command!'
-            })
-
-    def get_state(self):
-        """Return success json answer for client."""
-        if self.submitted:
-            total_count = sum(self.all_words.values())
-            return json.dumps({
-                'status': 'success',
-                'submitted': True,
-                'display_student_percents': pretty_bool(
-                    self.display_student_percents
-                ),
-                'student_words': {
-                    word: self.all_words[word] for word in self.student_words
-                },
-                'total_count': total_count,
-                'top_words': self.prepare_words(self.top_words, total_count)
-            })
-        else:
-            return json.dumps({
-                'status': 'success',
-                'submitted': False,
-                'display_student_percents': False,
-                'student_words': {},
-                'total_count': 0,
-                'top_words': {}
             })
