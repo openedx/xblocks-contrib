@@ -210,6 +210,9 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
 
     @XBlock.json_handler
     def handle_submit_state(self, data, suffix=''):  # pylint: disable=unused-argument
+        return self.submit_state(data)
+
+    def submit_state(self, data, suffix=''):  # pylint: disable=unused-argument
         """
         AJAX handler to submit the current state of the XBlock
 
@@ -312,56 +315,3 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
         xblock_body["content_type"] = "Word Cloud"
 
         return xblock_body
-
-    def handle_ajax(self, dispatch, data):
-        """Ajax handler.
-
-        Args:
-            dispatch: string request slug
-            data: dict request get parameters
-
-        Returns:
-            json string
-        """
-        if dispatch == 'submit':
-            if self.submitted:
-                return json.dumps({
-                    'status': 'fail',
-                    'error': 'You have already posted your data.'
-                })
-
-            # Student words from client.
-            # FIXME: we must use raw JSON, not a post data (multipart/form-data)
-            raw_student_words = data.getall('student_words[]')
-            student_words = [word for word in map(self.good_word, raw_student_words) if word]
-
-            self.student_words = student_words
-
-            # FIXME: fix this, when xblock will support mutable types.
-            # Now we use this hack.
-            # speed issues
-            temp_all_words = self.all_words
-
-            self.submitted = True
-
-            # Save in all_words.
-            for word in self.student_words:
-                temp_all_words[word] = temp_all_words.get(word, 0) + 1
-
-            # Update top_words.
-            self.top_words = self.top_dict(
-                temp_all_words,
-                self.num_top_words
-            )
-
-            # Save all_words in database.
-            self.all_words = temp_all_words
-
-            return self.get_state()
-        elif dispatch == 'get_state':
-            return self.get_state()
-        else:
-            return json.dumps({
-                'status': 'fail',
-                'error': 'Unknown Command!'
-            })
