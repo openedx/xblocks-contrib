@@ -131,6 +131,7 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
             "templates/word_cloud.html", {
                 'display_name': self.display_name,
                 'instructions': self.instructions,
+                'element_class': self.scope_ids.usage_id.block_type,
                 'element_id': self.scope_ids.usage_id.html_id(),
                 'num_inputs': self.num_inputs,
                 'range_num_inputs': range(self.num_inputs),
