@@ -6,6 +6,7 @@ If student does not yet answered - `num_inputs` numbers of text inputs.
 If student have answered - words he entered and cloud.
 """
 import json
+import uuid
 
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
@@ -131,8 +132,8 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
             "templates/word_cloud.html", {
                 'display_name': self.display_name,
                 'instructions': self.instructions,
-                'element_class': self.scope_ids.usage_id.block_type,
-                'element_id': self.scope_ids.usage_id.html_id(),
+                'element_class': self.scope_ids.block_type,
+                'element_id': uuid.uuid1(0),
                 'num_inputs': self.num_inputs,
                 'range_num_inputs': range(self.num_inputs),
                 'submitted': self.submitted,
