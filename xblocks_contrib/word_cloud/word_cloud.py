@@ -5,9 +5,9 @@ On the client side we show:
 If student does not yet answered - `num_inputs` numbers of text inputs.
 If student have answered - words he entered and cloud.
 """
-import json
 import uuid
 
+from django.utils.translation import gettext_noop as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, Integer, List, Scope, String
@@ -15,15 +15,6 @@ from xblock.utils.resources import ResourceLoader
 from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
 resource_loader = ResourceLoader(__name__)
-
-
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
-#  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-def noop(text):
-    return text
-
-
-_ = noop
 
 
 def pretty_bool(value):
@@ -36,6 +27,7 @@ def pretty_bool(value):
     return value in bool_dict
 
 
+@XBlock.needs("i18n")
 class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
     """
     Word Cloud XBlock.
@@ -138,8 +130,7 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
                 'range_num_inputs': range(self.num_inputs),
                 'submitted': self.submitted,
             },
-            # TODO: Add i188n
-            # i18n_service = self.runtime.service(self, 'i18n')
+            i18n_service=self.runtime.service(self, 'i18n')
         ))
         frag.add_css(resource_loader.load_unicode("static/css/word_cloud.css"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/word_cloud.js"))
