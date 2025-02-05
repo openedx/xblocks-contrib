@@ -1,6 +1,6 @@
 /* Javascript for WordCloudXBlock. */
 
-const blockIdentifier = '._word_cloud_extracted';
+const blockIdentifier = '.word_cloud';
 // Dimensions of the box where the word cloud will be drawn.
 const width = 635;
 const height = 635;
