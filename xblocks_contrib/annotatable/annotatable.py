@@ -169,7 +169,7 @@ class AnnotatableBlock(XBlock):
             resource_loader.render_django_template(
                 "templates/annotatable.html",
                 {
-                    "id": uuid.uuid1(0),
+                    "element_id": uuid.uuid1(0),
                     "display_name": self.display_name,
                     "instructions_html": self._extract_instructions(etree.fromstring(self.data)),
                     "content_html": self._render_content(),

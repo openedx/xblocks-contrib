@@ -1,4 +1,4 @@
-function Annotatable(element) {
+function Annotatable(runtime, element) {
     var _debug = false;
 
     /*
