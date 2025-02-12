@@ -29,6 +29,8 @@ class AnnotatableBlock(XBlock):
     AnnotatableXBlock allows instructors to create annotated content that students can view interactively.
     Annotations can be styled and customized, with internationalization support for multilingual environments.
     """
+    # Indicates that this XBlock has been extracted from edx-platform.
+    is_extracted = True
 
     display_name = String(
         display_name=_("Display Name"),
