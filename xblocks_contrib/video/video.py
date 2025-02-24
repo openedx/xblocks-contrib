@@ -11,6 +11,7 @@ Examples of html5 videos for manual testing:
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.webm
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
 """
+import json
 import logging
 import uuid
 from collections import OrderedDict
@@ -100,7 +101,9 @@ resource_loader = ResourceLoader(__name__)
 @XBlock.wants('settings', 'completion', 'i18n')
 @XBlock.needs("i18n", 'user')
 class VideoBlock(
-    VideoFields, VideoTranscriptsMixin, XBlock):
+    VideoFields, VideoTranscriptsMixin,
+    VideoStudioViewHandlers, VideoStudentViewHandlers,
+    XBlock):
     """
     XML source example:
         <video show_captions="true"
@@ -122,6 +125,14 @@ class VideoBlock(
     icon_class = 'video'
 
     show_in_read_only_mode = True
+
+    @property
+    def ajax_url(self):
+        """
+        Returns the URL for the ajax handler.
+        """
+        # TODO: remove this ajax_url property
+        return 'update-url'
 
     tabs = [
         {
@@ -350,13 +361,69 @@ class VideoBlock(
         is_embed = context.get('public_video_embed', False)
         is_public_view = view == PUBLIC_VIEW
 
-        # --
-
-        # TODO: Complete this metadata
         metadata = {
+            'autoAdvance': autoadvance_this_video,
+            # For now, the option "data-autohide-html5" is hard coded. This option
+            # either enables or disables autohiding of controls and captions on mouse
+            # inactivity. If set to true, controls and captions will autohide for
+            # HTML5 sources (non-YouTube) after a period of mouse inactivity over the
+            # whole video. When the mouse moves (or a key is pressed while any part of
+            # the video player is focused), the captions and controls will be shown
+            # once again.
+            #
+            # There is no option in the "Advanced Editor" to set this option. However,
+            # this option will have an effect if changed to "True". The code on
+            # front-end exists.
             'autohideHtml5': False,
+            'autoplay': settings.FEATURES.get('AUTOPLAY_VIDEOS', False),
+            # This won't work when we move to data that
+            # isn't on the filesystem
+            'captionDataDir': getattr(self, 'data_dir', None),
+            'completionEnabled': completion_enabled,
+            'completionPercentage': settings.COMPLETION_VIDEO_COMPLETE_PERCENTAGE,
+            'duration': video_duration,
+            'end': self.end_time.total_seconds(),  # pylint: disable=no-member
+            'generalSpeed': self.global_speed,
+            'lmsRootURL': settings.LMS_ROOT_URL,
+            'poster': poster,
+            'prioritizeHls': self.prioritize_hls(self.youtube_streams, sources),
+            'publishCompletionUrl': self.runtime.handler_url(self, 'publish_completion', '').rstrip('?'),
+            # This is the server's guess at whether youtube is available for
+            # this user, based on what was recorded the last time we saw the
+            # user, and defaulting to True.
+            'recordedYoutubeIsAvailable': self.youtube_is_available,
+            'savedVideoPosition': self.saved_video_position.total_seconds(),  # pylint: disable=no-member
+            'saveStateEnabled': not is_public_view,
+            'saveStateUrl': self.ajax_url + '/save_user_state',
+            # Despite the setting on the block, don't show transcript by default
+            # if the video is embedded in social media
+            'showCaptions': json.dumps(self.show_captions and not is_embed),
+            'sources': sources,
+            'speed': self.speed,
+            'start': self.start_time.total_seconds(),  # pylint: disable=no-member
+            'streams': self.youtube_streams,
+            'transcriptAvailableTranslationsUrl': self.runtime.handler_url(
+                self, 'transcript', 'available_translations'
+            ).rstrip('/?'),
+            'aiTranslationsUrl': settings.AI_TRANSLATIONS_API_URL,
+            'transcriptLanguage': transcript_language,
+            'transcriptLanguages': sorted_languages,
+            'transcriptTranslationUrl': self.runtime.handler_url(
+                self, 'transcript', 'translation/__lang__'
+            ).rstrip('/?'),
+            'ytApiUrl': settings.YOUTUBE['API'],
+            'ytMetadataEndpoint': (
+                # In the new runtime, get YouTube metadata via a handler. The handler supports anonymous users and
+                # can work in sandboxed iframes. In the old runtime, the JS will call the LMS's yt_video_metadata
+                # API endpoint directly (not an XBlock handler).
+                self.runtime.handler_url(self, 'yt_video_metadata')
+                if getattr(self.runtime, 'suppports_state_for_anonymous_users', False) else ''
+            ),
+            'ytTestTimeout': settings.YOUTUBE['TEST_TIMEOUT'],
         }
+
         bumperize(self)
+
         # TODO: Complete this template_context
         template_context = {
             # 'autoadvance_enabled': autoadvance_enabled,

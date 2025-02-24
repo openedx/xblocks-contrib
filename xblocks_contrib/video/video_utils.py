@@ -1,8 +1,9 @@
 """
 Module contains utils specific for video_block but not for transcripts.
 """
-
+import datetime
 import logging
+import time
 from collections import OrderedDict
 from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunsplit
 
@@ -120,3 +121,23 @@ def set_query_parameter(url, param_name, param_value):
     new_query_string = urlencode(query_params, doseq=True)
 
     return urlunsplit((scheme, netloc, path, new_query_string, fragment))
+
+def isotime_to_timedelta(value):
+    """
+    Validate that value in "HH:MM:SS" format and convert to timedelta.
+
+    Validate that user, that edits XML, sets proper format, and
+     that max value that can be used by user is "23:59:59".
+    """
+    try:
+        obj_time = time.strptime(value, '%H:%M:%S')
+    except ValueError as e:
+        raise ValueError(  # lint-amnesty, pylint: disable=raise-missing-from
+            "Incorrect RelativeTime value {!r} was set in XML or serialized. "
+            "Original parse message is {}".format(value, str(e))
+        )
+    return datetime.timedelta(
+        hours=obj_time.tm_hour,
+        minutes=obj_time.tm_min,
+        seconds=obj_time.tm_sec
+    )
