@@ -8,3 +8,4 @@ openedx-django-pyfs
 # TODO: Run python reqs update
 edx-opaque-keys
 edx-django-utils>=5.14.1
+edxval
