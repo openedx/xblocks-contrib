@@ -1,7 +1,26 @@
 {% load i18n %}
+<div>
+    <p>I am an Extracted Video Block, keep developing me, thanks!</p>
+</div>
 
-<div class="video">
-<p>
-    VideoBlock: {% trans "count is now" %} <span class='count'>{{ count }}</span> {% trans "click me to increment." %}
-</p>
+
+{% if display_name is not None and not is_embed %}
+    <h3 class="hd hd-2">{{ display_name }}</h3>
+{% endif %}
+
+
+<div
+    id="video_{{ id }}"
+    class="video closed"
+    data-metadata='{{ metadata|escapejs }}'
+    data-bumper-metadata='{{ bumper_metadata|escapejs }}'
+    data-autoadvance-enabled="{{ autoadvance_enabled }}"
+    data-poster='{{ poster }}'
+    data-block-id='{{ block_id }}'
+    data-course-id='{{ course_id }}'
+    data-user-id='{{ user_id }}'
+    tabindex="-1"
+>
+    <div class="focus_grabber first"></div>
+
 </div>
