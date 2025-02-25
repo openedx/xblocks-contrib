@@ -1,112 +1,113 @@
-'use strict';
+(function(define) {
+    'use strict';
 
-import _ from 'underscore';
+    define('video/09_events_bumper_plugin.js', [], function() {
+    /**
+     * Events module.
+     * @exports video/09_events_bumper_plugin.js
+     * @constructor
+     * @param {Object} state The object containing the state of the video
+     * @param {Object} i18n The object containing strings with translations.
+     * @param {Object} options
+     * @return {jquery Promise}
+     */
+        var EventsBumperPlugin = function(state, i18n, options) {
+            if (!(this instanceof EventsBumperPlugin)) {
+                return new EventsBumperPlugin(state, i18n, options);
+            }
 
+            _.bindAll(this, 'onReady', 'onPlay', 'onEnded', 'onShowLanguageMenu', 'onHideLanguageMenu', 'onSkip',
+                'onShowCaptions', 'onHideCaptions', 'destroy');
+            this.state = state;
+            this.options = _.extend({}, options);
+            this.state.videoEventsBumperPlugin = this;
+            this.i18n = i18n;
+            this.initialize();
 
-/**
- * Events module.
- * @exports video/09_events_bumper_plugin.js
- * @constructor
- * @param {Object} state The object containing the state of the video
- * @param {Object} i18n The object containing strings with translations.
- * @param {Object} options
- * @return {jquery Promise}
- */
-let EventsBumperPlugin = function(state, i18n, options) {
-    if (!(this instanceof EventsBumperPlugin)) {
-        return new EventsBumperPlugin(state, i18n, options);
-    }
-
-    _.bindAll(this, 'onReady', 'onPlay', 'onEnded', 'onShowLanguageMenu', 'onHideLanguageMenu', 'onSkip',
-        'onShowCaptions', 'onHideCaptions', 'destroy');
-    this.state = state;
-    this.options = _.extend({}, options);
-    this.state.videoEventsBumperPlugin = this;
-    this.i18n = i18n;
-    this.initialize();
-
-    return $.Deferred().resolve().promise();
-};
-
-EventsBumperPlugin.moduleName = 'EventsBumperPlugin';
-EventsBumperPlugin.prototype = {
-    destroy: function() {
-        this.state.el.off(this.events);
-        delete this.state.videoEventsBumperPlugin;
-    },
-
-    initialize: function() {
-        this.events = {
-            ready: this.onReady,
-            play: this.onPlay,
-            'ended stop': this.onEnded,
-            skip: this.onSkip,
-            'language_menu:show': this.onShowLanguageMenu,
-            'language_menu:hide': this.onHideLanguageMenu,
-            'captions:show': this.onShowCaptions,
-            'captions:hide': this.onHideCaptions,
-            destroy: this.destroy
+            return $.Deferred().resolve().promise();
         };
-        this.bindHandlers();
-    },
 
-    bindHandlers: function() {
-        this.state.el.on(this.events);
-    },
+        EventsBumperPlugin.moduleName = 'EventsBumperPlugin';
+        EventsBumperPlugin.prototype = {
+            destroy: function() {
+                this.state.el.off(this.events);
+                delete this.state.videoEventsBumperPlugin;
+            },
 
-    onReady: function() {
-        this.log('edx.video.bumper.loaded');
-    },
+            initialize: function() {
+                this.events = {
+                    ready: this.onReady,
+                    play: this.onPlay,
+                    'ended stop': this.onEnded,
+                    skip: this.onSkip,
+                    'language_menu:show': this.onShowLanguageMenu,
+                    'language_menu:hide': this.onHideLanguageMenu,
+                    'captions:show': this.onShowCaptions,
+                    'captions:hide': this.onHideCaptions,
+                    destroy: this.destroy
+                };
+                this.bindHandlers();
+            },
 
-    onPlay: function() {
-        this.log('edx.video.bumper.played', {currentTime: this.getCurrentTime()});
-    },
+            bindHandlers: function() {
+                this.state.el.on(this.events);
+            },
 
-    onEnded: function() {
-        this.log('edx.video.bumper.stopped', {currentTime: this.getCurrentTime()});
-    },
+            onReady: function() {
+                this.log('edx.video.bumper.loaded');
+            },
 
-    onSkip: function(event, doNotShowAgain) {
-        let info = {currentTime: this.getCurrentTime()};
-        let eventName = 'edx.video.bumper.' + (doNotShowAgain ? 'dismissed' : 'skipped');
-        this.log(eventName, info);
-    },
+            onPlay: function() {
+                this.log('edx.video.bumper.played', {currentTime: this.getCurrentTime()});
+            },
 
-    onShowLanguageMenu: function() {
-        this.log('edx.video.bumper.transcript.menu.shown');
-    },
+            onEnded: function() {
+                this.log('edx.video.bumper.stopped', {currentTime: this.getCurrentTime()});
+            },
 
-    onHideLanguageMenu: function() {
-        this.log('edx.video.bumper.transcript.menu.hidden');
-    },
+            onSkip: function(event, doNotShowAgain) {
+                var info = {currentTime: this.getCurrentTime()},
+                    eventName = 'edx.video.bumper.' + (doNotShowAgain ? 'dismissed' : 'skipped');
+                this.log(eventName, info);
+            },
 
-    onShowCaptions: function() {
-        this.log('edx.video.bumper.transcript.shown', {currentTime: this.getCurrentTime()});
-    },
+            onShowLanguageMenu: function() {
+                this.log('edx.video.bumper.transcript.menu.shown');
+            },
 
-    onHideCaptions: function() {
-        this.log('edx.video.bumper.transcript.hidden', {currentTime: this.getCurrentTime()});
-    },
+            onHideLanguageMenu: function() {
+                this.log('edx.video.bumper.transcript.menu.hidden');
+            },
 
-    getCurrentTime: function() {
-        let player = this.state.videoPlayer;
-        return player ? player.currentTime : 0;
-    },
+            onShowCaptions: function() {
+                this.log('edx.video.bumper.transcript.shown', {currentTime: this.getCurrentTime()});
+            },
 
-    getDuration: function() {
-        let player = this.state.videoPlayer;
-        return player ? player.duration() : 0;
-    },
+            onHideCaptions: function() {
+                this.log('edx.video.bumper.transcript.hidden', {currentTime: this.getCurrentTime()});
+            },
 
-    log: function(eventName, data) {
-        let logInfo = _.extend({
-            host_component_id: this.state.id,
-            bumper_id: this.state.config.sources[0] || '',
-            duration: this.getDuration(),
-            code: 'html5'
-        }, data, this.options.data);
-        Logger.log(eventName, logInfo);
-    }
-};
+            getCurrentTime: function() {
+                var player = this.state.videoPlayer;
+                return player ? player.currentTime : 0;
+            },
 
-export default EventsBumperPlugin;
+            getDuration: function() {
+                var player = this.state.videoPlayer;
+                return player ? player.duration() : 0;
+            },
+
+            log: function(eventName, data) {
+                var logInfo = _.extend({
+                    host_component_id: this.state.id,
+                    bumper_id: this.state.config.sources[0] || '',
+                    duration: this.getDuration(),
+                    code: 'html5'
+                }, data, this.options.data);
+                Logger.log(eventName, logInfo);
+            }
+        };
+
+        return EventsBumperPlugin;
+    });
+}(RequireJS.define));
