@@ -16,3 +16,7 @@ PUBLIC_VIEW = 'public_view'
 ATTR_KEY_USER_ID = 'edx-platform.user_id'
 # The country code determined from the user's request IP address.
 ATTR_KEY_REQUEST_COUNTRY_CODE = 'edx-platform.request_country_code'
+
+COURSE_VIDEO_SHARING_PER_VIDEO = 'per-video'
+COURSE_VIDEO_SHARING_ALL_VIDEOS = 'all-on'
+COURSE_VIDEO_SHARING_NONE = 'all-off'
