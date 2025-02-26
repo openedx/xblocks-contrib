@@ -195,7 +195,6 @@ class VideoBlock(
         return True
 
     def youtube_disabled_for_course(self):  # lint-amnesty, pylint: disable=missing-function-docstring
-        print(f"Farhan here: {self.location}")
         if not self.location.context_key.is_course:
             return False  # Only courses have this flag
         request_cache = RequestCache('youtube_disabled_for_course')
