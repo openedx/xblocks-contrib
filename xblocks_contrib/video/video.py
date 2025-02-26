@@ -195,7 +195,6 @@ class VideoBlock(
         return True
 
     def youtube_disabled_for_course(self):  # lint-amnesty, pylint: disable=missing-function-docstring
-        print(f"Farhan here: {self.location}")
         if not self.location.context_key.is_course:
             return False  # Only courses have this flag
         request_cache = RequestCache('youtube_disabled_for_course')
@@ -240,39 +239,6 @@ class VideoBlock(
 
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/video.js"))
-
-        addition_js_files = [
-            'static/js/src/00_video_storage.js',
-            'static/js/src/01_initialize.js',
-            'static/js/src/025_focus_grabber.js',
-            'static/js/src/035_video_accessible_menu.js',
-            'static/js/src/04_video_control.js',
-            'static/js/src/04_video_full_screen.js',
-            'static/js/src/05_video_quality_control.js',
-            'static/js/src/06_video_progress_slider.js',
-            'static/js/src/07_video_volume_control.js',
-            'static/js/src/08_video_speed_control.js',
-            'static/js/src/08_video_auto_advance_control.js',
-            'static/js/src/09_video_caption.js',
-            'static/js/src/09_play_placeholder.js',
-            'static/js/src/09_play_pause_control.js',
-            'static/js/src/09_play_skip_control.js',
-            'static/js/src/09_skip_control.js',
-            'static/js/src/09_bumper.js',
-            'static/js/src/09_save_state_plugin.js',
-            'static/js/src/09_events_plugin.js',
-            'static/js/src/09_events_bumper_plugin.js',
-            'static/js/src/09_poster.js',
-            'static/js/src/09_completion.js',
-            'static/js/src/10_commands.js',
-            'static/js/src/095_video_context_menu.js',
-            'static/js/src/036_video_social_sharing.js',
-            'static/js/src/037_video_transcript_feedback.js'
-        ]
-
-        for js_file in addition_js_files:
-            frag.add_javascript(resource_loader.load_unicode(js_file))
-
         frag.initialize_js("VideoBlock")
         return frag
 
