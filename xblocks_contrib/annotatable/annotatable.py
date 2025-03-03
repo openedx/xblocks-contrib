@@ -8,7 +8,6 @@ The block supports internationalization (i18n) for multilingual courses.
 import logging
 import textwrap
 import uuid
-from importlib.resources import files
 
 import markupsafe
 from django.utils.translation import gettext_noop as _
@@ -29,6 +28,7 @@ class AnnotatableBlock(XBlock):
     AnnotatableXBlock allows instructors to create annotated content that students can view interactively.
     Annotations can be styled and customized, with internationalization support for multilingual environments.
     """
+
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
 
@@ -141,9 +141,8 @@ class AnnotatableBlock(XBlock):
         """Renders annotatable content with annotation spans and returns HTML."""
 
         xmltree = etree.fromstring(self.data)
-        content = etree.tostring(xmltree, encoding="unicode")
+        self._extract_instructions(xmltree)
 
-        xmltree = etree.fromstring(content)
         xmltree.tag = "div"
         if "display_name" in xmltree.attrib:
             del xmltree.attrib["display_name"]
@@ -179,8 +178,8 @@ class AnnotatableBlock(XBlock):
                 i18n_service=self.runtime.service(self, "i18n"),
             )
         )
-        frag.add_css(self.resource_string("static/css/annotatable.css"))
-        frag.add_javascript(self.resource_string("static/js/src/annotatable.js"))
+        frag.add_css(resource_loader.load_unicode("static/css/annotatable.css"))
+        frag.add_javascript(resource_loader.load_unicode("static/js/src/annotatable.js"))
         frag.initialize_js("Annotatable")
         return frag
 
@@ -197,8 +196,8 @@ class AnnotatableBlock(XBlock):
             )
         )
 
-        frag.add_css(self.resource_string("static/css/annotatable_editor.css"))
-        frag.add_javascript(self.resource_string("static/js/src/annotatable_editor.js"))
+        frag.add_css(resource_loader.load_unicode("static/css/annotatable_editor.css"))
+        frag.add_javascript(resource_loader.load_unicode("static/js/src/annotatable_editor.js"))
         frag.initialize_js("XMLEditingDescriptor")
         return frag
 
@@ -231,7 +230,3 @@ class AnnotatableBlock(XBlock):
             """,
             ),
         ]
-
-    def resource_string(self, path):
-        """Handy helper for getting resources from our kit."""
-        return files(__package__).joinpath(path).read_text(encoding="utf-8")

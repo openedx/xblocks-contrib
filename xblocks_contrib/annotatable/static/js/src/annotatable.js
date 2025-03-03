@@ -8,33 +8,28 @@ function Annotatable(runtime, element) {
     var toggleAnnotationsSelector = '.annotatable-toggle-annotations';
     var toggleInstructionsSelector = '.annotatable-toggle-instructions';
     var instructionsSelector = '.annotatable-instructions';
-    var sectionSelector = '.annotatable-section';
     var spanSelector = '.annotatable-span';
     var replySelector = '.annotatable-reply';
 
     /*
     Selectors for responding to events from the annotation capa problem type
     */
-    var problemXModuleSelector = '.xmodule_CapaModule';
-    var problemSelector = 'div.problem';
     var problemInputSelector = 'div.problem .annotation-input';
     var problemReturnSelector = 'div.problem .annotation-return';
 
     var annotationsHidden = false;
     var instructionsHidden = false;
 
-    var el = element;
     var $el = $(element);
-
-    if (_debug) {
-        console.log('loaded Annotatable');
-    }
 
     init();
 
     function init() {
         initEvents();
         initTips();
+        if (_debug) {
+            console.log('Annotatable XBlock Loaded');
+        }
     }
 
     function initEvents() {

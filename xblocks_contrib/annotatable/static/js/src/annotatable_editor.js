@@ -5,7 +5,6 @@ function XMLEditingDescriptor(runtime, element) {
     var _debug = false;
 
     var el = element;
-    var $el = $(element);
 
     var textarea = $(editBoxSelector, el)[0];
     if (!textarea) {

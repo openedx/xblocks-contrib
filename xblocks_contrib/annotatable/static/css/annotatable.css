@@ -9,7 +9,7 @@
 .annotatable-section {
   position: relative;
   padding: 0.5em 1em;
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--gray-l3, #c8c8c8);
   border-radius: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -23,7 +23,7 @@
   font-weight: normal;
 }
 .annotatable-section .annotatable-section-body {
-  border-top: 1px solid #c8c8c8;
+  border-top: 1px solid var(--gray-l3, #c8c8c8);
   margin-top: 0.5em;
   padding-top: 0.5em;
 }
@@ -118,18 +118,18 @@
   border: 1px solid #333;
   border-radius: 1em;
   background-color: rgba(0, 0, 0, 0.85);
-  color: #fff;
+  color: var(--white, #fff);
   -webkit-font-smoothing: antialiased;
 }
 .ui-tooltip.qtip.ui-tooltip .ui-tooltip-titlebar {
   font-size: 1em;
   color: inherit;
   background-color: transparent;
-  padding: 5px 10px;
+  padding: calc((var(--baseline, 20px) / 4)) calc((var(--baseline, 20px) / 2));
   border: none;
 }
 .ui-tooltip.qtip.ui-tooltip .ui-tooltip-titlebar .ui-tooltip-title {
-  padding: 5px 0;
+  padding: calc((var(--baseline, 20px) / 4)) 0;
   border-bottom: 2px solid #333;
   font-weight: bold;
 }
@@ -139,14 +139,14 @@
 }
 .ui-tooltip.qtip.ui-tooltip .ui-tooltip-titlebar .ui-state-hover {
   color: inherit;
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--gray-l3, #c8c8c8);
 }
 .ui-tooltip.qtip.ui-tooltip .ui-tooltip-content {
   color: inherit;
   font-size: 0.875em;
   text-align: left;
   font-weight: 400;
-  padding: 0 10px 10px 10px;
+  padding: 0 calc((var(--baseline, 20px) / 2)) calc((var(--baseline, 20px) / 2)) calc((var(--baseline, 20px) / 2));
   background-color: transparent;
   border-color: transparent;
 }
@@ -158,13 +158,11 @@
   max-width: 375px;
 }
 .ui-tooltip.qtip.ui-tooltip-annotatable .ui-tooltip-content {
-  padding: 0 10px;
+  padding: 0 calc((var(--baseline, 20px) / 2));
 }
-.ui-tooltip.qtip.ui-tooltip-annotatable
-  .ui-tooltip-content
-  .annotatable-comment {
+.ui-tooltip.qtip.ui-tooltip-annotatable .ui-tooltip-content .annotatable-comment {
   display: block;
-  margin: 0 0 10px 0;
+  margin: 0 0 calc((var(--baseline, 20px) / 2)) 0;
   max-height: 225px;
   overflow: auto;
   line-height: normal;
@@ -172,19 +170,19 @@
 .ui-tooltip.qtip.ui-tooltip-annotatable .ui-tooltip-content .annotatable-reply {
   display: block;
   border-top: 2px solid #333;
-  padding: 5px 0;
+  padding: calc((var(--baseline, 20px) / 4)) 0;
   margin: 0;
   text-align: center;
 }
 .ui-tooltip.qtip.ui-tooltip-annotatable::after {
-  content: "";
+  content: '';
   display: inline-block;
   position: absolute;
   bottom: -20px;
   left: 50%;
   height: 0;
   width: 0;
-  margin-left: -5px;
+  margin-left: calc(-1 * (var(--baseline, 20px) / 4));
   border: 10px solid transparent;
   border-top-color: rgba(0, 0, 0, 0.85);
 }

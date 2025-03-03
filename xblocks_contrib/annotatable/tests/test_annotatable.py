@@ -5,29 +5,9 @@ from unittest.mock import MagicMock
 from lxml import etree
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
-from xblock.runtime import Runtime
+from xblock.test.tools import TestRuntime
 
 from xblocks_contrib.annotatable.annotatable import AnnotatableBlock
-
-
-class MockRuntime(Runtime):
-    """A mock implementation of the Runtime class for testing purposes."""
-
-    def __init__(self):
-        # id_reader and id_generator are required by Runtime.
-        super().__init__(id_reader=lambda: None, id_generator=lambda: None)
-
-    def handler_url(self, block, handler_name, suffix="", query=""):
-        return f"/mock_url/{handler_name}"
-
-    def local_resource_url(self, block, resource):
-        return f"/mock_resource_url/{resource}"
-
-    def resource_url(self, resource):
-        return f"/mock_resource/{resource}"
-
-    def publish(self, block, event_type, event_data):
-        pass
 
 
 class AnnotatableBlockTestCase(unittest.TestCase):
@@ -54,7 +34,7 @@ class AnnotatableBlockTestCase(unittest.TestCase):
 
     def setUp(self):
         super().setUp()
-        runtime = MockRuntime()
+        runtime = TestRuntime()
         scope_ids = ScopeIds("user_id", "block_type", "block_id", "course_id")
         field_data = DictFieldData({"data": self.sample_xml})
         self.annotatable = AnnotatableBlock(runtime, field_data, scope_ids)
@@ -83,6 +63,14 @@ class AnnotatableBlockTestCase(unittest.TestCase):
         assert isinstance(actual_attr, dict)
         self.assertDictEqual(expected_attr, actual_attr)
 
+    def test_instruction_removal(self):
+        xmltree = etree.fromstring(self.sample_xml)
+        instructions = self.annotatable._extract_instructions(xmltree)
+
+        assert instructions is not None
+        assert "Read the text." in instructions
+        assert xmltree.find("instructions") is None
+
     def test_annotation_class_attr_with_valid_highlight(self):
         xml = '<annotation title="x" body="y" problem="0" highlight="{highlight}">test</annotation>'
 
@@ -101,9 +89,7 @@ class AnnotatableBlockTestCase(unittest.TestCase):
 
         for invalid_color in ["rainbow", "blink", "invisible", "", None]:
             el = etree.fromstring(xml.format(highlight=invalid_color))
-            expected_attr = {
-                "class": {"value": "annotatable-span highlight", "_delete": "highlight"}
-            }
+            expected_attr = {"class": {"value": "annotatable-span highlight", "_delete": "highlight"}}
             actual_attr = self.annotatable._get_annotation_class_attr(0, el)
 
             assert isinstance(actual_attr, dict)
@@ -117,9 +103,7 @@ class AnnotatableBlockTestCase(unittest.TestCase):
         )
         expected_el = etree.fromstring(expected_html)
 
-        actual_el = etree.fromstring(
-            '<annotation title="x" body="y" problem="0" highlight="yellow">z</annotation>'
-        )
+        actual_el = etree.fromstring('<annotation title="x" body="y" problem="0" highlight="yellow">z</annotation>')
         self.annotatable._render_annotation(0, actual_el)
 
         assert expected_el.tag == actual_el.tag
