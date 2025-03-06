@@ -11,38 +11,27 @@ Examples of html5 videos for manual testing:
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.webm
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
 """
-import copy
 import json
 import logging
 import uuid
 from collections import OrderedDict
-from collections import defaultdict
 from operator import itemgetter
 
 from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from edx_django_utils.cache import RequestCache
-from lxml import etree
-from opaque_keys.edx.locator import AssetLocator
 # from organizations.api import get_course_organization
 from web_fragments.fragment import Fragment
 from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
-from xblock.fields import ScopeIds
-from xblock.runtime import KvsFieldData
 from xblock.utils.resources import ResourceLoader
 
 from xblocks_contrib.video.bumper_utils import bumperize
 # TODO: reimport following wild card import
 from xblocks_contrib.video.constants import *
-from xblocks_contrib.video.content import StaticContent
-from xblocks_contrib.video.exceptions import NotFoundError
-from xblocks_contrib.video.transcripts_utils import VideoTranscriptsMixin, get_transcript, Transcript, subs_filename, \
-    clean_video_id, get_html5_ids, manage_video_subtitles_save
-from xblocks_contrib.video.utils import sharing_sites_info_for_video
+from xblocks_contrib.video.transcripts_utils import VideoTranscriptsMixin
 from xblocks_contrib.video.video_handlers import VideoStudioViewHandlers, VideoStudentViewHandlers
-from xblocks_contrib.video.video_utils import rewrite_video_url, create_youtube_string, format_xml_exception_message, \
-    get_poster
+from xblocks_contrib.video.video_utils import rewrite_video_url, create_youtube_string, get_poster
 from xblocks_contrib.video.video_xfields import VideoFields
 
 # The following import/except block for edxval is temporary measure until
@@ -238,6 +227,9 @@ class VideoBlock(
         )
 
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
+        # frag.add_javascript_url("https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js")
+        # frag.add_javascript(resource_loader.load_unicode("static/js/src/lib/require.js"))
+        # frag.add_javascript(resource_loader.load_unicode("/static/common/js/vendor/require.js"))
         frag.add_javascript(resource_loader.load_unicode("static/js/src/video.js"))
         frag.initialize_js("VideoBlock")
         return frag
