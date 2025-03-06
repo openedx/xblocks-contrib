@@ -1,6 +1,6 @@
 (function(requirejs, require, define) {
     define(
-        'video/00_video_storage.js',
+        // 'video/00_video_storage.js',
         [],
         function() {
             'use strict';

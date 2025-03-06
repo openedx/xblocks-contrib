@@ -1,13 +1,15 @@
 {% load i18n %}
+
+{#<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"/>#}
+
 <div>
     <p>I am an Extracted Video Block, keep developing me, thanks!</p>
 </div>
 
-
 {% if display_name is not None and not is_embed %}
     <h3 class="hd hd-2">{{ display_name }}</h3>
 {% endif %}
-
 
 <div
     id="video_{{ id }}"
