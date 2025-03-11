@@ -72,7 +72,7 @@ class PollBlock(XmlMixin, XModuleMixin):
         """
         Renders the student view.
         """
-        # import pdb; pdb.set_trace()
+
         frag = Fragment()
         frag.add_content(resource_loader.render_django_template(
             "templates/poll.html", {
@@ -95,7 +95,7 @@ class PollBlock(XmlMixin, XModuleMixin):
         """
         # FIXME: hack for resolving caching `default={}` during definition
         # poll_answers field
-        # import pdb; pdb.set_trace();
+
         if self.poll_answers is None:
             self.poll_answers = {}
 
@@ -126,7 +126,7 @@ class PollBlock(XmlMixin, XModuleMixin):
         #                     "total": 20,
         #                     "reset": "true"
         # })
-        # import pdb; pdb.set_trace();
+
         return json.dumps({
             'answers': answers_to_json,                
             'question': self.question, 
@@ -279,7 +279,7 @@ class PollBlock(XmlMixin, XModuleMixin):
                     'text': cls.stringify_children(element_answer)
                 })
             xml_object_copy.remove(element_answer)
-        import pdb; pdb.set_trace();
+        
         definition = {
             'answers': answers,
             'question': cls.stringify_children(xml_object_copy)

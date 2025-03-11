@@ -5,7 +5,7 @@ const blockIdentifier = '._poll_question_extracted'
 
 
 function PollBlock(runtime, element) {
-debugger;
+
     const questionEl = $(element).find(blockIdentifier);
     
     if (questionEl.length !== 1) {
@@ -92,7 +92,7 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
 
     function showAnswerGraph(poll_answers, total) {
          var totalValue;
-         debugger;
+
          totalValue = parseFloat(total);
          if (isFinite(totalValue) === false) {
              return;
@@ -216,7 +216,6 @@ function submitReset(runtime, element) {
 require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils) {
     
     function postInit(runtime, element) {
-        debugger;
             
             // Access this object inside inner functions.
             _this = this;            
@@ -261,7 +260,6 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
                 answer = {};
         
                 _this.answersObj[index] = answer;
-                debugger;
                 answer.el = $('<div class="poll_answer"></div>');
         
                 answer.questionEl = $('<div class="question"></div>');
@@ -302,7 +300,6 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
                 });
         
                 answer.buttonEl.on('click', function() {
-                    debugger;
                     _this.submitAnswer(runtime, index, element);
                 });
         
