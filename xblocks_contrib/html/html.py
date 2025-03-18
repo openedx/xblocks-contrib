@@ -1,81 +1,134 @@
-"""TO-DO: Write a description of what this XBlock is."""
+"""
+HTML XBlock module for displaying raw HTML content.
+This XBlock allows users to embed HTML content inside courses.
+"""
 
-from importlib.resources import files
+import re
 
-from django.utils import translation
+from django.conf import settings
+from django.utils.translation import gettext_noop as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Integer, Scope
+from xblock.fields import Scope, String
 from xblock.utils.resources import ResourceLoader
+
+from xblocks_contrib.html.utils import escape_html_characters
 
 resource_loader = ResourceLoader(__name__)
 
+# The global (course-agnostic) anonymous user ID for the user.
+ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_id"
 
-# This Xblock is just to test the strucutre of xblocks-contrib
+
 @XBlock.needs("i18n")
+@XBlock.needs("user")
 class HtmlBlock(XBlock):
     """
-    TO-DO: document what your XBlock does.
+    The HTML XBlock
+    This provides the base class for all Html-ish blocks (including the HTML XBlock).
     """
 
-    # Fields are defined on the class.  You can access them in your code as
-    # self.<fieldname>.
-
-    # TO-DO: delete count, and define your own fields.
-    count = Integer(
-        default=0,
-        scope=Scope.user_state,
-        help="A simple counter, to show something happening",
+    display_name = String(
+        display_name=_("Display Name"),
+        help=_("The display name for this component."),
+        scope=Scope.settings,
+        # it'd be nice to have a useful default but it screws up other things; so,
+        # use display_name_with_default for those
+        default=_("Text"),
     )
+    data = String(
+        help=_("Html contents to display for this block"),
+        default="",
+        scope=Scope.content,
+    )
+    ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA = "ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"
 
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
 
-    def resource_string(self, path):
-        """Handy helper for getting resources from our kit."""
-        return files(__package__).joinpath(path).read_text(encoding="utf-8")
-
-    # TO-DO: change this view to display your data your own way.
-    def student_view(self, context=None):
-        """
-        Create primary view of the HtmlBlock, shown to students when viewing courses.
-        """
-        if context:
-            pass  # TO-DO: do something based on the context.
-
-        frag = Fragment()
-        frag.add_content(
-            resource_loader.render_django_template(
-                "templates/html.html",
-                {
-                    "count": self.count,
-                },
-                i18n_service=self.runtime.service(self, "i18n"),
+    def get_html(self):
+        """Returns html required for rendering the block."""
+        if self.data:
+            data = self.data
+            user_id = (
+                self.runtime.service(self, "user")
+                .get_current_user()
+                .opt_attrs.get(ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID)
             )
-        )
+            if user_id:
+                data = data.replace("%%USER_ID%%", user_id)
+            data = data.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
+            return data
+        return self.data
 
-        frag.add_css(self.resource_string("static/css/html.css"))
-        frag.add_javascript(self.resource_string("static/js/src/html.js"))
+    def index_dictionary(self):
+        xblock_body = super().index_dictionary()
+        # Removing script and style
+        html_content = re.sub(
+            re.compile(
+                r"""
+                    <script>.*?</script> |
+                    <style>.*?</style>
+                """,
+                re.DOTALL | re.VERBOSE,
+            ),
+            "",
+            self.data,
+        )
+        html_content = escape_html_characters(html_content)
+        html_body = {
+            "html_content": html_content,
+            "display_name": self.display_name,
+        }
+        if "content" in xblock_body:
+            xblock_body["content"].update(html_body)
+        else:
+            xblock_body["content"] = html_body
+        xblock_body["content_type"] = "Text"
+        return xblock_body
+
+    def student_view_data(self, context=None):  # pylint: disable=unused-argument
+        """
+        Return a JSON representation of the student_view of this XBlock.
+        """
+        if getattr(settings, "FEATURES", {}).get(self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA, False):
+            return {"enabled": True, "html": self.get_html()}
+        else:
+            return {
+                "enabled": False,
+                "message": f'To enable, set FEATURES["{self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA}"]',
+            }
+
+    @XBlock.supports("multi_device")
+    def student_view(self, _context):
+        """
+        Return a fragment that contains the html for the student view
+        """
+        frag = Fragment(self.get_html())
+        frag.add_css(resource_loader.load_unicode("static/css/html.css"))
+        frag.add_javascript("""function HtmlBlock(runtime, element){}""")
         frag.initialize_js("HtmlBlock")
         return frag
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
-    @XBlock.json_handler
-    def increment_count(self, data, suffix=""):
+    def studio_view(self, context):  # pylint: disable=unused-argument
         """
-        Increments data. An example handler.
+        Generates a fragment that redirects to the new Studio editor URL.
         """
-        if suffix:
-            pass  # TO-DO: Use the suffix when storing data.
-        # Just to show data coming in...
-        assert data["hello"] == "world"
+        course_key = self.runtime.course_id
+        block_id = str(self.scope_ids.usage_id)
 
-        self.count += 1
-        return {"count": self.count}
+        new_url = f"http://apps.local.openedx.io:2001/authoring/course/{course_key}/editor/html/{block_id}"
 
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
+        fragment = Fragment()
+        fragment.add_content(
+            f"""
+            <script>
+                window.location.href = "{new_url}";
+            </script>
+        """
+        )
+        return fragment
+
     @staticmethod
     def workbench_scenarios():
         """Create canned scenario for display in the workbench."""
@@ -95,10 +148,3 @@ class HtmlBlock(XBlock):
                 """,
             ),
         ]
-
-    @staticmethod
-    def get_dummy():
-        """
-        Generate initial i18n with dummy method.
-        """
-        return translation.gettext_noop("Dummy")
