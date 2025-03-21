@@ -1,13 +1,13 @@
 
 /* JavaScript for PollBlock. */
 var _this
-const blockIdentifier = '._poll_question_extracted'
+const blockIdentifier = '.poll_question'
 
 
 function PollBlock(runtime, element) {
 
     const questionEl = $(element).find(blockIdentifier);
-    
+
     if (questionEl.length !== 1) {
         // We require one question DOM element.
         console.log('ERROR: PollMain constructor requires one question DOM element.');
@@ -58,7 +58,7 @@ function PollBlock(runtime, element) {
     }($(element)[0], 0));
 
     try {
-        this.jsonConfig = JSON.parse(questionEl.children('._poll_question_extracted_div').html());
+        this.jsonConfig = JSON.parse(questionEl.children('.poll_question_div').html());
         $.ajax({
             type: 'POST',
             url: runtime.handlerUrl(element, 'handle_get_state'),
@@ -72,7 +72,7 @@ function PollBlock(runtime, element) {
                 });
 
                 // xss-lint: disable=javascript-jquery-html
-                questionEl.children('._poll_question_extracted_div').html(JSON.stringify(_this.jsonConfig));
+                questionEl.children('.poll_question_div').html(JSON.stringify(_this.jsonConfig));
 
                 postInit(runtime, element);
             }    
@@ -92,7 +92,6 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
 
     function showAnswerGraph(poll_answers, total) {
          var totalValue;
-
          totalValue = parseFloat(total);
          if (isFinite(totalValue) === false) {
              return;
@@ -137,7 +136,7 @@ function submitAnswer(runtime, answer, answerObj, element) {
     this.questionAnswered = true;
     _this = this;
     answerObj.buttonEl.addClass('answered');
-    
+        
     var data = {
         answer: answer
     }
@@ -218,9 +217,9 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
     function postInit(runtime, element) {
             
             // Access this object inside inner functions.
-            _this = this;            
+            _this = this;         
             const questionEl = $(element).find(blockIdentifier);
-            this.jsonConfig = JSON.parse(questionEl.children('._poll_question_extracted_div').html());
+            this.jsonConfig = JSON.parse(questionEl.children('.poll_question_div').html());
             if ((this.jsonConfig.poll_answer.length > 0) && (this.jsonConfig.answers.hasOwnProperty(this.jsonConfig.poll_answer) === false)
             ) {
                 HtmlUtils.append(questionEl, HtmlUtils.joinHtml(
@@ -300,7 +299,7 @@ require(['jquery', 'edx-ui-toolkit/js/utils/html-utils'], function ($, HtmlUtils
                 });
         
                 answer.buttonEl.on('click', function() {
-                    _this.submitAnswer(runtime, index, element);
+                    _this.submitAnswer(runtime, index, answer, element);
                 });
         
                 if (index === _this.jsonConfig.poll_answer) {
