@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import markupsafe
 import html
 import json
 
@@ -15,10 +16,9 @@ from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, String, ScopeIds
 from xblock.utils.resources import ResourceLoader
 
-from openedx.core.djangolib.markup import Text, HTML
-
 
 _ = lambda text: text
+Text = markupsafe.escape                        # pylint: disable=invalid-name
 resource_loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
 
@@ -252,6 +252,29 @@ class PollBlock(XBlock):
 
     _tag_name = 'poll_question'
     _child_tag_name = 'answer'
+
+
+    def HTML(html):                                 # pylint: disable=invalid-name
+        """
+        Mark a string as already HTML, so that it won't be escaped before output.
+
+        Use this function when formatting HTML into other strings.  It must be
+        used in conjunction with ``Text()``, and both ``HTML()`` and ``Text()``
+        must be closed before any calls to ``format()``::
+
+            <%page expression_filter="h"/>
+            <%!
+            from django.utils.translation import gettext as _
+
+            from openedx.core.djangolib.markup import HTML, Text
+            %>
+            ${Text(_("Write & send {start}email{end}")).format(
+                start=HTML("<a href='mailto:{}'>").format(user.email),
+                end=HTML("</a>"),
+            )}
+
+        """
+        return markupsafe.Markup(html)
 
 
     def deserialize_field(field, value):
@@ -607,7 +630,7 @@ class PollBlock(XBlock):
 
     def definition_to_xml(self, resource_fs):
         """Return an xml element representing to this definition."""
-        poll_str = HTML('<{tag_name}>{text}</{tag_name}>').format(
+        poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
             tag_name=self._tag_name, text=self.question)
         xml_object = etree.fromstring(poll_str)
         xml_object.set('display_name', self.display_name)
@@ -616,12 +639,12 @@ class PollBlock(XBlock):
             # Escape answer text before adding to xml tree.
             answer_text = str(answer['text'])
             child_str = Text('{tag_begin}{text}{tag_end}').format(
-                tag_begin=HTML('<{tag_name} id="{id}">').format(
+                tag_begin=self.HTML('<{tag_name} id="{id}">').format(
                     tag_name=self._child_tag_name,
                     id=answer['id']
                 ),
                 text=answer_text,
-                tag_end=HTML('</{tag_name}>').format(tag_name=self._child_tag_name)
+                tag_end=self.HTML('</{tag_name}>').format(tag_name=self._child_tag_name)
             )
             child_node = etree.fromstring(child_str)
             xml_object.append(child_node)
