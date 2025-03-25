@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 @XBlock.needs("i18n")
 class PollBlock(XBlock):
+    """Poll Block"""
     
     display_name = String(
         help=_("The display name for this component."),
@@ -108,7 +109,7 @@ class PollBlock(XBlock):
         frag.add_javascript(resource_loader.load_unicode("static/js/src/poll.js"))
         frag.initialize_js('PollBlock')
         return frag
-    
+
     def dump_poll(self):
         """Dump poll information.
 
@@ -117,7 +118,7 @@ class PollBlock(XBlock):
         """
         # FIXME: hack for resolving caching `default={}` during definition
         # poll_answers field
-        
+
         if self.poll_answers is None:
             self.poll_answers = {}
 
@@ -149,7 +150,7 @@ class PollBlock(XBlock):
 
 
     @XBlock.json_handler
-    def handle_get_state(self, data, suffix=''):
+    def handle_get_state(self, data, suffix=''):  # lint-amnesty, pylint: disable=unused-argument
         return {
             'poll_answer': self.poll_answer,
             'poll_answers': self.poll_answers,
@@ -158,11 +159,11 @@ class PollBlock(XBlock):
 
 
     @XBlock.json_handler
-    def handle_submit_state(self, data, suffix=''):
+    def handle_submit_state(self, data, suffix=''):  # lint-amnesty, pylint: disable=unused-argument
         answer = data.get('answer')  # Extract the answer from the data payload
         if not answer:
             return {'error': 'No answer provided!'}
-        
+
         if answer in self.poll_answers and not self.voted:
             # FIXME: fix this, when xblock will support mutable types.
             # Now we use this hack.
@@ -223,7 +224,7 @@ class PollBlock(XBlock):
         return translation.gettext_noop("Dummy")
 
 
-    def stringify_children(node):
+    def stringify_children(cls, node):      # pylint: disable=no-member
         """
         Return all contents of an xml tree, without the outside tags.
         e.g. if node is parse of
@@ -255,7 +256,7 @@ class PollBlock(XBlock):
     _child_tag_name = 'answer'
 
 
-    def HTML(html):                                 # pylint: disable=invalid-name
+    def HTML(html_content):                                 # pylint: disable=invalid-name, disable=no-member
         """
         Mark a string as already HTML, so that it won't be escaped before output.
 
@@ -275,10 +276,11 @@ class PollBlock(XBlock):
             )}
 
         """
-        return markupsafe.Markup(html)
+        return markupsafe.Markup(html_content)
 
-
-    def deserialize_field(field, value):
+    
+    @classmethod
+    def deserialize_field(cls, field, value):    # pylint: disable=no-member
         """
         Deserialize the string version to the value stored internally.
 
@@ -287,7 +289,7 @@ class PollBlock(XBlock):
         on the supplied value, unless json.loads throws a TypeError, or the type of the value returned by json.loads
         is not supported for this class (from_json throws an Error). In either of those cases, this method returns
         the input value.
-        
+
         """
         try:
             deserialized = json.loads(value)
@@ -309,7 +311,7 @@ class PollBlock(XBlock):
         except (ValueError, TypeError):
             # Support older serialized version.
             return value
-    
+
 
     def name_to_pathname(name):
         """
@@ -377,7 +379,7 @@ class PollBlock(XBlock):
         has_text = xml_obj.text is not None and len(xml_obj.text.strip()) > 0
 
         return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
-    
+
 
     @staticmethod
     def _get_metadata_from_xml(xml_object, remove=True):
@@ -443,7 +445,7 @@ class PollBlock(XBlock):
         Returns (XBlock): The newly parsed XBlock
 
         """
-        
+
         import pdb; pdb.set_trace()
         if keys is None:
             # Passing keys=None is against the XBlock API but some platform tests do it.
@@ -590,7 +592,7 @@ class PollBlock(XBlock):
 
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):        
+    def definition_from_xml(cls, xml_object, system):
         """
         Pull out the data into dictionary.
 
@@ -622,7 +624,7 @@ class PollBlock(XBlock):
                     'text': cls.stringify_children(element_answer)
                 })
             xml_object_copy.remove(element_answer)
-        
+
         definition = {
             'answers': answers,
             'question': cls.stringify_children(xml_object_copy)
