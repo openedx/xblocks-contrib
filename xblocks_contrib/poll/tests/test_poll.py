@@ -12,6 +12,7 @@ from xblock.fields import ScopeIds
 from django.test import TestCase
 from xblock.fields import ScopeIds
 # from xblock.test.toy_runtime import ToyRuntime
+from xblock.test.tools import TestRuntime
 
 from xblocks_contrib import PollBlock
 
@@ -29,9 +30,14 @@ class PollBlockTest(TestCase):
         super().setUp()
         course_key = CourseKey.from_string('org/course/run')
         # self.system = get_test_system(course_key)
-        usage_key = course_key.make_usage_key(PollBlock.category, 'test_loc')
+        self.system = TestRuntime()
+        
+        self.scope_ids = ScopeIds("user_id", "block_type", "block_id", "course_id")
+
+        # block_type = self.scope_ids.usage_id.block_type
+        usage_key = course_key.make_usage_key("block_type", 'test_loc')
         # ScopeIds has 4 fields: user_id, block_type, def_id, usage_id
-        self.scope_ids = ScopeIds(1, PollBlock.category, usage_key, usage_key)
+        self.scope_ids = ScopeIds(1, "block_type", usage_key, usage_key)
         self.xblock = PollBlock(
             self.system, DictFieldData(self.raw_field_data), self.scope_ids
         )
