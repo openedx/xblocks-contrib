@@ -224,7 +224,7 @@ class PollBlock(XBlock):
 
 
     def stringify_children(node):
-        '''
+        """
         Return all contents of an xml tree, without the outside tags.
         e.g. if node is parse of
             "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
@@ -233,7 +233,8 @@ class PollBlock(XBlock):
 
         fixed from
         http://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
-        '''
+
+        """
         # Useful things to know:
 
         # node.tostring() -- generates xml for the node, including start
@@ -286,6 +287,7 @@ class PollBlock(XBlock):
         on the supplied value, unless json.loads throws a TypeError, or the type of the value returned by json.loads
         is not supported for this class (from_json throws an Error). In either of those cases, this method returns
         the input value.
+        
         """
         try:
             deserialized = json.loads(value)
@@ -589,7 +591,8 @@ class PollBlock(XBlock):
 
     @classmethod
     def definition_from_xml(cls, xml_object, system):        
-        """Pull out the data into dictionary.
+        """
+        Pull out the data into dictionary.
 
         Args:
             xml_object: xml from file.
@@ -624,6 +627,7 @@ class PollBlock(XBlock):
             'answers': answers,
             'question': cls.stringify_children(xml_object_copy)
         }
+
         children = []
         return (definition, children)
 
