@@ -228,9 +228,10 @@ class PollBlock(XBlock):
         """
         Return all contents of an xml tree, without the outside tags.
         e.g. if node is parse of
-            "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
-        should return
-            "Hi <div>there <span>Bruce</span><b>!</b></div>"
+                "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
+            
+            should return
+                "Hi <div>there <span>Bruce</span><b>!</b></div>"
 
         fixed from
         http://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
@@ -446,7 +447,6 @@ class PollBlock(XBlock):
 
         """
 
-        import pdb; pdb.set_trace()
         if keys is None:
             # Passing keys=None is against the XBlock API but some platform tests do it.
             def_id = runtime.id_generator.create_definition(node.tag, node.get('url_name'))
@@ -594,20 +594,22 @@ class PollBlock(XBlock):
     @classmethod
     def definition_from_xml(cls, xml_object, system):
         """
-        Pull out the data into dictionary.
+        Pull out the data into a dictionary.
 
         Args:
-            xml_object: xml from file.
-            system: `system` object.
+            xml_object (ElementTree.Element): XML object from the file.
+            system (object): The system object.
 
         Returns:
-            (definition, children) - tuple
-            definition - dict:
-                {
-                    'answers': <List of answers>,
-                    'question': <Question string>
-                }
+            tuple: (definition, children)
+                - definition (dict): 
+                    {
+                        'answers': <List of answers>,
+                        'question': <Question string>
+                    }
+                - children: List of child elements.
         """
+
         # Check for presense of required tags in xml.
 
         if len(xml_object.xpath(cls._child_tag_name)) == 0:
@@ -628,6 +630,7 @@ class PollBlock(XBlock):
         definition = {
             'answers': answers,
             'question': cls.stringify_children(xml_object_copy)
+
         }
 
         children = []
