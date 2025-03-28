@@ -224,33 +224,33 @@ class PollBlock(XBlock):
         return translation.gettext_noop("Dummy")
 
 
-    def stringify_children(cls, node):      # pylint: disable=no-member
+    def stringify_children(cls, node):  # pylint: disable=no-member
         """
-        Return all contents of an xml tree, without the outside tags.
-        e.g. if node is parse of
-                "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
+        Return all contents of an XML tree, without the outer tags.
+        
+        Example:
+            If `node` is parsed from:
             
-            should return
-                "Hi <div>there <span>Bruce</span><b>!</b></div>"
+            ```xml
+            <html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div></html>
+            ```
 
-        fixed from
+            This function should return:
+            
+            ```xml
+            Hi <div>there <span>Bruce</span><b>!</b></div>
+            ```
+
+        Fixed from:
         http://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
-
         """
-        # Useful things to know:
-
-        # node.tostring() -- generates xml for the node, including start
-        #                 and end tags.  We'll use this for the children.
-        # node.text -- the text after the end of a start tag to the start
-        #                 of the first child
-        # node.tail -- the text after the end this tag to the start of the
-        #                 next element.
         parts = [node.text]
         for c in node.getchildren():
             parts.append(etree.tostring(c, with_tail=True, encoding='unicode'))
+        
+        # Remove None values before joining
+        return ''.join(part for part in parts if part)
 
-        # filter removes possible Nones in texts and tails
-        return ''.join([part for part in parts if part])
 
 
     _tag_name = 'poll_question'
@@ -594,47 +594,51 @@ class PollBlock(XBlock):
     @classmethod
     def definition_from_xml(cls, xml_object, system):
         """
-        Pull out the data into a dictionary.
+        Extract data from an XML object into a dictionary.
 
         Args:
             xml_object (ElementTree.Element): XML object from the file.
             system (object): The system object.
 
         Returns:
-            tuple: (definition, children)
-                - definition (dict): 
+            tuple: A tuple containing:
+
+                - **definition** (*dict*): A dictionary with:
+                    
                     {
                         'answers': <List of answers>,
                         'question': <Question string>
                     }
-                - children: List of child elements.
+
+                - **children** (*list*): A list of child elements.
         """
-
-        # Check for presense of required tags in xml.
-
+        
+        # Check for presence of required tags in XML.
         if len(xml_object.xpath(cls._child_tag_name)) == 0:
-            raise ValueError("Poll_question definition must include \
-                at least one 'answer' tag")
+            raise ValueError(
+                "Poll_question definition must include at least one 'answer' tag"
+            )
 
         xml_object_copy = deepcopy(xml_object)
         answers = []
         for element_answer in xml_object_copy.findall(cls._child_tag_name):
-            answer_id = element_answer.get('id', None)
+            answer_id = element_answer.get("id", None)
             if answer_id:
-                answers.append({
-                    'id': answer_id,
-                    'text': cls.stringify_children(element_answer)
-                })
+                answers.append(
+                    {
+                        "id": answer_id,
+                        "text": cls.stringify_children(element_answer),
+                    }
+                )
             xml_object_copy.remove(element_answer)
 
         definition = {
-            'answers': answers,
-            'question': cls.stringify_children(xml_object_copy)
-
+            "answers": answers,
+            "question": cls.stringify_children(xml_object_copy),
         }
 
         children = []
-        return (definition, children)
+        return definition, children
 
 
     def definition_to_xml(self, resource_fs):
