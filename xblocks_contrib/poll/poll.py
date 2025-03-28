@@ -612,22 +612,6 @@ class PollBlock(XBlock):
     def definition_from_xml(cls, xml_object, system):
         """
         Extract data from an XML object into a dictionary.
-
-        Args:
-            xml_object (ElementTree.Element): XML object from the file.
-            system (object): The system object.
-
-        Returns:
-            tuple: A tuple containing:
-
-                - **definition** (*dict*): A dictionary with:
-
-                    {
-                        'answers': <List of answers>,
-                        'question': <Question string>
-                    }
-
-                - **children** (*list*): A list of child elements.
         """
 
         # Check for presence of required tags in XML.
