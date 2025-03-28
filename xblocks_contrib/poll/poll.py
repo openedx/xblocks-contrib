@@ -1,15 +1,16 @@
 """TO-DO: Write a description of what this XBlock is."""
 
 import copy
-import logging
-import markupsafe
 import html
 import json
+import logging
+import markupsafe
 
-from importlib.resources import files
+
 from copy import deepcopy
 from collections import OrderedDict
 from django.utils import translation
+from importlib.resources import files
 from lxml import etree
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
@@ -21,6 +22,9 @@ _ = lambda text: text
 Text = markupsafe.escape                        # pylint: disable=invalid-name
 resource_loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
+
+# assume all XML files are persisted as utf-8.
+EDX_XML_PARSER = etree.XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding='utf-8')
 
 
 @XBlock.needs("i18n")
@@ -324,6 +328,16 @@ class PollBlock(XBlock):
         """
         return name.replace(':', '/')
 
+
+    @classmethod
+    def file_to_xml(cls, file_object):
+        """
+        Used when this module wants to parse a file object to xml
+        that will be converted to the definition.
+
+        Returns an lxml Element
+        """
+        return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()
 
     @classmethod
     def load_file(cls, filepath, fs, def_id):  # pylint: disable=invalid-name
@@ -644,7 +658,7 @@ class PollBlock(XBlock):
         return definition, children
 
 
-    def definition_to_xml(self, resource_fs):
+    def definition_to_xml(self):
         """Return an xml element representing to this definition."""
         poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
             tag_name=self._tag_name, text=self.question)
