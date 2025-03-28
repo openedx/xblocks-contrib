@@ -286,7 +286,7 @@ class PollBlock(XBlock):
 
         return markupsafe.Markup(html_content)
 
-    
+
     @classmethod
     def deserialize_field(cls, field, value):    # pylint: disable=no-member
         """
