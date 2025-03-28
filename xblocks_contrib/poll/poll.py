@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 @XBlock.needs("i18n")
 class PollBlock(XBlock):
     """Poll Block"""
-    
+
     display_name = String(
         help=_("The display name for this component."),
         scope=Scope.settings,
@@ -38,11 +38,13 @@ class PollBlock(XBlock):
         scope=Scope.user_state,
         default=False
     )
+
     poll_answer = String(
         help=_("Student answer"),
         scope=Scope.user_state,
         default=''
     )
+
     poll_answers = Dict(
         help=_("Poll answers from all students"),
         scope=Scope.user_state_summary
@@ -223,7 +225,7 @@ class PollBlock(XBlock):
         """
         return translation.gettext_noop("Dummy")
 
-
+    @classmethod
     def stringify_children(cls, node):  # pylint: disable=no-member
         """
         Return all contents of an XML tree, without the outer tags.
@@ -247,7 +249,7 @@ class PollBlock(XBlock):
         parts = [node.text]
         for c in node.getchildren():
             parts.append(etree.tostring(c, with_tail=True, encoding='unicode'))
-        
+
         # Remove None values before joining
         return ''.join(part for part in parts if part)
 
@@ -277,6 +279,7 @@ class PollBlock(XBlock):
             )}
 
         """
+
         return markupsafe.Markup(html_content)
 
     
@@ -604,7 +607,7 @@ class PollBlock(XBlock):
             tuple: A tuple containing:
 
                 - **definition** (*dict*): A dictionary with:
-                    
+
                     {
                         'answers': <List of answers>,
                         'question': <Question string>
@@ -612,7 +615,7 @@ class PollBlock(XBlock):
 
                 - **children** (*list*): A list of child elements.
         """
-        
+
         # Check for presence of required tags in XML.
         if len(xml_object.xpath(cls._child_tag_name)) == 0:
             raise ValueError(
