@@ -5,3 +5,4 @@ django-statici18n
 edx-i18n-tools
 XBlock
 openedx-django-pyfs
+edx-opaque-keys
