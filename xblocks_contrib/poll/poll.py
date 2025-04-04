@@ -169,7 +169,7 @@ class PollBlock(XBlock):
         """
         hanlder to submit poll answer.
         """
-        
+
         answer = data.get('answer')  # Extract the answer from the data payload
         if not answer:
             return {'error': 'No answer provided!'}
@@ -196,7 +196,7 @@ class PollBlock(XBlock):
         """
         hanlder to reset poll answer.
         """
-        
+
         self.voted = False
 
         # FIXME: fix this, when xblock will support mutable types.
@@ -573,7 +573,7 @@ class PollBlock(XBlock):
             filepath = ''
             aside_children = []
         else:
-            filepath = cls._format_filepath(xml_object.tag, filename)
+            filepath = PollBlock._format_filepath(xml_object.tag, filename)
 
             # VS[compat]
             # If the file doesn't exist at the right path, give the class a chance to fix it up. The file will be
@@ -595,7 +595,7 @@ class PollBlock(XBlock):
 
         definition_metadata = cls._get_metadata_from_xml(definition_xml)
         cls.clean_metadata_from_xml(definition_xml)
-        definition, children = cls.definition_from_xml(definition_xml, system)
+        definition, children = cls.definition_from_xml(definition_xml)
         if definition_metadata:
             definition['definition_metadata'] = definition_metadata
         definition['filename'] = [filepath, filename]
@@ -612,7 +612,7 @@ class PollBlock(XBlock):
         Loads definition_xml stored in a dedicated file
         """
         url_name = node.get('url_name')
-        filepath = cls._format_filepath(node.tag, cls.name_to_pathname(url_name))
+        filepath = PollBlock._format_filepath(node.tag, cls.name_to_pathname(url_name))
         definition_xml = cls.load_file(filepath, runtime.resources_fs, def_id)
         return definition_xml, filepath
 
