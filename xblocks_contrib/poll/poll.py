@@ -315,7 +315,8 @@ class PollBlock(XBlock):
             else:
                 metadata[attr] = value
 
-    def is_pointer_tag(self, xml_obj):
+    @classmethod
+    def is_pointer_tag(xml_obj):
         """
         Check if xml_obj is a pointer tag.
         """
