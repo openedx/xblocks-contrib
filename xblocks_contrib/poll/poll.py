@@ -19,7 +19,7 @@ from xblock.utils.resources import ResourceLoader
 
 
 _ = lambda text: text
-Text = markupsafe.escape                        # pylint: disable=invalid-name
+Text = markupsafe.escape
 resource_loader = ResourceLoader(__name__)
 log = logging.getLogger(__name__)
 
@@ -193,6 +193,10 @@ class PollBlock(XBlock):
 
     @XBlock.json_handler
     def handle_reset_state(self):
+        """
+        hanlder to reset poll answer.
+        """
+        
         self.voted = False
 
         # FIXME: fix this, when xblock will support mutable types.
@@ -235,7 +239,7 @@ class PollBlock(XBlock):
         return translation.gettext_noop("Dummy")
 
     @classmethod
-    def stringify_children(cls, node):  # pylint: disable=no-member
+    def stringify_children(cls, node):
         """
         Return all contents of an XML tree, without the outer tags.
         
@@ -268,7 +272,7 @@ class PollBlock(XBlock):
     _child_tag_name = 'answer'
 
 
-    def HTML(self, html_content):         # pylint: disable=invalid-name, disable=no-member
+    def HTML(self, html_content):         # pylint: disable=invalid-name
         """
         Mark a string as already HTML, so that it won't be escaped before output.
 
@@ -293,7 +297,7 @@ class PollBlock(XBlock):
 
 
     @classmethod
-    def deserialize_field(cls, field, value):    # pylint: disable=no-member
+    def deserialize_field(cls, field, value):
         """
         Deserialize the string version to the value stored internally.
 
@@ -355,7 +359,7 @@ class PollBlock(XBlock):
         try:
             with fs.open(filepath) as xml_file:
                 return cls.file_to_xml(xml_file)
-        except Exception as err:  # lint-amnesty, pylint: disable=broad-except
+        except Exception as err:  # lint-amnesty
             # Add info about where we are, but keep the traceback
             raise Exception(f'Unable to load file contents at path {filepath} for item {def_id}: {err}') from err
 
@@ -453,7 +457,7 @@ class PollBlock(XBlock):
 
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys):  # pylint: disable=too-many-statements
+    def parse_xml(cls, node, runtime, keys):
         """
         Use `node` to construct a new block.
 
