@@ -508,7 +508,7 @@ class PollBlock(XBlock):
         xml_object = etree.fromstring(poll_str)
         xml_object.set('display_name', self.display_name)
 
-        def add_child(xml_obj, answer):
+        def add_child(answer):
             answer_text = str(answer['text'])
             child_str = Text('{tag_begin}{text}{tag_end}').format(
                 tag_begin=self.HTML('<{tag_name} id="{id}">').format(
@@ -522,11 +522,11 @@ class PollBlock(XBlock):
             xml_object.append(child_node)
 
         for answer in self.answers:
-            add_child(xml_object, answer)
+            add_child(answer)
         return xml_object
 
     # Added backcompat_paths to satisfy pylint.
     @classmethod
-    def backcompat_paths(cls, filepath):
+    def backcompat_paths(cls):
         return []
     
