@@ -166,6 +166,10 @@ class PollBlock(XBlock):
 
     @XBlock.json_handler
     def handle_submit_state(self, data, suffix=''):  # lint-amnesty, pylint: disable=unused-argument
+        """
+        hanlder to submit poll answer.
+        """
+        
         answer = data.get('answer')  # Extract the answer from the data payload
         if not answer:
             return {'error': 'No answer provided!'}
@@ -184,6 +188,7 @@ class PollBlock(XBlock):
                 'total': sum(self.poll_answers.values()),
                 'callback': {'objectName': 'Conditional'}
             }
+        return {"error": "Invalid answer or already voted."}
 
 
     @XBlock.json_handler
@@ -263,7 +268,7 @@ class PollBlock(XBlock):
     _child_tag_name = 'answer'
 
 
-    def HTML(html_content):                                 # pylint: disable=invalid-name, disable=no-member
+    def HTML(self, html_content):         # pylint: disable=invalid-name, disable=no-member
         """
         Mark a string as already HTML, so that it won't be escaped before output.
 
@@ -321,7 +326,7 @@ class PollBlock(XBlock):
             return value
 
 
-    def name_to_pathname(name):
+    def name_to_pathname(self, name):
         """
         Convert a location name for use in a path: replace ':' with '/'.
         This allows users of the xml format to organize content into directories
@@ -375,7 +380,7 @@ class PollBlock(XBlock):
                 metadata[attr] = value
 
 
-    def is_pointer_tag(xml_obj):
+    def is_pointer_tag(self, xml_obj):
         """
         Check if xml_obj is a pointer tag: <blah url_name="something" />.
         No children, one attribute named url_name, no text.
@@ -609,7 +614,7 @@ class PollBlock(XBlock):
 
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):
+    def definition_from_xml(cls, xml_object):
         """
         Extract data from an XML object into a dictionary.
         """
