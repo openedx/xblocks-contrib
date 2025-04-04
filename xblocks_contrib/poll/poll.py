@@ -289,6 +289,7 @@ class PollBlock(XBlock):
 
 
     @classmethod
+    @classmethod
     def load_file(cls, filepath, fs, def_id):  # pylint: disable=invalid-name
         """
         Open the specified file in fs, and call cls.file_to_xml on it.
@@ -296,7 +297,7 @@ class PollBlock(XBlock):
         try:
             with fs.open(filepath) as xml_file:
                 return cls.file_to_xml(xml_file)
-        except Exception as err:  # lint-amnesty
+        except (OSError, etree.XMLSyntaxError) as err:
             raise Exception(f'Unable to load file contents at path {filepath} for item {def_id}: {err}') from err
 
     @classmethod
@@ -328,8 +329,8 @@ class PollBlock(XBlock):
         return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
 
     # Rename parameter to "xml_obj" for consistency.
-    @staticmethod
-    def _get_metadata_from_xml(xml_obj, remove=True):
+    @classmethod
+    def _get_metadata_from_xml(cls, xml_obj, remove=True):
         """
         Extract the metadata from the XML.
         """
@@ -528,3 +529,4 @@ class PollBlock(XBlock):
     @classmethod
     def backcompat_paths(cls, filepath):
         return []
+    
