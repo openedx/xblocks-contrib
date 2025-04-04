@@ -276,6 +276,18 @@ class PollBlock(XBlock):
         """
         return name.replace(':', '/')
 
+
+    @classmethod
+    def file_to_xml(cls, file_object):
+        """
+        Used when this module wants to parse a file object to xml
+        that will be converted to the definition.
+
+        Returns an lxml Element
+        """
+        return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()
+
+
     @classmethod
     def load_file(cls, filepath, fs, def_id):  # pylint: disable=invalid-name
         """
