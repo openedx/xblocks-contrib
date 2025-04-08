@@ -320,7 +320,7 @@ class PollBlock(XBlock):
         """
         Check if xml_obj is a pointer tag.
         """
-        if xml_obj.tag != "course":     # pylint: disable=comparison-with-callable
+        if xml_obj.tag != "course":
             expected_attr = {'url_name'}
         else:
             expected_attr = {'url_name', 'course', 'org'}
@@ -527,7 +527,7 @@ class PollBlock(XBlock):
         return xml_object
 
     # Added backcompat_paths to satisfy pylint.
-    @classmethod
-    def backcompat_paths(cls):
+    @staticmethod
+    def backcompat_paths(filepath):
         return []
     
