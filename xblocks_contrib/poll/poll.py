@@ -315,18 +315,18 @@ class PollBlock(XBlock):
             else:
                 metadata[attr] = value
 
-    @classmethod
+    @staticmethod
     def is_pointer_tag(xml_obj):
         """
         Check if xml_obj is a pointer tag.
         """
-        if xml_obj.tag != "course":
+        if xml_obj.tag != "course":     # pylint: disable=comparison-with-callable
             expected_attr = {'url_name'}
         else:
             expected_attr = {'url_name', 'course', 'org'}
 
         actual_attr = set(xml_obj.attrib.keys())
-        has_text = xml_obj.text is not None and len(xml_obj.text.strip()) > 0
+        has_text = bool(xml_obj.text and xml_obj.text.strip())
         return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
 
     # Rename parameter to "xml_obj" for consistency.
@@ -397,7 +397,7 @@ class PollBlock(XBlock):
             metadata['definition_metadata_raw'] = dmdata
             try:
                 metadata.update(json.loads(dmdata))
-            except Exception as err:
+            except (ValueError, TypeError) as err:
                 log.debug('Error in loading metadata %r', dmdata, exc_info=True)
                 metadata['definition_metadata_err'] = str(err)
 
