@@ -1,9 +1,9 @@
 """TO-DO: Write a description of what this XBlock is."""
 
 import copy
+import html
 import json
 import logging
-import html
 from collections import OrderedDict
 from importlib.resources import files
 
@@ -12,7 +12,7 @@ from django.utils import translation
 from lxml import etree
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Boolean, Dict, List, Scope, String, ScopeIds
+from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
 from xblock.utils.resources import ResourceLoader
 
 

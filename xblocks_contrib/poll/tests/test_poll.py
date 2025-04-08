@@ -4,11 +4,10 @@ Tests for PollBlock
 
 import json
 
+from django.test import TestCase
 from opaque_keys.edx.keys import CourseKey
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
-
-from django.test import TestCase
 from xblock.test.tools import TestRuntime
 
 from xblocks_contrib import PollBlock
