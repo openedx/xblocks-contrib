@@ -15,8 +15,10 @@ from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, String, ScopeIds
 from xblock.utils.resources import ResourceLoader
 
+
 def _(text):
     return text
+
 
 Text = markupsafe.escape
 resource_loader = ResourceLoader(__name__)
@@ -143,7 +145,7 @@ class PollBlock(XBlock):
         self.poll_answers = temp_poll_answers
 
         return json.dumps({
-            'answers': answers_to_json,                
+            'answers': answers_to_json,
             'question': self.question,
             'poll_answer': self.poll_answer,
             'poll_answers': self.poll_answers,
@@ -276,7 +278,6 @@ class PollBlock(XBlock):
         """
         return name.replace(':', '/')
 
-
     @classmethod
     def file_to_xml(cls, file_object):
         """
@@ -287,8 +288,6 @@ class PollBlock(XBlock):
         """
         return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()
 
-
-    @classmethod
     @classmethod
     def load_file(cls, filepath, fs, def_id):  # pylint: disable=invalid-name
         """

@@ -31,7 +31,7 @@ class PollBlockTest(TestCase):
         course_key = CourseKey.from_string('org/course/run')
         # self.system = get_test_system(course_key)
         self.system = TestRuntime()
-        
+
         self.scope_ids = ScopeIds("user_id", "block_type", "block_id", "course_id")
 
         # block_type = self.scope_ids.usage_id.block_type
