@@ -444,7 +444,7 @@ class PollBlock(XBlock):
         else:
             filepath = PollBlock._format_filepath(xml_object.tag, filename)
             if not system.resources_fs.exists(filepath) and hasattr(cls, 'backcompat_paths'):
-                candidates = cls.backcompat_paths(filepath)
+                candidates = cls.backcompat_paths()
                 for candidate in candidates:
                     if system.resources_fs.exists(candidate):
                         filepath = candidate
@@ -528,6 +528,5 @@ class PollBlock(XBlock):
 
     # Added backcompat_paths to satisfy pylint.
     @staticmethod
-    def backcompat_paths(filepath):
+    def backcompat_paths():
         return []
-    
