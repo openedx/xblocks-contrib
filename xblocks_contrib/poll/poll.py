@@ -190,6 +190,10 @@ class PollBlock(XBlock):
 
     @XBlock.json_handler
     def handle_reset_state(self):
+        """
+        handler to Reset poll answer.
+        """
+
         self.voted = False
 
         # FIXME: fix this, when xblock will support mutable types.
@@ -230,6 +234,7 @@ class PollBlock(XBlock):
         """
         return translation.gettext_noop("Dummy")
 
+    @staticmethod
     def stringify_children(node):
         """
         Return all contents of an XML tree, without the outer tags.
@@ -251,7 +256,8 @@ class PollBlock(XBlock):
         # filter removes possible Nones in texts and tails
         return ''.join([part for part in parts if part])
 
-    def HTML(self, html_content):  # pylint: disable=invalid-name
+    @staticmethod
+    def HTML(html_content):  # pylint: disable=invalid-name
         """
         Mark a string as already HTML, so that it won't be escaped before output.
         """
@@ -260,6 +266,7 @@ class PollBlock(XBlock):
     _tag_name = 'poll_question'
     _child_tag_name = 'answer'
 
+    @staticmethod
     def deserialize_field(field, value):
         """
         Deserialize the string version to the value stored internally.
@@ -286,6 +293,7 @@ class PollBlock(XBlock):
             # Support older serialized version.
             return value
 
+    @staticmethod
     def name_to_pathname(name):
         """
         Convert a location name for use in a path: replace ':' with '/'.
@@ -326,6 +334,7 @@ class PollBlock(XBlock):
             else:
                 metadata[attr] = value
 
+    @staticmethod
     def is_pointer_tag(xml_obj):
         """
         Check if xml_obj is a pointer tag
@@ -381,6 +390,7 @@ class PollBlock(XBlock):
         Remove any attribute named for a field with scope Scope.settings from the supplied
         xml_object
         """
+
         for field_name, field in cls.fields.items():
             if (field.scope == Scope.settings
                     and field_name not in excluded_fields
@@ -388,7 +398,7 @@ class PollBlock(XBlock):
                 del xml_object.attrib[field_name]
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys):  # pylint: disable=too-many-statements
+    def parse_xml(cls, node, runtime, keys):
         """
         Use `node` to construct a new block.
         Returns (XBlock): The newly parsed XBlock
@@ -490,12 +500,12 @@ class PollBlock(XBlock):
             # If the file doesn't exist at the right path, give the class a chance to fix it up. The file will be
             # written out again in the correct format. This should have gone away once the CMS became online and had
             # imported all 2012-fall courses from XML.
-            if not system.resources_fs.exists(filepath) and hasattr(cls, 'backcompat_paths'):
-                candidates = cls.backcompat_paths(filepath)
-                for candidate in candidates:
-                    if system.resources_fs.exists(candidate):
-                        filepath = candidate
-                        break
+            # if not system.resources_fs.exists(filepath) and hasattr(cls, 'backcompat_paths'):
+            #     candidates = cls.backcompat_paths(filepath)
+            #     for candidate in candidates:
+            #         if system.resources_fs.exists(candidate):
+            #             filepath = candidate
+            #             break
 
             definition_xml = cls.load_file(filepath, system.resources_fs, def_id)
             usage_id = id_generator.create_usage(def_id)
@@ -527,7 +537,7 @@ class PollBlock(XBlock):
         return definition_xml, filepath
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):
+    def definition_from_xml(cls, xml_object):
         """
         Pull out the data into dictionary.
         """
@@ -555,7 +565,7 @@ class PollBlock(XBlock):
         children = []
         return (definition, children)
 
-    def definition_to_xml(self, resource_fs):
+    def definition_to_xml(self):
         """Return an xml element representing to this definition."""
         poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
             tag_name=self._tag_name, text=self.question)
