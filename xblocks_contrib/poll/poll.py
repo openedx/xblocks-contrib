@@ -391,7 +391,7 @@ class PollBlock(XBlock):
             if attr not in getattr(cls, "fields", {}):  # pylint: disable=unsupported-membership-test
                 metadata['xml_attributes'][attr] = val
             else:
-                metadata[attr] = cls.deserialize_field(cls.fields[attr], val)
+                metadata[attr] = cls.deserialize_field(cls.fields[attr], val)    # pylint: disable=unsubscriptable-object
         return metadata
 
     @classmethod
@@ -472,7 +472,7 @@ class PollBlock(XBlock):
         xblock = runtime.construct_xblock_from_class(cls, keys)
         for (key, value_jsonish) in field_data.items():
             if key in cls.fields:   # pylint: disable=unsupported-membership-test
-                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
+                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))   # pylint: disable=unsubscriptable-object
             elif key == 'children':
                 xblock.children = value_jsonish
             else:
