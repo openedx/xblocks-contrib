@@ -1,22 +1,21 @@
 """TO-DO: Write a description of what this XBlock is."""
 
 import copy
-import logging
 import html
 import json
+import logging
+from collections import OrderedDict
+from importlib.resources import files
+
 import markupsafe
 
-from importlib.resources import files
 from copy import deepcopy
-from collections import OrderedDict
 from django.utils import translation
 from lxml import etree
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, String, ScopeIds
 from xblock.utils.resources import ResourceLoader
-
-# from openedx.core.djangolib.markup import Text, HTML
 
 
 def _(text):
@@ -312,7 +311,7 @@ class PollBlock(XBlock):
         try:
             with fs.open(filepath) as xml_file:
                 return cls.file_to_xml(xml_file)
-        except Exception as err:  # lint-amnesty, pylint: disable=broad-except
+        except Exception as err:
             # Add info about where we are, but keep the traceback
             raise Exception(f'Unable to load file contents at path {filepath} for item {def_id}: {err}') from err
 
@@ -390,7 +389,6 @@ class PollBlock(XBlock):
         Remove any attribute named for a field with scope Scope.settings from the supplied
         xml_object
         """
-
         for field_name, field in cls.fields.items():
             if (field.scope == Scope.settings
                     and field_name not in excluded_fields
@@ -398,7 +396,7 @@ class PollBlock(XBlock):
                 del xml_object.attrib[field_name]
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys):
+    def parse_xml(cls, node, runtime, keys):  # pylint: disable=unsubscriptable-object
         """
         Use `node` to construct a new block.
         Returns (XBlock): The newly parsed XBlock
@@ -537,7 +535,7 @@ class PollBlock(XBlock):
         return definition_xml, filepath
 
     @classmethod
-    def definition_from_xml(cls, xml_object):
+    def definition_from_xml(cls, xml_object, system):    # pylint: disable=unused-argument
         """
         Pull out the data into dictionary.
         """
@@ -565,7 +563,7 @@ class PollBlock(XBlock):
         children = []
         return (definition, children)
 
-    def definition_to_xml(self):
+    def definition_to_xml(self, resource_fs):   # pylint: disable=unused-argument
         """Return an xml element representing to this definition."""
         poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
             tag_name=self._tag_name, text=self.question)
