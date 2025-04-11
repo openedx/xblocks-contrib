@@ -6,16 +6,15 @@ import json
 
 from django.test import TestCase
 from opaque_keys.edx.keys import CourseKey
+from lxml import etree
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
-from xblock.test.tools import TestRuntime, DummySystem
-from lxml import etree
-
-from xblocks_contrib.poll.poll import PollBlock
+from xblock.test.tools import TestRuntime
+from xblocks_contrib import PollBlock
 
 
 class PollBlockTest(TestCase):
-    """Logic tests for PollBlock"""
+    """Logic tests for Poll Xmodule."""
 
     raw_field_data = {
         'poll_answers': {'Yes': 1, 'Dont_know': 0, 'No': 0},
@@ -27,17 +26,21 @@ class PollBlockTest(TestCase):
         super().setUp()
         course_key = CourseKey.from_string('org/course/run')
         self.system = TestRuntime()
-        usage_key = course_key.make_usage_key("block_type", "test_loc")
+
+        # ScopeIds: (user_id, block_type, def_id, usage_id)
+        usage_key = course_key.make_usage_key("block_type", 'test_loc')
         self.scope_ids = ScopeIds(1, "block_type", usage_key, usage_key)
-        self.xblock = PollBlock(self.system, DictFieldData(self.raw_field_data), self.scope_ids)
+        self.xblock = PollBlock(
+            self.system, DictFieldData(self.raw_field_data), self.scope_ids
+        )
 
     def test_poll_export_with_unescaped_characters_xml(self):
         """
         Ensure that PollBlock exports unescaped characters correctly in its XML.
         """
-        # Create a dummy system and set its target course id.
-        module_system = DummySystem(load_error_blocks=True)
-        module_system.id_generator.target_course_id = self.xblock.course_id
+        # Set up test runtime and construct a PollBlock instance.
+        runtime = TestRuntime()
+        block = runtime.construct_xblock(PollBlock)
 
         # Define a sample poll XML.
         sample_poll_xml = '''
@@ -48,18 +51,16 @@ class PollBlockTest(TestCase):
         '''
         node = etree.fromstring(sample_poll_xml)
 
-        # Parse the XML to create a PollBlock instance.
-        poll_instance = PollBlock.parse_xml(node, module_system, self.scope_ids)
+        # Re-parse the block using actual XML input.
+        parsed_block = PollBlock.parse_xml(node, runtime, block.scope_ids)
 
-        # Update the answer text with an unescaped character.
-        poll_instance.answers[0]['text'] = '< 18'
+        # Inject an unescaped character into the answer text.
+        parsed_block.answers[0]['text'] = '< 18'
+        parsed_block.save()
 
-        # Save changes.
-        poll_instance.save()
-
-        # Export the PollBlock definition back to XML.
-        exported_xml = poll_instance.definition_to_xml(None)
-        # Extract all text nodes.
+        # Export back to XML and get all text nodes.
+        exported_xml = parsed_block.definition_to_xml(None)
         texts = exported_xml.xpath('//text()')
-        # Assert that the last text node contains the unescaped answer.
+
+        # Assert that the last text node includes the unescaped string.
         self.assertEqual(texts[-1], '< 18')
