@@ -36,10 +36,10 @@ class PollBlockTest(TestCase):
 
     def test_poll_block_construction(self):
         """Test to ensure that the PollBlock is constructed properly and data is imported"""
-        
+
         # Check if the xblock object is an instance of PollBlock
         self.assertIsInstance(self.xblock, PollBlock)
-        
+
         # Verify that the imported data is correctly assigned to the PollBlock's fields
         self.assertEqual(self.xblock.poll_answers, {'Yes': 1, 'Dont_know': 0, 'No': 0})
         self.assertEqual(self.xblock.voted, False)
