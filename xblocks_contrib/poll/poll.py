@@ -463,7 +463,7 @@ class PollBlock(XBlock):
             aside_children.extend(definition_aside_children)
 
         # Set/override any metadata specified by policy
-        cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
+        # cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
 
         field_data = {**metadata, **definition, "children": children}
         field_data['xml_attributes']['filename'] = definition.get('filename', ['', None])  # for git link
