@@ -6,10 +6,10 @@ import json
 import logging
 from collections import OrderedDict
 from importlib.resources import files
+from copy import deepcopy
 
 import markupsafe
 
-from copy import deepcopy
 from django.utils import translation
 from lxml import etree
 from web_fragments.fragment import Fragment
