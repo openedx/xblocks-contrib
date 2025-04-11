@@ -186,6 +186,7 @@ class PollBlock(XBlock):
                 'total': sum(self.poll_answers.values()),
                 'callback': {'objectName': 'Conditional'}
             }
+        return {"error": "Invalid answer or already voted."}
 
     @XBlock.json_handler
     def handle_reset_state(self):
@@ -377,7 +378,7 @@ class PollBlock(XBlock):
                 # don't load these
                 continue
 
-            if attr not in cls.fields:
+            if attr not in getattr(cls, "fields", {}):
                 metadata['xml_attributes'][attr] = val
             else:
                 metadata[attr] = cls.deserialize_field(cls.fields[attr], val)
@@ -389,7 +390,8 @@ class PollBlock(XBlock):
         Remove any attribute named for a field with scope Scope.settings from the supplied
         xml_object
         """
-        for field_name, field in cls.fields.items():
+
+        for field_name, field in getattr(cls, "fields", {}).items():
             if (field.scope == Scope.settings
                     and field_name not in excluded_fields
                     and xml_object.get(field_name) is not None):
