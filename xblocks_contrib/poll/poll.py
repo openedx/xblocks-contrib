@@ -513,17 +513,6 @@ class PollBlock(XBlock):
         else:
             filepath = cls._format_filepath(xml_object.tag, filename)
 
-            # VS[compat]
-            # If the file doesn't exist at the right path, give the class a chance to fix it up. The file will be
-            # written out again in the correct format. This should have gone away once the CMS became online and had
-            # imported all 2012-fall courses from XML.
-            # if not system.resources_fs.exists(filepath) and hasattr(cls, 'backcompat_paths'):
-            #     candidates = cls.backcompat_paths(filepath)
-            #     for candidate in candidates:
-            #         if system.resources_fs.exists(candidate):
-            #             filepath = candidate
-            #             break
-
             definition_xml = cls.load_file(filepath, system.resources_fs, def_id)
             usage_id = id_generator.create_usage(def_id)
             aside_children = system.parse_asides(definition_xml, def_id, usage_id, id_generator)
