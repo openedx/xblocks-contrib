@@ -391,9 +391,8 @@ class PollBlock(XBlock):
             if attr not in getattr(cls, "fields", {}):  # pylint: disable=unsupported-membership-test
                 metadata['xml_attributes'][attr] = val
             else:
-                # pylint: disable=unsubscriptable-object
                 metadata[attr] = cls.deserialize_field(
-                    cls.fields[attr],
+                    cls.fields[attr],   # pylint: disable=unsubscriptable-object
                     val
                 )
         return metadata
