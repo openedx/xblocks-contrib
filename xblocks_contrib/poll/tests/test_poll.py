@@ -19,7 +19,7 @@ class PollBlockTest(TestCase):
     raw_field_data = {
         'poll_answers': {'Yes': 1, 'Dont_know': 0, 'No': 0},
         'voted': False,
-        'poll_answer': ''
+        'poll_answer': 'Yes'
     }
 
     def setUp(self):
@@ -41,7 +41,7 @@ class PollBlockTest(TestCase):
         self.assertIsInstance(self.xblock, PollBlock)
         
         # Verify that the imported data is correctly assigned to the PollBlock's fields
-        self.assertEqual(self.xblock.poll_answers, {'Yes': 1, 'No': 0})
+        self.assertEqual(self.xblock.poll_answers, {'Yes': 1, 'Dont_know': 0, 'No': 0})
         self.assertEqual(self.xblock.voted, False)
         self.assertEqual(self.xblock.poll_answer, 'Yes')
 
