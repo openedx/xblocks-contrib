@@ -401,7 +401,7 @@ class PollBlock(XBlock):
         xml_object
         """
 
-        for field_name, field in getattr(cls, "fields", {}).items():
+        for field_name, field in getattr(cls, "fields", {}).items():    # pylint: disable=no-member
             if (field.scope == Scope.settings
                     and field_name not in excluded_fields
                     and xml_object.get(field_name) is not None):
