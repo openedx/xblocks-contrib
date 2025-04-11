@@ -39,8 +39,8 @@ class PollBlockTest(TestCase):
         Ensure that PollBlock exports unescaped characters correctly in its XML.
         """
         # Set up test runtime and construct a PollBlock instance.
-        runtime = TestRuntime()
-        block = runtime.construct_xblock(PollBlock)
+        # runtime = TestRuntime()
+        # block = runtime.construct_xblock(PollBlock)
 
         # Define a sample poll XML.
         sample_poll_xml = '''
@@ -52,7 +52,7 @@ class PollBlockTest(TestCase):
         node = etree.fromstring(sample_poll_xml)
 
         # Re-parse the block using actual XML input.
-        parsed_block = PollBlock.parse_xml(node, runtime, block.scope_ids)
+        parsed_block = PollBlock.parse_xml(node, self.system, self.scope_ids)
 
         # Inject an unescaped character into the answer text.
         parsed_block.answers[0]['text'] = '< 18'
