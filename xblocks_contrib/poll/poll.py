@@ -392,7 +392,10 @@ class PollBlock(XBlock):
                 metadata['xml_attributes'][attr] = val
             else:
                 # pylint: disable=unsubscriptable-object
-                metadata[attr] = cls.deserialize_field(cls.fields[attr], val)
+                metadata[attr] = cls.deserialize_field(
+                    cls.fields[attr],
+                    val
+                )
         return metadata
 
     @classmethod
