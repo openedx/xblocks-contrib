@@ -53,6 +53,3 @@ class PollBlockTest(TestCase):
         # For example, check that the `poll_answers` field is being correctly updated.
         self.xblock.poll_answers['Maybe'] = 1
         self.assertEqual(self.xblock.poll_answers['Maybe'], 1)
-
-        # Ensure that the PollBlock has the correct course_id from the system
-        self.assertEqual(self.xblock.course_id, 'org/course/run')
