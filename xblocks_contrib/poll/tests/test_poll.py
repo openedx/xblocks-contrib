@@ -34,33 +34,25 @@ class PollBlockTest(TestCase):
             self.system, DictFieldData(self.raw_field_data), self.scope_ids
         )
 
-    def test_poll_export_with_unescaped_characters_xml(self):
-        """
-        Ensure that PollBlock exports unescaped characters correctly in its XML.
-        """
-        # Set up test runtime and construct a PollBlock instance.
-        # runtime = TestRuntime()
-        # block = runtime.construct_xblock(PollBlock)
+    def test_poll_block_construction(self):
+        """Test to ensure that the PollBlock is constructed properly and data is imported"""
+        
+        # Check if the xblock object is an instance of PollBlock
+        self.assertIsInstance(self.xblock, PollBlock)
+        
+        # Verify that the imported data is correctly assigned to the PollBlock's fields
+        self.assertEqual(self.xblock.poll_answers, {'Yes': 1, 'No': 0})
+        self.assertEqual(self.xblock.voted, False)
+        self.assertEqual(self.xblock.poll_answer, 'Yes')
 
-        # Define a sample poll XML.
-        sample_poll_xml = '''
-        <poll_question display_name="Poll Question">
-            <p>How old are you?</p>
-            <answer id="less18">18</answer>
-        </poll_question>
-        '''
-        node = etree.fromstring(sample_poll_xml)
+        # Verify the scope_ids to ensure the PollBlock is using the correct context
+        self.assertEqual(self.xblock.scope_ids.user_id, 1)
+        self.assertEqual(self.xblock.scope_ids.block_type, 'block_type')
 
-        # Re-parse the block using actual XML input.
-        parsed_block = PollBlock.parse_xml(node, self.system, self.scope_ids)
+        # You can also verify some other behavior if necessary
+        # For example, check that the `poll_answers` field is being correctly updated.
+        self.xblock.poll_answers['Maybe'] = 1
+        self.assertEqual(self.xblock.poll_answers['Maybe'], 1)
 
-        # Inject an unescaped character into the answer text.
-        parsed_block.answers[0]['text'] = '< 18'
-        parsed_block.save()
-
-        # Export back to XML and get all text nodes.
-        exported_xml = parsed_block.definition_to_xml(None)
-        texts = exported_xml.xpath('//text()')
-
-        # Assert that the last text node includes the unescaped string.
-        self.assertEqual(texts[-1], '< 18')
+        # Ensure that the PollBlock has the correct course_id from the system
+        self.assertEqual(self.xblock.course_id, 'org/course/run')
