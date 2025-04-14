@@ -59,8 +59,8 @@ class PollBlockTest(TestCase):
         response = self.xblock.submit_answer("No")
         assert response['poll_answers']['No'] == 1
         assert response['total'] == 2
-        assert self.block.voted is True
-        assert self.block.poll_answer == "No"
+        assert self.xblock.voted is True
+        assert self.xblock.poll_answer == "No"
 
     # def test_missing_answer(self):
     #     response = self.xblock.handle_submit_state({})
