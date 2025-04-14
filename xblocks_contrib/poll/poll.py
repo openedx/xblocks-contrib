@@ -151,9 +151,6 @@ class PollBlock(XBlock):
             'reset': str(self.xml_attributes.get('reset', 'true')).lower()
         })
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
-
     @XBlock.json_handler
     def handle_get_state(self, data, suffix=''):    # lint-amnesty, pylint: disable=unused-argument
         return {
@@ -192,24 +189,6 @@ class PollBlock(XBlock):
         """
         answer = data.get('answer')  # Extract the answer from the data payload
         self.submit_answer(answer)
-        # if not answer:
-        #     return {'error': 'No answer provided!'}
-
-        # if answer in self.poll_answers and not self.voted:
-        #     # FIXME: fix this, when xblock will support mutable types.
-        #     # Now we use this hack.
-        #     temp_poll_answers = self.poll_answers
-        #     temp_poll_answers[answer] += 1
-        #     self.poll_answers = temp_poll_answers
-
-        #     self.voted = True
-        #     self.poll_answer = answer
-        #     return {
-        #         'poll_answers': self.poll_answers,
-        #         'total': sum(self.poll_answers.values()),
-        #         'callback': {'objectName': 'Conditional'}
-        #     }
-        # return {"error": "Invalid answer or already voted."}
 
     @XBlock.json_handler
     def handle_reset_state(self):
@@ -226,9 +205,6 @@ class PollBlock(XBlock):
         self.poll_answers = temp_poll_answers
         self.poll_answer = ''
         return {'status': 'success'}
-
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
 
     @staticmethod
     def workbench_scenarios():

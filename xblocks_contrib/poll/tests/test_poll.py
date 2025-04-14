@@ -62,10 +62,6 @@ class PollBlockTest(TestCase):
         assert self.xblock.voted is True
         assert self.xblock.poll_answer == "No"
 
-    # def test_missing_answer(self):
-    #     response = self.xblock.handle_submit_state({})
-    #     assert response == {'error': 'No answer provided!'}
-
     def test_already_voted(self):
         # First vote
         self.xblock.submit_answer('Yes')
