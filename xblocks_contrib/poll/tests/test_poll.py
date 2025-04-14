@@ -66,9 +66,11 @@ class PollBlockTest(TestCase):
     #     response = self.xblock.handle_submit_state({})
     #     assert response == {'error': 'No answer provided!'}
 
-    # def test_already_voted(self):
-    #     # First vote
-    #     self.xblock.handle_submit_state({'answer': 'Yes'})
-    #     # Second vote attempt
-    #     response = self.xblock.handle_submit_state({'answer': 'No'})
-    #     assert response == {'error': 'Invalid answer or already voted.'}
+    def test_already_voted(self):
+        # First vote
+        self.xblock.submit_answer('Yes')
+
+        # Second vote attempt with a different answer
+        response = self.xblock.submit_answer('No')
+
+        assert response == {'error': 'Invalid answer or already voted.'}

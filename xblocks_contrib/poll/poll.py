@@ -163,6 +163,9 @@ class PollBlock(XBlock):
         }
 
     def submit_answer(self, answer):
+        """
+        Submits a poll answer.
+        """
         if not answer:
             return {'error': 'No answer provided!'}
 
@@ -181,7 +184,6 @@ class PollBlock(XBlock):
                 'callback': {'objectName': 'Conditional'}
             }
         return {"error": "Invalid answer or already voted."}
-
 
     @XBlock.json_handler
     def handle_submit_state(self, data, suffix=''):     # lint-amnesty, pylint: disable=unused-argument
