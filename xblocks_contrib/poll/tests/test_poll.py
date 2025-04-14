@@ -54,3 +54,21 @@ class PollBlockTest(TestCase):
         # For example, check that the `poll_answers` field is being correctly updated.
         self.xblock.poll_answers['Maybe'] = 1
         self.assertEqual(self.xblock.poll_answers['Maybe'], 1)
+
+    def test_successful_vote(self):
+        response = self.block.handle_submit_state({'answer': 'No'})
+        assert response['poll_answers'] == {'Yes': 1, 'No': 1}
+        assert response['total'] == 2
+        assert self.block.voted is True
+        assert self.block.poll_answer == 'No'
+
+    def test_missing_answer(self):
+        response = self.block.handle_submit_state({})
+        assert response == {'error': 'No answer provided!'}
+
+    def test_already_voted(self):
+        # First vote
+        self.block.handle_submit_state({'answer': 'Yes'})
+        # Second vote attempt
+        response = self.block.handle_submit_state({'answer': 'No'})
+        assert response == {'error': 'Invalid answer or already voted.'}
