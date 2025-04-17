@@ -11,6 +11,7 @@ from importlib.resources import files
 import markupsafe
 from django.utils import translation
 from lxml import etree
+from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
@@ -66,6 +67,26 @@ class PollBlock(XBlock):
         scope=Scope.content,
         default=''
     )
+
+    @property
+    def course_id(self):
+        return self.location.course_key
+
+    @property
+    def category(self):
+        return self.scope_ids.block_type
+
+    @property
+    def location(self):
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
+            usage_id=value,
+        )
 
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
