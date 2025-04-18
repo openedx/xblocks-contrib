@@ -201,7 +201,7 @@ class PollBlock(XBlock):
                 'total': sum(self.poll_answers.values()),
                 'callback': {'objectName': 'Conditional'}
             }
-        return {"error": "Invalid answer or already voted."}
+        return {"error": 'Unknown Command!'}
 
     @XBlock.json_handler
     def handle_submit_state(self, data, suffix=''):     # lint-amnesty, pylint: disable=unused-argument
@@ -226,6 +226,15 @@ class PollBlock(XBlock):
         self.poll_answers = temp_poll_answers
         self.poll_answer = ''
         return {'status': 'success'}
+
+    def handle_ajax(self, dispatch, data):  # legacy support for tests
+        """
+        Legacy method to mimic old ajax handler behavior for backward compatibility.
+        """
+        if dispatch == "get_state":
+            return json.dumps(self.handle_get_state(data))
+        else:
+            return json.dumps(self.submit_answer(dispatch))
 
     @staticmethod
     def workbench_scenarios():

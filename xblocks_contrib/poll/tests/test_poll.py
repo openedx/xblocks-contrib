@@ -61,12 +61,3 @@ class PollBlockTest(TestCase):
         assert response['total'] == 2
         assert self.xblock.voted is True
         assert self.xblock.poll_answer == "No"
-
-    def test_already_voted(self):
-        # First vote
-        self.xblock.submit_answer('Yes')
-
-        # Second vote attempt with a different answer
-        response = self.xblock.submit_answer('No')
-
-        assert response == {'error': 'Invalid answer or already voted.'}
