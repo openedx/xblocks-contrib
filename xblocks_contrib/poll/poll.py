@@ -16,6 +16,8 @@ from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
 from xblock.utils.resources import ResourceLoader
+from .inheritance import InheritanceKeyValueStore
+from xblock.runtime import KvsFieldData
 
 
 def _(text):
@@ -500,22 +502,25 @@ class PollBlock(XBlock):
         if "filename" in field_data:
             del field_data["filename"]  # filename should only be in xml_attributes.
 
+        kvs = InheritanceKeyValueStore(initial_values=field_data)
+        field_data = KvsFieldData(kvs)
+        xblock = runtime.construct_xblock_from_class(cls, keys, field_data)
         # The "normal" / new way to set field data:
-        xblock = runtime.construct_xblock_from_class(cls, keys)
-        for (key, value_jsonish) in field_data.items():
-            if key in cls.fields:   # pylint: disable=unsupported-membership-test
-                # pylint: disable=unsubscriptable-object
-                setattr(
-                    xblock,
-                    key,
-                    cls.fields[key].from_json(value_jsonish)
-                )
-            elif key == 'children':
-                xblock.children = value_jsonish
-            else:
-                log.warning(
-                    "Imported %s XBlock does not have field %s found in XML.", xblock.scope_ids.block_type, key,
-                )
+        # xblock = runtime.construct_xblock_from_class(cls, keys)
+        # for (key, value_jsonish) in field_data.items():
+        #     if key in cls.fields:   # pylint: disable=unsupported-membership-test
+        #         # pylint: disable=unsubscriptable-object
+        #         setattr(
+        #             xblock,
+        #             key,
+        #             cls.fields[key].from_json(value_jsonish)
+        #         )
+        #     elif key == 'children':
+        #         xblock.children = value_jsonish
+        #     else:
+        #         log.warning(
+        #             "Imported %s XBlock does not have field %s found in XML.", xblock.scope_ids.block_type, key,
+        #         )
 
         if aside_children:
             asides_tags = [x.tag for x in aside_children]
