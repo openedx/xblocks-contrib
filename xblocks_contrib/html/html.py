@@ -13,7 +13,7 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Scope, String
+from xblock.fields import Boolean, Dict, Scope, String
 from xblock.utils.resources import ResourceLoader
 
 from xblocks_contrib.utils import escape_html_characters
@@ -178,6 +178,24 @@ class HtmlBlock(ResourceTemplates, XBlock):
         default="",
         scope=Scope.content,
     )
+
+    xml_attributes = Dict(
+        help="Map of unhandled xml attributes, used only for storage between import and export",
+        default={},
+        scope=Scope.settings,
+    )
+    use_latex_compiler = Boolean(help=_("Enable LaTeX templates?"), default=False, scope=Scope.settings)
+    editor = String(
+        help=_(
+            "Select Visual to enter content and have the editor automatically create the HTML. Select Raw to edit "
+            "HTML directly. If you change this setting, you must save the component and then re-open it for editing."
+        ),
+        display_name=_("Editor"),
+        default="visual",
+        values=[{"display_name": _("Visual"), "value": "visual"}, {"display_name": _("Raw"), "value": "raw"}],
+        scope=Scope.settings,
+    )
+
     ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA = "ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"
 
     # Indicates that this XBlock has been extracted from edx-platform.
