@@ -195,7 +195,7 @@ class HtmlBlock(ResourceTemplates, XBlock):
         values=[{"display_name": _("Visual"), "value": "visual"}, {"display_name": _("Raw"), "value": "raw"}],
         scope=Scope.settings,
     )
-
+    template_dir_name = "html"
     ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA = "ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"
 
     # Indicates that this XBlock has been extracted from edx-platform.
