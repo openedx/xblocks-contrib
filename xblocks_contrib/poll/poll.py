@@ -14,7 +14,7 @@ from lxml import etree
 from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
+from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String, DateTime
 from xblock.utils.resources import ResourceLoader
 from .inheritance import InheritanceKeyValueStore
 from xblock.runtime import KvsFieldData
@@ -69,6 +69,17 @@ class PollBlock(XBlock):
         scope=Scope.content,
         default=''
     )
+
+    @property
+    def xblock_kvs(self):
+        """
+        Retrieves the internal KeyValueStore for this XModule.
+
+        Should only be used by the persistence layer. Use with caution.
+        """
+        # if caller wants kvs, caller's assuming it's up to date; so, decache it
+        self.save()
+        return self._field_data._kvs  # pylint: disable=protected-access
 
     @property
     def course_id(self):
@@ -449,44 +460,31 @@ class PollBlock(XBlock):
         """
 
         if keys is None:
-            # Passing keys=None is against the XBlock API but some platform tests do it.
             def_id = runtime.id_generator.create_definition(node.tag, node.get('url_name'))
             keys = ScopeIds(None, node.tag, def_id, runtime.id_generator.create_usage(def_id))
+
         aside_children = []
-        # VS[compat]
-        # In 2012, when the platform didn't have CMS, and all courses were handwritten XML files, problem tags
-        # contained XML problem descriptions withing themselves. Later, when Studio has been created, and "pointer" tags
-        # became the preferred problem format, edX has to add this compatibility code to 1) support both pre- and
-        # post-Studio course formats simulteneously, and 2) be able to migrate 2012-fall courses to Studio. Old style
-        # support supposed to be removed, but the deprecation process have never been initiated, so this
-        # compatibility must stay, probably forever.
+
         if cls.is_pointer_tag(node):
-            # new style:
-            # read the actual definition file--named using url_name.replace(':','/')
             definition_xml, filepath = cls.load_definition_xml(node, runtime, keys.def_id)
             aside_children = runtime.parse_asides(definition_xml, keys.def_id, keys.usage_id, runtime.id_generator)
         else:
             filepath = None
             definition_xml = node
 
-        # Note: removes metadata.
         definition, children = cls.load_definition(definition_xml, runtime, keys.def_id, runtime.id_generator)
 
-        # VS[compat]
-        # Make Ike's github preview links work in both old and new file layouts.
         if cls.is_pointer_tag(node):
-            # new style -- contents actually at filepath
             definition['filename'] = [filepath, filepath]
 
         metadata = cls.load_metadata(definition_xml)
 
-        # move definition metadata into dict
         dmdata = definition.get('definition_metadata', '')
         if dmdata:
             metadata['definition_metadata_raw'] = dmdata
             try:
                 metadata.update(json.loads(dmdata))
-            except Exception as err:  # lint-amnesty, pylint: disable=broad-except
+            except Exception as err:  # lint-amnesty
                 log.debug('Error in loading metadata %r', dmdata, exc_info=True)
                 metadata['definition_metadata_err'] = str(err)
 
@@ -498,29 +496,26 @@ class PollBlock(XBlock):
         # cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
 
         field_data = {**metadata, **definition, "children": children}
-        field_data['xml_attributes']['filename'] = definition.get('filename', ['', None])  # for git link
-        if "filename" in field_data:
-            del field_data["filename"]  # filename should only be in xml_attributes.
+        field_data['xml_attributes']['filename'] = definition.get('filename', ['', None])
 
-        kvs = InheritanceKeyValueStore(initial_values=field_data)
-        field_data = KvsFieldData(kvs)
-        xblock = runtime.construct_xblock_from_class(cls, keys, field_data)
+        if "filename" in field_data:
+            del field_data["filename"]
+
+        # kvs = InheritanceKeyValueStore(initial_values=field_data)
+        # field_data = KvsFieldData(kvs)
+        # xblock = runtime.construct_xblock_from_class(cls, keys, field_data)
+
         # The "normal" / new way to set field data:
-        # xblock = runtime.construct_xblock_from_class(cls, keys)
-        # for (key, value_jsonish) in field_data.items():
-        #     if key in cls.fields:   # pylint: disable=unsupported-membership-test
-        #         # pylint: disable=unsubscriptable-object
-        #         setattr(
-        #             xblock,
-        #             key,
-        #             cls.fields[key].from_json(value_jsonish)
-        #         )
-        #     elif key == 'children':
-        #         xblock.children = value_jsonish
-        #     else:
-        #         log.warning(
-        #             "Imported %s XBlock does not have field %s found in XML.", xblock.scope_ids.block_type, key,
-        #         )
+        xblock = runtime.construct_xblock_from_class(cls, keys)
+        for (key, value_jsonish) in field_data.items():
+            if key in cls.fields:
+                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
+            elif key == 'children':
+                xblock.children = value_jsonish
+            else:
+                log.warning(
+                    "Imported %s XBlock does not have field %s found in XML.", xblock.scope_ids.block_type, key,
+                )
 
         if aside_children:
             asides_tags = [x.tag for x in aside_children]
@@ -631,3 +626,19 @@ class PollBlock(XBlock):
             add_child(xml_object, answer)
 
         return xml_object
+
+    def serialize_field(value):
+        """
+        Return a string version of the value (where value is the JSON-formatted, internally stored value).
+
+        If the value is a string, then we simply return what was passed in.
+        Otherwise, we return json.dumps on the input value.
+        """
+        if isinstance(value, str):
+            return value
+        elif isinstance(value, datetime.datetime):
+            if value.tzinfo is not None and value.utcoffset() is None:
+                return value.isoformat() + 'Z'
+            return value.isoformat()
+
+        return json.dumps(value)
