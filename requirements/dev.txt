@@ -19,7 +19,7 @@ asgiref==3.8.1
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   django
-astroid==3.3.9
+astroid==3.3.10
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -29,12 +29,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.38.4
+boto3==1.38.13
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.38.4
+botocore==1.38.13
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -61,12 +61,12 @@ chardet==5.2.0
     #   binaryornot
     #   diff-cover
     #   tox
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   requests
-click==8.1.8
+click==8.2.0
     # via
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
@@ -115,7 +115,7 @@ distlib==0.3.9
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   virtualenv
-django==4.2.20
+django==4.2.21
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/quality.txt
@@ -134,12 +134,7 @@ django-statici18n==2.6.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-dnspython==2.7.0
-    # via
-    #   -r requirements/quality.txt
-    #   -r requirements/test.txt
-    #   pymongo
-edx-i18n-tools==1.8.0
+edx-i18n-tools==1.9.0
     # via
     #   -r requirements/dev.in
     #   -r requirements/quality.txt
@@ -235,7 +230,7 @@ mdurl==0.1.2
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   markdown-it-py
-openedx-django-pyfs==3.7.0
+openedx-django-pyfs==3.8.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -260,7 +255,7 @@ pbr==6.1.1
     #   stevedore
 pip-tools==7.4.1
     # via -r requirements/pip-tools.txt
-platformdirs==4.3.7
+platformdirs==4.3.8
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -289,7 +284,7 @@ pygments==2.19.1
     #   -r requirements/test.txt
     #   diff-cover
     #   rich
-pylint==3.3.6
+pylint==3.3.7
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -399,7 +394,7 @@ six==1.17.0
     #   fs
     #   fs-s3fs
     #   python-dateutil
-snowballstemmer==2.2.0
+snowballstemmer==3.0.1
     # via
     #   -r requirements/quality.txt
     #   pydocstyle
@@ -444,12 +439,12 @@ urllib3==2.2.3
     #   -r requirements/test.txt
     #   botocore
     #   requests
-virtualenv==20.30.0
+virtualenv==20.31.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   tox
-web-fragments==3.0.0
+web-fragments==3.1.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
