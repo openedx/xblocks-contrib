@@ -306,8 +306,8 @@ class HtmlBlock(ResourceTemplates, XBlock):
 
         # Skip rebinding if we're already bound a user, and it's this user.
         if self.scope_ids.user_id is not None and user_id == self.scope_ids.user_id:
-            if getattr(self.runtime, 'position', None):
-                self.position = self.runtime.position   # update the position of the tab
+            if getattr(self.runtime, "position", None):
+                self.position = self.runtime.position  # pylint: disable=attribute-defined-outside-init
             return
 
         # If we are switching users mid-request, save the data from the old user.
@@ -320,7 +320,7 @@ class HtmlBlock(ResourceTemplates, XBlock):
         self.clear_child_cache()
 
         # Clear out any cached field data scoped to the old user.
-        for field in self.fields.values():  # lint-amnesty, pylint: disable=no-member
+        for field in self.fields.values():
             if field.scope in (Scope.parent, Scope.children):
                 continue
 
@@ -335,10 +335,10 @@ class HtmlBlock(ResourceTemplates, XBlock):
         if wrappers:
             # Put user-specific wrappers around the field-data service for this block.
             # Note that these are different from modulestore.xblock_field_data_wrappers, which are not user-specific.
-            wrapped_field_data = self.runtime.service(self, 'field-data-unbound')
+            wrapped_field_data = self.runtime.service(self, "field-data-unbound")
             for wrapper in wrappers:
                 wrapped_field_data = wrapper(wrapped_field_data)
-            self._bound_field_data = wrapped_field_data
+            self._bound_field_data = wrapped_field_data  # pylint: disable=attribute-defined-outside-init
             if getattr(self.runtime, "uses_deprecated_field_data", False):
                 # This approach is deprecated but old mongo's CachingDescriptorSystem still requires it.
                 # For Split mongo's CachingDescriptor system, don't set ._field_data this way.
