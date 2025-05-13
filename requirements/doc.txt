@@ -32,11 +32,11 @@ binaryornot==0.4.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.38.13
+boto3==1.38.14
     # via
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.38.13
+botocore==1.38.14
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -79,8 +79,8 @@ coverage[toml]==7.8.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==44.0.3
-    # via secretstorage
+ddt==1.7.2
+    # via -r requirements/test.txt
 distlib==0.3.9
     # via
     #   -r requirements/test.txt
@@ -246,7 +246,7 @@ pygments==2.19.1
     #   readme-renderer
     #   rich
     #   sphinx
-pymongo==4.12.0
+pymongo==4.12.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -254,7 +254,7 @@ pypng==0.20220715.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-pyproject-api==1.9.0
+pyproject-api==1.9.1
     # via
     #   -r requirements/test.txt
     #   tox
