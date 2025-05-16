@@ -26,6 +26,7 @@ from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
 from xblock.utils.resources import ResourceLoader
 
+from xblocks_contrib.utils.load_static import LoadStatic
 from xblocks_contrib.video.bumper_utils import bumperize
 # TODO: reimport following wild card import
 from xblocks_contrib.video.constants import *
@@ -226,38 +227,13 @@ class VideoBlock(
             )
         )
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
-        addition_js_files = [
-            'static/js/src/video/00_video_storage.js',
-            'static/js/src/video/01_initialize.js',
-            'static/js/src/video/025_focus_grabber.js',
-            'static/js/src/video/035_video_accessible_menu.js',
-            'static/js/src/video/04_video_control.js',
-            'static/js/src/video/04_video_full_screen.js',
-            'static/js/src/video/05_video_quality_control.js',
-            'static/js/src/video/06_video_progress_slider.js',
-            'static/js/src/video/07_video_volume_control.js',
-            'static/js/src/video/08_video_speed_control.js',
-            'static/js/src/video/08_video_auto_advance_control.js',
-            'static/js/src/video/09_video_caption.js',
-            'static/js/src/video/09_play_placeholder.js',
-            'static/js/src/video/09_play_pause_control.js',
-            'static/js/src/video/09_play_skip_control.js',
-            'static/js/src/video/09_skip_control.js',
-            'static/js/src/video/09_bumper.js',
-            'static/js/src/video/09_save_state_plugin.js',
-            'static/js/src/video/09_events_plugin.js',
-            'static/js/src/video/09_events_bumper_plugin.js',
-            'static/js/src/video/09_poster.js',
-            'static/js/src/video/09_completion.js',
-            'static/js/src/video/10_commands.js',
-            'static/js/src/video/095_video_context_menu.js',
-            'static/js/src/video/036_video_social_sharing.js',
-            'static/js/src/video/037_video_transcript_feedback.js'
-        ]
-        for js_file in addition_js_files:
-            frag.add_javascript(resource_loader.load_unicode(js_file))
-        frag.add_javascript(resource_loader.load_unicode("static/js/src/video.js"))
-        frag.initialize_js("VideoBlock")
+
+        # add_webpack_js_to_fragment(fragment, 'VideoBlockMain')
+        # Add compiled webpack js file here
+        # minified additional_js should be already included in 'make javascript'
+        frag.add_javascript_url(LoadStatic.get_url("openassessment-lms.js"))
+
+        frag.initialize_js("Video")
         return frag
 
     def author_view(self, context):

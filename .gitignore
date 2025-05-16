@@ -23,6 +23,10 @@ __pycache__
 /lib
 /lib64
 
+# node
+node_modules
+npm-debug.log
+
 # Installer logs
 pip-log.txt
 
