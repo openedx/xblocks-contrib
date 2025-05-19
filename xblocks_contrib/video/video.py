@@ -27,7 +27,7 @@ from xblock.core import XBlock
 from xblock.utils.resources import ResourceLoader
 from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from xblocks_contrib.utils.load_static import LoadStatic
+from xblocks_contrib.video.load_static import LoadStatic
 from xblocks_contrib.video.bumper_utils import bumperize
 from xblocks_contrib.video.content import StaticContent
 from xblocks_contrib.video.exceptions import NotFoundError
@@ -256,12 +256,9 @@ class VideoBlock(
             )
         )
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
-
-        # add_webpack_js_to_fragment(fragment, 'VideoBlockMain')
-        # Add compiled webpack js file here
-        # minified additional_js should be already included in 'make javascript'
-        frag.add_javascript_url(LoadStatic.get_url("openassessment-lms.js"))
-
+        frag.add_javascript_url(LoadStatic.get_url("video-xblock.js"))
+        js_url = LoadStatic.get_url("video-xblock.js")
+        print(f'Farhan here: javascript_url {js_url}')
         frag.initialize_js("Video")
         return frag
 
