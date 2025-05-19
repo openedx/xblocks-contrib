@@ -35,7 +35,7 @@ class LoadStatic:
         """
         Reload from manifest file
         """
-        root_url, base_url = '', '/static/dist/'
+        root_url, base_url = '', '/static/js/dist/'
         base_url_override = ''
 
         if hasattr(settings, 'LMS_ROOT_URL'):
@@ -44,12 +44,12 @@ class LoadStatic:
             logger.error('LMS_ROOT_URL is undefined')
 
         try:
-            json_data = LoadStatic.resource_loader.load_unicode('static/dist/manifest.json')
+            json_data = LoadStatic.resource_loader.load_unicode('static/js/dist/manifest.json')
             LoadStatic._manifest = json.loads(json_data)
             base_url_override = LoadStatic._manifest.get('base_url', None)
             LoadStatic._is_loaded = True
         except OSError:
-            logger.error('Cannot find static/dist/manifest.json')
+            logger.error('Cannot find static/js/dist/manifest.json')
         finally:
             if base_url_override and urlparse(base_url_override).scheme:
                 LoadStatic._base_url = base_url_override
