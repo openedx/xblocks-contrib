@@ -2,7 +2,6 @@
 
 import copy
 import datetime
-import os
 import html
 import json
 import logging
@@ -13,11 +12,10 @@ from importlib.resources import files
 import markupsafe
 from django.utils import translation
 from lxml import etree
-from lxml.etree import ElementTree
 from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock, XML_NAMESPACES
-from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String, DateTime
+from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
 from xblock.utils.resources import ResourceLoader
 
 
@@ -200,7 +198,7 @@ class PollBlock(XBlock):
         })
 
     @XBlock.json_handler
-    def handle_get_state(self, data, suffix=''):    # lint-amnesty, pylint: disable=unused-argument
+    def handle_get_state(self, data, suffix=''):    # pylint: disable=unused-argument
         return {
             'poll_answer': self.poll_answer,
             'poll_answers': self.poll_answers,
@@ -231,7 +229,7 @@ class PollBlock(XBlock):
         return {"error": 'Unknown Command!'}
 
     @XBlock.json_handler
-    def handle_submit_state(self, data, suffix=''):     # lint-amnesty, pylint: disable=unused-argument
+    def handle_submit_state(self, data, suffix=''):     # pylint: disable=unused-argument
         """
         handler to submit poll answer.
         """
@@ -393,7 +391,7 @@ class PollBlock(XBlock):
         through the attrmap.  Updates the metadata dict in place.
         """
         for attr, value in policy.items():
-            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
+            if attr not in cls.fields:
                 # Store unknown attributes coming from policy.json
                 # in such a way that they will export to xml unchanged
                 metadata['xml_attributes'][attr] = value
@@ -498,7 +496,7 @@ class PollBlock(XBlock):
             metadata['definition_metadata_raw'] = dmdata
             try:
                 metadata.update(json.loads(dmdata))
-            except Exception as err:  # lint-amnesty
+            except Exception as err:  # pylint: disable=broad-exception-caught
                 log.debug('Error in loading metadata %r', dmdata, exc_info=True)
                 metadata['definition_metadata_err'] = str(err)
 
@@ -515,7 +513,7 @@ class PollBlock(XBlock):
         # The "normal" / new way to set field data:
         xblock = runtime.construct_xblock_from_class(cls, keys)
         for (key, value_jsonish) in field_data.items():
-            if key in cls.fields:
+            if key in cls.fields:   # pylint: disable=unsubscriptable-object
                 setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
             elif key == 'children':
                 xblock.children = value_jsonish
@@ -578,27 +576,13 @@ class PollBlock(XBlock):
         definition_xml = cls.load_file(filepath, runtime.resources_fs, def_id)
         return definition_xml, filepath
 
-    def own_metadata(block):
-        """
-        Return a JSON-friendly dictionary that contains only non-inherited field
-        keys, mapped to their serialized values
-        """
-        return block.get_explicitly_set_fields_by_scope(Scope.settings)
-
-    def name_to_pathname(self, name):
-        """
-        Convert a location name for use in a path: replace ':' with '/'.
-        This allows users of the xml format to organize content into directories
-        """
-        return name.replace(':', '/')
-
     def get_explicitly_set_fields_by_scope(self, scope=Scope.content):
         """
         Get a dictionary of the fields for the given scope which are set explicitly on this xblock. (Including
         any set to None.)
         """
         result = {}
-        for field in self.fields.values():  # lint-amnesty, pylint: disable=no-member
+        for field in self.fields.values():
             if field.scope == scope and field.is_set_on(self):
                 try:
                     result[field.name] = field.read_json(self)
@@ -608,7 +592,7 @@ class PollBlock(XBlock):
                         location=str(self.location),
                         field_name=field.name
                     )
-                    raise TypeError(exception_message)  # lint-amnesty, pylint: disable=raise-missing-from
+                    raise TypeError(exception_message)  # pylint: disable=raise-missing-from
         return result
 
     def add_xml_to_node(self, node):
@@ -642,10 +626,13 @@ class PollBlock(XBlock):
             if (attr not in self.metadata_to_strip
                     and attr not in self.metadata_to_export_to_policy
                     and attr not in not_to_clean_fields):
-                val = self.serialize_field(self.fields[attr].to_json(getattr(self, attr)))
+                # pylint: disable=unsubscriptable-object
+                val = self.serialize_field(
+                    self.fields[attr].to_json(getattr(self, attr))
+                )
                 try:
                     xml_object.set(attr, val)
-                except Exception:  # lint-amnesty, pylint: disable=broad-except
+                except Exception:  # pylint: disable=broad-except
                     logging.exception(
                         (
                             "Failed to serialize metadata attribute %s with value %s in module %s. "
@@ -704,7 +691,7 @@ class PollBlock(XBlock):
         children = []
         return (definition, children)
 
-    def definition_to_xml(self):   # pylint: disable=unused-argument
+    def definition_to_xml(self, resource_fs=None):
         """Return an xml element representing to this definition."""
 
         poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
@@ -712,7 +699,7 @@ class PollBlock(XBlock):
         xml_object = etree.fromstring(poll_str)
         xml_object.set('display_name', self.display_name)
 
-        def add_child(xml_obj, answer):  # lint-amnesty, pylint: disable=unused-argument
+        def add_child(xml_obj, answer):  # pylint: disable=unused-argument
             # Escape answer text before adding to xml tree.
             answer_text = str(answer['text'])
             child_str = Text('{tag_begin}{text}{tag_end}').format(
