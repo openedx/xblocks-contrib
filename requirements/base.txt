@@ -55,6 +55,10 @@ markupsafe==3.0.2
     # via
     #   mako
     #   xblock
+nh3==0.2.21
+    # via -r requirements/base.in
+oauthlib==3.2.2
+    # via -r requirements/base.in
 openedx-django-pyfs==3.8.0
     # via -r requirements/base.in
 path==16.16.0
@@ -63,7 +67,7 @@ pbr==6.1.1
     # via stevedore
 polib==1.2.0
     # via edx-i18n-tools
-pymongo==4.13.0
+pymongo==4.12.1
     # via edx-opaque-keys
 python-dateutil==2.9.0.post0
     # via

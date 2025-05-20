@@ -198,7 +198,11 @@ more-itertools==10.7.0
     #   jaraco-classes
     #   jaraco-functools
 nh3==0.2.21
-    # via readme-renderer
+    # via
+    #   -r requirements/test.txt
+    #   readme-renderer
+oauthlib==3.2.2
+    # via -r requirements/test.txt
 openedx-django-pyfs==3.8.0
     # via -r requirements/test.txt
 packaging==25.0
@@ -244,7 +248,7 @@ pygments==2.19.1
     #   readme-renderer
     #   rich
     #   sphinx
-pymongo==4.13.0
+pymongo==4.12.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys

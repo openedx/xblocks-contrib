@@ -231,6 +231,14 @@ mdurl==0.1.2
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   markdown-it-py
+nh3==0.2.21
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+oauthlib==3.2.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
 openedx-django-pyfs==3.8.0
     # via
     #   -r requirements/quality.txt
@@ -305,7 +313,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.13.0
+pymongo==4.12.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
