@@ -513,7 +513,7 @@ class PollBlock(XBlock):
         # The "normal" / new way to set field data:
         xblock = runtime.construct_xblock_from_class(cls, keys)
         for (key, value_jsonish) in field_data.items():
-            if key in cls.fields:   # pylint: disable=unsubscriptable-object
+            if key in cls.fields:
                 setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
             elif key == 'children':
                 xblock.children = value_jsonish
