@@ -14,7 +14,7 @@ from django.utils import translation
 from lxml import etree
 from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
-from xblock.core import XBlock, XML_NAMESPACES
+from xblock.core import XML_NAMESPACES, XBlock
 from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String
 from xblock.utils.resources import ResourceLoader
 
