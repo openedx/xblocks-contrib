@@ -391,7 +391,7 @@ class PollBlock(XBlock):
         through the attrmap.  Updates the metadata dict in place.
         """
         for attr, value in policy.items():
-            if attr not in cls.fields:
+            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
                 # Store unknown attributes coming from policy.json
                 # in such a way that they will export to xml unchanged
                 metadata['xml_attributes'][attr] = value
@@ -442,7 +442,7 @@ class PollBlock(XBlock):
                 # don't load these
                 continue
 
-            if attr not in getattr(cls, "fields", {}):
+            if attr not in getattr(cls, "fields", {}):  # pylint: disable=unsupported-membership-test
                 metadata['xml_attributes'][attr] = val
             else:
                 metadata[attr] = cls.deserialize_field(
@@ -513,8 +513,8 @@ class PollBlock(XBlock):
         # The "normal" / new way to set field data:
         xblock = runtime.construct_xblock_from_class(cls, keys)
         for (key, value_jsonish) in field_data.items():
-            if key in cls.fields:
-                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
+            if key in cls.fields:  # pylint: disable=unsupported-membership-test
+                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))   # pylint: disable=unsubscriptable-object
             elif key == 'children':
                 xblock.children = value_jsonish
             else:
@@ -691,7 +691,7 @@ class PollBlock(XBlock):
         children = []
         return (definition, children)
 
-    def definition_to_xml(self, resource_fs=None):
+    def definition_to_xml(self, resource_fs=None):    # pylint: disable=unused-argument
         """Return an xml element representing to this definition."""
 
         poll_str = self.HTML('<{tag_name}>{text}</{tag_name}>').format(
