@@ -514,7 +514,8 @@ class PollBlock(XBlock):
         xblock = runtime.construct_xblock_from_class(cls, keys)
         for (key, value_jsonish) in field_data.items():
             if key in cls.fields:  # pylint: disable=unsupported-membership-test
-                setattr(xblock, key, cls.fields[key].from_json(value_jsonish))   # pylint: disable=unsubscriptable-object
+                setattr(xblock,
+                        key, cls.fields[key].from_json(value_jsonish))   # pylint: disable=unsubscriptable-object
             elif key == 'children':
                 xblock.children = value_jsonish
             else:
