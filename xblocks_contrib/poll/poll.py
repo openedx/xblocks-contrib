@@ -234,7 +234,7 @@ class PollBlock(XBlock):
         handler to submit poll answer.
         """
         answer = data.get('answer')  # Extract the answer from the data payload
-        self.submit_answer(answer)
+        return self.submit_answer(answer)
 
     @XBlock.json_handler
     def handle_reset_state(self):
