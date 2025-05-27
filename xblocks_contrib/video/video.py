@@ -11,6 +11,7 @@ Examples of html5 videos for manual testing:
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.webm
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
 """
+import datetime
 import json
 import logging
 import uuid
@@ -130,7 +131,7 @@ class VideoBlock(
 
     # -----
 
-    is_extracted = False
+    is_extracted = True
     has_custom_completion = True
     completion_mode = XBlockCompletionMode.COMPLETABLE
 
@@ -256,9 +257,11 @@ class VideoBlock(
             )
         )
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
-        frag.add_javascript_url(LoadStatic.get_url("video-xblock.js"))
-        js_url = LoadStatic.get_url("video-xblock.js")
-        print(f'Farhan here: javascript_url {js_url}')
+        js_str = resource_loader.load_unicode("static/js/dist/video-xblock.js")
+        frag.add_javascript(js_str)
+        # js_url = LoadStatic.get_url("video-xblock.js")
+        # print(f'Farhan here: javascript_url {js_url}')
+        # frag.add_javascript_url(js_url)
         frag.initialize_js("Video")
         return frag
 
@@ -449,7 +452,8 @@ class VideoBlock(
             'completionEnabled': completion_enabled,
             'completionPercentage': settings.COMPLETION_VIDEO_COMPLETE_PERCENTAGE,
             'duration': video_duration,
-            'end': self.end_time.total_seconds(),  # pylint: disable=no-member
+            'end': 0, # TODO: Fix it
+            # 'end': datetime.timedelta(self.end_time).total_seconds(),  # pylint: disable=no-member
             'generalSpeed': self.global_speed,
             'lmsRootURL': settings.LMS_ROOT_URL,
             'poster': poster,
@@ -459,7 +463,8 @@ class VideoBlock(
             # this user, based on what was recorded the last time we saw the
             # user, and defaulting to True.
             'recordedYoutubeIsAvailable': self.youtube_is_available,
-            'savedVideoPosition': self.saved_video_position.total_seconds(),  # pylint: disable=no-member
+            'savedVideoPosition': 0,  # TODO: Fix it
+            # 'savedVideoPosition': datetime.timedelta(self.saved_video_position).total_seconds(),  # pylint: disable=no-member
             'saveStateEnabled': not is_public_view,
             'saveStateUrl': self.ajax_url + '/save_user_state',
             # Despite the setting on the block, don't show transcript by default
@@ -467,7 +472,8 @@ class VideoBlock(
             'showCaptions': json.dumps(self.show_captions and not is_embed),
             'sources': sources,
             'speed': self.speed,
-            'start': self.start_time.total_seconds(),  # pylint: disable=no-member
+            'start': 0,  # TODO: Fix it
+            # 'start': datetime.timedelta(self.start_time).total_seconds(),  # pylint: disable=no-member
             'streams': self.youtube_streams,
             'transcriptAvailableTranslationsUrl': self.runtime.handler_url(
                 self, 'transcript', 'available_translations'
