@@ -7,7 +7,7 @@ const config = {
         'video-xblock': path.resolve(process.cwd(), 'static/js/src/10_main.js'),
     },
     output: {
-        path: path.resolve(__dirname, 'public/js'),
+        path: path.resolve(__dirname, 'static/js/dist'),
         filename: '[name].js',
         clean: true,
         publicPath: '/'
@@ -19,7 +19,12 @@ const config = {
         }
     },
     plugins: [
-        new CleanWebpackPlugin()
+        new CleanWebpackPlugin(),
+        new WebpackManifestPlugin({
+            seed: {
+                base_url: '/static/js/dist',
+            },
+        })
     ]
 };
 
