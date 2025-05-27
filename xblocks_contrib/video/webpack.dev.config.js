@@ -1,10 +1,38 @@
-const {merge} = require('webpack-merge');
-const _ = require('underscore');
-const commonConfig = require('./webpack.common.config.js');
+const path = require('path');
+const webpack = require('webpack');
+const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
-module.exports = commonConfig;
+const config = {
+    mode: 'production',
+    entry: {
+        'video-xblock': path.resolve(process.cwd(), 'static/js/src/10_main.js'),
+    },
+    output: {
+        path: path.resolve(__dirname, 'static/js/dist'),
+        filename: '[name].js',
+        clean: true,
+        publicPath: '/'
+    },
+    resolve: {
+        alias: {
+            'edx-ui-toolkit/js': 'edx-ui-toolkit/src/js',
+            'hls': 'hls.js/dist/hls.js'
+        }
+    },
+    plugins: [
+        new CleanWebpackPlugin(),
+        new WebpackManifestPlugin({
+            seed: {
+                base_url: '/static/js/dist',
+            },
+        })
 
-module.exports = merge(commonConfig, {
-    mode: 'development',
-    devtool: 'inline-source-map',
-});
+    ],
+    optimization: {
+       // TODO: Keep it enable for production, make separate config
+       minimize: false
+    }
+};
+
+module.exports = config
