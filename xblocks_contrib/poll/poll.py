@@ -185,7 +185,7 @@ class PollBlock(XBlock):
             # Set default count for answer = 0.
             if answer['id'] not in temp_poll_answers:
                 temp_poll_answers[answer['id']] = 0
-            answers_to_json[answer['id']] = html.escape(answer['text'], quote=False)
+            answers_to_json[answer['id']] = answer['text']
         self.poll_answers = temp_poll_answers
 
         return json.dumps({
