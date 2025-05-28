@@ -2,7 +2,6 @@
 
 import copy
 import datetime
-import html
 import json
 import logging
 from collections import OrderedDict
