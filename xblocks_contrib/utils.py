@@ -11,12 +11,13 @@ from importlib import resources
 import yaml
 from django.conf import settings
 from lxml import etree
+from lxml.etree import XMLSyntaxError
 
 log = logging.getLogger(__name__)
 
 
 class MLStripper(HTMLParser):
-    """helper function for html_to_text below."""
+    """Helper function for html_to_text below."""
 
     def __init__(self):
         """Initialize HTML parser and data collector."""
@@ -33,20 +34,20 @@ class MLStripper(HTMLParser):
                 self.fed.append(attr[1])
 
     def handle_data(self, data):
-        """Take the data in separate chunks."""
+        """Collect text data."""
         self.fed.append(data)
 
     def handle_entityref(self, name):
-        """Append the reference to the body."""
+        """Append the entity reference to the output."""
         self.fed.append("&%s;" % name)
 
     def get_data(self):
-        """Join together the seperate chunks into one cohesive string."""
+        """Return the collected text as a single string."""
         return "".join(self.fed)
 
 
 def html_to_text(html):
-    """Strip the html tags off of the text to return plaintext."""
+    """Convert HTML to plain text."""
     htmlstripper = MLStripper()
     htmlstripper.feed(html)
     return htmlstripper.get_data()
@@ -54,24 +55,20 @@ def html_to_text(html):
 
 def escape_html_characters(content):
     """
-    Remove HTML characters that shouldn't be indexed using ElasticSearch indexer.
-
-    This method is complementary to html_to_text method found in xmodule/annotator_mixin.py
+    Escape HTML characters for Elasticsearch indexing.
 
     Args:
-        content (str): variable to escape html characters from
+        content (str): Variable to escape HTML characters from.
+
     Returns:
-        content (str): content ready to be index by ElasticSearch
+        str: Content ready to be indexed by Elasticsearch.
     """
-    # Removing HTML comments
     return re.sub(
         r"<!--.*-->",
         "",
-        # Removing HTML CDATA
         re.sub(
             r"<!\[CDATA\[.*\]\]>",
             "",
-            # Removing HTML-encoded non-breaking space characters
             re.sub(r"(\s|&nbsp;|//)+", " ", html_to_text(content)),
         ),
     )
@@ -79,65 +76,47 @@ def escape_html_characters(content):
 
 def check_html(html):
     """
-    Check whether the passed in html string can be parsed by lxml.
-    Return bool success.
+    Validate if the provided HTML is parseable.
+
+    Returns:
+        bool: True if the HTML can be parsed, otherwise False.
     """
     parser = etree.HTMLParser()
     try:
         etree.fromstring(html, parser)
         return True
-    except Exception:  # pylint: disable=broad-except
-        pass
-    return False
+    except XMLSyntaxError:
+        return False
 
 
 def stringify_children(node):
     """
-    Return all contents of an xml tree, without the outside tags.
-    e.g. if node is parse of
-        "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
-    should return
-        "Hi <div>there <span>Bruce</span><b>!</b></div>"
+    Return all contents of an XML node, excluding the outer tags.
 
-    fixed from
-    http://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
+    Example:
+        Input: <tag>Text <child>child text</child></tag>
+        Output: Text <child>child text</child>
     """
-    # Useful things to know:
-
-    # node.tostring() -- generates xml for the node, including start
-    #                 and end tags.  We'll use this for the children.
-    # node.text -- the text after the end of a start tag to the start
-    #                 of the first child
-    # node.tail -- the text after the end this tag to the start of the
-    #                 next element.
     parts = [node.text]
     for c in node.getchildren():
         parts.append(etree.tostring(c, with_tail=True, encoding="unicode"))
-
-    # filter removes possible Nones in texts and tails
     return "".join([part for part in parts if part])
 
 
 def name_to_pathname(name):
     """
-    Convert a location name for use in a path: replace ':' with '/'.
-    This allows users of the xml format to organize content into directories
+    Convert a location name into a path.
+
+    Replaces ':' with '/' to support directory-based organization.
     """
     return name.replace(":", "/")
 
 
 class ResourceTemplates:
     """
-    Gets the yaml templates associated with a containing cls for display in the Studio.
+    Load YAML resource templates for a class with a 'template_dir_name' attribute.
 
-    The cls must have a 'template_dir_name' attribute. It finds the templates as directly
-    in this directory under 'templates'.
-
-    Additional templates can be loaded by setting the
-    CUSTOM_RESOURCE_TEMPLATES_DIRECTORY configuration setting.
-
-    Note that a template must end with ".yaml" extension otherwise it will not be
-    loaded.
+    Supports both packaged and custom template directories. Templates must end with ".yaml".
     """
 
     template_packages = [__name__]
@@ -145,8 +124,10 @@ class ResourceTemplates:
     @classmethod
     def _load_template(cls, template_path, template_id):
         """
-        Reads an loads the yaml content provided in the template_path and
-        return the content as a dictionary.
+        Load a single YAML template file.
+
+        Returns:
+            dict or None: Template content with added 'template_id', or None if path does not exist.
         """
         if not os.path.exists(template_path):
             return None
@@ -159,7 +140,10 @@ class ResourceTemplates:
     @classmethod
     def _load_templates_in_dir(cls, dirpath):
         """
-        Lists every resource template found in the provided dirpath.
+        Load all YAML templates from a directory.
+
+        Returns:
+            list: List of loaded templates.
         """
         templates = []
         for template_file in os.listdir(dirpath):
@@ -174,22 +158,25 @@ class ResourceTemplates:
     @classmethod
     def templates(cls):
         """
-        Returns a list of dictionary field: value objects that describe possible templates that can be used
-        to seed a module of this type.
+        Return a list of available resource templates.
 
-        Expects a class attribute template_dir_name that defines the directory
-        inside the 'templates' resource directory to pull templates from.
+        Returns:
+            list: List of template dictionaries.
         """
         templates = {}
-
         for dirpath in cls.get_template_dirpaths():
             for template in cls._load_templates_in_dir(dirpath):
                 templates[template["template_id"]] = template
-
         return list(templates.values())
 
     @classmethod
-    def get_template_dir(cls):  # pylint: disable=missing-function-docstring
+    def get_template_dir(cls):
+        """
+        Return the relative template directory path if defined.
+
+        Returns:
+            str or None: Path relative to the package or None if not found.
+        """
         if getattr(cls, "template_dir_name", None):
             dirname = os.path.join("templates", cls.template_dir_name)
             template_path = resources.files(__name__.rsplit(".", 1)[0]) / dirname
@@ -207,7 +194,10 @@ class ResourceTemplates:
     @classmethod
     def get_template_dirpaths(cls):
         """
-        Returns of list of directories containing resource templates.
+        Return a list of all directories containing resource templates.
+
+        Returns:
+            list: List of absolute directory paths.
         """
         template_dirpaths = []
         template_dirname = cls.get_template_dir()
@@ -225,21 +215,20 @@ class ResourceTemplates:
     @classmethod
     def get_custom_template_dir(cls):
         """
-        If settings.CUSTOM_RESOURCE_TEMPLATES_DIRECTORY is defined, check if it has a
-        subdirectory named as the class's template_dir_name and return the full path.
+        Return the path to custom templates if defined in settings.
+
+        Returns:
+            str or None: Full path to custom templates or None.
         """
         template_dir_name = getattr(cls, "template_dir_name", None)
-
         if template_dir_name is None:
             return None
 
         resource_dir = settings.CUSTOM_RESOURCE_TEMPLATES_DIRECTORY
-
         if not resource_dir:
             return None
 
         template_dir_path = os.path.join(resource_dir, template_dir_name)
-
         if os.path.exists(template_dir_path):
             return template_dir_path
         return None
@@ -247,8 +236,13 @@ class ResourceTemplates:
     @classmethod
     def get_template(cls, template_id):
         """
-        Get a single template by the given id (which is the file name identifying it w/in the class's
-        template_dir_name)
+        Return a specific template by its ID.
+
+        Args:
+            template_id (str): The file name of the template.
+
+        Returns:
+            dict or None: Template content or None if not found.
         """
         for directory in sorted(cls.get_template_dirpaths(), reverse=True):
             abs_path = os.path.join(directory, template_id)
