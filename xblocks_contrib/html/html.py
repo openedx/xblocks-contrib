@@ -13,7 +13,7 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Boolean, Dict, Scope, String, UserScope
+from xblock.fields import Boolean, Dict, List, Scope, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
 from xblocks_contrib.utils import escape_html_characters
@@ -343,3 +343,29 @@ class HtmlBlock(ResourceTemplates, XBlock):
                 # This approach is deprecated but old mongo's CachingDescriptorSystem still requires it.
                 # For Split mongo's CachingDescriptor system, don't set ._field_data this way.
                 self._field_data = wrapped_field_data
+
+    @property
+    def xblock_kvs(self):
+        """
+        Retrieves the internal KeyValueStore for this XModule.
+
+        Should only be used by the persistence layer. Use with caution.
+        """
+        # if caller wants kvs, caller's assuming it's up to date; so, decache it
+        self.save()
+        return self._field_data._kvs  # pylint: disable=protected-access
+
+    @property
+    def category(self):
+        return self.scope_ids.block_type
+
+    children = List(
+        help=_("Child blocks of this XBlock."),
+        default=[],
+        scope=Scope.content,
+    )
+
+    url_name = String(
+        help=_("Unique identifier for this block in XML."),
+        scope=Scope.settings,
+    )
