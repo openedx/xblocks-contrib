@@ -3,20 +3,32 @@ HTML XBlock module for displaying raw HTML content.
 This XBlock allows users to embed HTML content inside courses.
 """
 
+import copy
 import logging
 import os
 import re
-from importlib import resources
+import sys
+import uuid
 
-import yaml
 from django.conf import settings
 from django.utils.translation import gettext_noop as _
+from fs.errors import ResourceNotFound
+from lxml import etree
+from opaque_keys.edx.keys import CourseKey
+from opaque_keys.edx.locator import LibraryLocatorV2
+from path import Path as path
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
-from xblocks_contrib.utils import escape_html_characters
+from xblocks_contrib.utils import (
+    ResourceTemplates,
+    check_html,
+    escape_html_characters,
+    name_to_pathname,
+    stringify_children,
+)
 
 log = logging.getLogger(__name__)
 
@@ -26,137 +38,6 @@ resource_loader = ResourceLoader(__name__)
 ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_id"
 
 
-class ResourceTemplates:
-    """
-    Gets the yaml templates associated with a containing cls for display in the Studio.
-
-    The cls must have a 'template_dir_name' attribute. It finds the templates as directly
-    in this directory under 'templates'.
-
-    Additional templates can be loaded by setting the
-    CUSTOM_RESOURCE_TEMPLATES_DIRECTORY configuration setting.
-
-    Note that a template must end with ".yaml" extension otherwise it will not be
-    loaded.
-    """
-
-    template_packages = [__name__]
-
-    @classmethod
-    def _load_template(cls, template_path, template_id):
-        """
-        Reads an loads the yaml content provided in the template_path and
-        return the content as a dictionary.
-        """
-        if not os.path.exists(template_path):
-            return None
-
-        with open(template_path) as file_object:
-            template = yaml.safe_load(file_object)
-            template["template_id"] = template_id
-            return template
-
-    @classmethod
-    def _load_templates_in_dir(cls, dirpath):
-        """
-        Lists every resource template found in the provided dirpath.
-        """
-        templates = []
-        for template_file in os.listdir(dirpath):
-            if not template_file.endswith(".yaml"):
-                log.warning("Skipping unknown template file %s", template_file)
-                continue
-
-            template = cls._load_template(os.path.join(dirpath, template_file), template_file)
-            templates.append(template)
-        return templates
-
-    @classmethod
-    def templates(cls):
-        """
-        Returns a list of dictionary field: value objects that describe possible templates that can be used
-        to seed a module of this type.
-
-        Expects a class attribute template_dir_name that defines the directory
-        inside the 'templates' resource directory to pull templates from.
-        """
-        templates = {}
-
-        for dirpath in cls.get_template_dirpaths():
-            for template in cls._load_templates_in_dir(dirpath):
-                templates[template["template_id"]] = template
-
-        return list(templates.values())
-
-    @classmethod
-    def get_template_dir(cls):  # pylint: disable=missing-function-docstring
-        if getattr(cls, "template_dir_name", None):
-            dirname = os.path.join("templates", cls.template_dir_name)
-            template_path = resources.files(__name__.rsplit(".", 1)[0]) / dirname
-
-            if not template_path.is_dir():
-                log.warning(
-                    "No resource directory %s found when loading %s templates",
-                    dirname,
-                    cls.__name__,
-                )
-                return None
-            return dirname
-        return None
-
-    @classmethod
-    def get_template_dirpaths(cls):
-        """
-        Returns of list of directories containing resource templates.
-        """
-        template_dirpaths = []
-        template_dirname = cls.get_template_dir()
-        if template_dirname:
-            template_path = resources.files(__name__.rsplit(".", 1)[0]) / template_dirname
-            if template_path.is_dir():
-                with resources.as_file(template_path) as template_real_path:
-                    template_dirpaths.append(str(template_real_path))
-
-        custom_template_dir = cls.get_custom_template_dir()
-        if custom_template_dir:
-            template_dirpaths.append(custom_template_dir)
-        return template_dirpaths
-
-    @classmethod
-    def get_custom_template_dir(cls):
-        """
-        If settings.CUSTOM_RESOURCE_TEMPLATES_DIRECTORY is defined, check if it has a
-        subdirectory named as the class's template_dir_name and return the full path.
-        """
-        template_dir_name = getattr(cls, "template_dir_name", None)
-
-        if template_dir_name is None:
-            return None
-
-        resource_dir = settings.CUSTOM_RESOURCE_TEMPLATES_DIRECTORY
-
-        if not resource_dir:
-            return None
-
-        template_dir_path = os.path.join(resource_dir, template_dir_name)
-
-        if os.path.exists(template_dir_path):
-            return template_dir_path
-        return None
-
-    @classmethod
-    def get_template(cls, template_id):
-        """
-        Get a single template by the given id (which is the file name identifying it w/in the class's
-        template_dir_name)
-        """
-        for directory in sorted(cls.get_template_dirpaths(), reverse=True):
-            abs_path = os.path.join(directory, template_id)
-            if os.path.exists(abs_path):
-                return cls._load_template(abs_path, template_id)
-        return None
-
-
 @XBlock.needs("i18n")
 @XBlock.needs("user")
 class HtmlBlock(ResourceTemplates, XBlock):
@@ -164,6 +45,9 @@ class HtmlBlock(ResourceTemplates, XBlock):
     The HTML XBlock
     This provides the base class for all Html-ish blocks (including the HTML XBlock).
     """
+
+    # Indicates that this XBlock has been extracted from edx-platform.
+    is_extracted = True
 
     display_name = String(
         display_name=_("Display Name"),
@@ -178,11 +62,8 @@ class HtmlBlock(ResourceTemplates, XBlock):
         default="",
         scope=Scope.content,
     )
-
-    xml_attributes = Dict(
-        help="Map of unhandled xml attributes, used only for storage between import and export",
-        default={},
-        scope=Scope.settings,
+    source_code = String(
+        help=_("Source code for LaTeX documents. This feature is not well-supported."), scope=Scope.settings
     )
     use_latex_compiler = Boolean(help=_("Enable LaTeX templates?"), default=False, scope=Scope.settings)
     editor = String(
@@ -195,11 +76,38 @@ class HtmlBlock(ResourceTemplates, XBlock):
         values=[{"display_name": _("Visual"), "value": "visual"}, {"display_name": _("Raw"), "value": "raw"}],
         scope=Scope.settings,
     )
-    template_dir_name = "html"
+
     ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA = "ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"
 
-    # Indicates that this XBlock has been extracted from edx-platform.
-    is_extracted = True
+    @XBlock.supports("multi_device")
+    def student_view(self, _context):
+        """
+        Return a fragment that contains the html for the student view
+        """
+        frag = Fragment(self.get_html())
+        frag.add_css(resource_loader.load_unicode("static/css/html.css"))
+        frag.add_javascript("""function HtmlBlock(runtime, element){}""")
+        frag.initialize_js("HtmlBlock")
+        return frag
+
+    @XBlock.supports("multi_device")
+    def public_view(self, context):
+        """
+        Returns a fragment that contains the html for the preview view
+        """
+        return self.student_view(context)
+
+    def student_view_data(self, context=None):  # pylint: disable=unused-argument
+        """
+        Return a JSON representation of the student_view of this XBlock.
+        """
+        if getattr(settings, "FEATURES", {}).get(self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA, False):
+            return {"enabled": True, "html": self.get_html()}
+        else:
+            return {
+                "enabled": False,
+                "message": f'To enable, set FEATURES["{self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA}"]',
+            }
 
     def get_html(self):
         """Returns html required for rendering the block."""
@@ -215,6 +123,188 @@ class HtmlBlock(ResourceTemplates, XBlock):
             data = data.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
             return data
         return self.data
+
+    uses_xmodule_styles_setup = True
+
+    filename_extension = "xml"
+    template_dir_name = "html"
+    show_in_read_only_mode = True
+
+    # VS[compat] TODO (cpennington): Delete this method once all fall 2012 course
+    # are being edited in the cms
+    @classmethod
+    def backcompat_paths(cls, filepath):
+        """
+        Get paths for html and xml files.
+        """
+        if filepath.endswith(".html.xml"):
+            filepath = filepath[:-9] + ".html"  # backcompat--look for html instead of xml
+        if filepath.endswith(".html.html"):
+            filepath = filepath[:-5]  # some people like to include .html in filenames..
+        candidates = []
+        while os.sep in filepath:
+            candidates.append(filepath)
+            _, _, filepath = filepath.partition(os.sep)
+
+        # also look for .html versions instead of .xml
+        new_candidates = []
+        for candidate in candidates:
+            if candidate.endswith(".xml"):
+                new_candidates.append(candidate[:-4] + ".html")
+        return candidates + new_candidates
+
+    @classmethod
+    def filter_templates(cls, template, course):
+        """
+        Filter template that contains 'latex' from templates.
+
+        Show them only if use_latex_compiler is set to True in
+        course settings.
+        """
+        return "latex" not in template["template_id"] or course.use_latex_compiler
+
+    def get_context(self):
+        """
+        an override to add in specific rendering context, in this case we need to
+        add in a base path to our c4x content addressing scheme
+        """
+        _context = {}
+        # Add some specific HTML rendering context when editing HTML blocks where we pass
+        # the root /c4x/ url for assets. This allows client-side substitutions to occur.
+        _context.update(
+            {
+                "module": self,
+                "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
+                "data": self.data,
+                "base_asset_url": self.get_base_url_path_for_course_assets(
+                    self.location.course_key  # pylint: disable=no-member
+                ),
+                "enable_latex_compiler": self.use_latex_compiler,
+                "editor": self.editor,
+            }
+        )
+        return _context
+
+    # NOTE: html descriptors are special.  We do not want to parse and
+    # export them ourselves, because that can break things (e.g. lxml
+    # adds body tags when it exports, but they should just be html
+    # snippets that will be included in the middle of pages.
+
+    @classmethod
+    def load_definition(cls, xml_object, system, location, id_generator):  # pylint: disable=unused-argument
+        """Load a descriptor from the specified xml_object:
+
+        If there is a filename attribute, load it as a string, and
+        log a warning if it is not parseable by etree.HTMLParser.
+
+        If there is not a filename attribute, the definition is the body
+        of the xml_object, without the root tag (do not want <html> in the
+        middle of a page)
+
+        Args:
+            xml_object: an lxml.etree._Element containing the definition to load
+            system: the modulestore system or runtime which caches data
+            location: the usage id for the block--used to compute the filename if none in the xml_object
+            id_generator: used by other impls of this method to generate the usage_id
+        """
+        filename = xml_object.get("filename")
+        if filename is None:
+            definition_xml = copy.deepcopy(xml_object)
+            cls.clean_metadata_from_xml(definition_xml)  # pylint: disable=no-member
+            return {"data": stringify_children(definition_xml)}, []
+        else:
+            # html is special.  cls.filename_extension is 'xml', but
+            # if 'filename' is in the definition, that means to load
+            # from .html
+            # 'filename' in html pointers is a relative path
+            # (not same as 'html/blah.html' when the pointer is in a directory itself)
+            pointer_path = "{category}/{url_path}".format(category="html", url_path=name_to_pathname(location.block_id))
+            base = path(pointer_path).dirname()
+            # log.debug("base = {0}, base.dirname={1}, filename={2}".format(base, base.dirname(), filename))
+            filepath = f"{base}/{filename}.html"
+            # log.debug("looking for html file for {0} at {1}".format(location, filepath))
+
+            # VS[compat]
+            # TODO (cpennington): If the file doesn't exist at the right path,
+            # give the class a chance to fix it up. The file will be written out
+            # again in the correct format.  This should go away once the CMS is
+            # online and has imported all current (fall 2012) courses from xml
+            if not system.resources_fs.exists(filepath):
+
+                candidates = cls.backcompat_paths(filepath)
+                # log.debug("candidates = {0}".format(candidates))
+                for candidate in candidates:
+                    if system.resources_fs.exists(candidate):
+                        filepath = candidate
+                        break
+
+            try:
+                with system.resources_fs.open(filepath, encoding="utf-8") as infile:
+                    html = infile.read()
+                    # Log a warning if we can't parse the file, but don't error
+                    if not check_html(html) and len(html) > 0:
+                        msg = f"Couldn't parse html in {filepath}, content = {html}"
+                        log.warning(msg)
+                        system.error_tracker("Warning: " + msg)
+
+                    definition = {"data": html}
+
+                    # TODO (ichuang): remove this after migration
+                    # for Fall 2012 LMS migration: keep filename (and unmangled filename)
+                    definition["filename"] = [filepath, filename]
+
+                    return definition, []
+
+            except ResourceNotFound as err:
+                msg = "Unable to load file contents at path {}: {} ".format(filepath, err)
+                # add more info and re-raise
+                raise Exception(msg).with_traceback(sys.exc_info()[2])
+
+    @classmethod
+    def parse_xml_new_runtime(cls, node, runtime, keys):
+        """
+        Parse XML in the new learning-core-based runtime. Since it doesn't yet
+        support loading separate .html files, the HTML data is assumed to be in
+        a CDATA child or otherwise just inline in the OLX.
+        """
+        block = runtime.construct_xblock_from_class(cls, keys)
+        block.data = stringify_children(node)
+        # Attributes become fields.
+        for name, value in node.items():
+            cls._set_field_if_present(block, name, value, {})
+        return block
+
+    # TODO (vshnayder): make export put things in the right places.
+
+    def definition_to_xml(self, resource_fs):
+        """Write <html filename="" [meta-attrs="..."]> to filename.xml, and the html
+        string to filename.html.
+        """
+
+        # Write html to file, return an empty tag
+        pathname = name_to_pathname(self.url_name)
+        filepath = "{category}/{pathname}.html".format(category=self.category, pathname=pathname)
+
+        resource_fs.makedirs(os.path.dirname(filepath), recreate=True)
+        with resource_fs.open(filepath, "wb") as filestream:
+            html_data = self.data.encode("utf-8")
+            filestream.write(html_data)
+
+        # write out the relative name
+        relname = path(pathname).basename()
+
+        elt = etree.Element("html")
+        elt.set("filename", relname)
+        return elt
+
+    @property
+    def non_editable_metadata_fields(self):
+        """
+        `use_latex_compiler` should not be editable in the Studio settings editor.
+        """
+        non_editable_fields = super().non_editable_metadata_fields  # pylint: disable=no-member
+        non_editable_fields.append(self.use_latex_compiler)
+        return non_editable_fields
 
     def index_dictionary(self):
         xblock_body = super().index_dictionary()
@@ -242,36 +332,6 @@ class HtmlBlock(ResourceTemplates, XBlock):
         xblock_body["content_type"] = "Text"
         return xblock_body
 
-    def student_view_data(self, context=None):  # pylint: disable=unused-argument
-        """
-        Return a JSON representation of the student_view of this XBlock.
-        """
-        if getattr(settings, "FEATURES", {}).get(self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA, False):
-            return {"enabled": True, "html": self.get_html()}
-        else:
-            return {
-                "enabled": False,
-                "message": f'To enable, set FEATURES["{self.ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA}"]',
-            }
-
-    @XBlock.supports("multi_device")
-    def student_view(self, _context):
-        """
-        Return a fragment that contains the html for the student view
-        """
-        frag = Fragment(self.get_html())
-        frag.add_css(resource_loader.load_unicode("static/css/html.css"))
-        frag.add_javascript("""function HtmlBlock(runtime, element){}""")
-        frag.initialize_js("HtmlBlock")
-        return frag
-
-    @XBlock.supports("multi_device")
-    def public_view(self, context):
-        """
-        Returns a fragment that contains the html for the preview view
-        """
-        return self.student_view(context)
-
     @staticmethod
     def workbench_scenarios():
         """Create canned scenario for display in the workbench."""
@@ -291,6 +351,30 @@ class HtmlBlock(ResourceTemplates, XBlock):
                 """,
             ),
         ]
+
+    @staticmethod
+    def get_base_url_path_for_course_assets(course_key):  # lint-amnesty, pylint: disable=missing-function-docstring
+        if (course_key is None) or isinstance(course_key, LibraryLocatorV2):
+            return None
+
+        assert isinstance(course_key, CourseKey)
+        placeholder_id = uuid.uuid4().hex
+        # create a dummy asset location with a fake but unique name. strip off the name, and return it
+        url_path = HtmlBlock.serialize_asset_key_with_slash(
+            course_key.make_asset_key("asset", placeholder_id).for_branch(None)
+        )
+        return url_path.replace(placeholder_id, "")
+
+    @staticmethod
+    def serialize_asset_key_with_slash(asset_key):
+        """
+        Legacy code expects the serialized asset key to start w/ a slash; so, do that in one place
+        :param asset_key:
+        """
+        url = str(asset_key)
+        if not url.startswith("/"):
+            url = "/" + url  # TODO - re-address this once LMS-11198 is tackled.
+        return url
 
     def bind_for_student(self, user_id, wrappers=None):
         """
@@ -367,5 +451,11 @@ class HtmlBlock(ResourceTemplates, XBlock):
 
     url_name = String(
         help=_("Unique identifier for this block in XML."),
+        scope=Scope.settings,
+    )
+
+    xml_attributes = Dict(
+        help="Map of unhandled xml attributes, used only for storage between import and export",
+        default={},
         scope=Scope.settings,
     )
