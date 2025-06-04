@@ -30,6 +30,8 @@ from xblocks_contrib.utils import (
     stringify_children,
 )
 
+from .xml import XmlMixin
+
 log = logging.getLogger(__name__)
 
 resource_loader = ResourceLoader(__name__)
@@ -40,7 +42,7 @@ ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_
 
 @XBlock.needs("i18n")
 @XBlock.needs("user")
-class HtmlBlock(ResourceTemplates, XBlock):
+class HtmlBlock(XmlMixin, ResourceTemplates, XBlock):
     """
     The HTML XBlock
     This provides the base class for all Html-ish blocks (including the HTML XBlock).
@@ -210,7 +212,7 @@ class HtmlBlock(ResourceTemplates, XBlock):
         filename = xml_object.get("filename")
         if filename is None:
             definition_xml = copy.deepcopy(xml_object)
-            cls.clean_metadata_from_xml(definition_xml)  # pylint: disable=no-member
+            cls.clean_metadata_from_xml(definition_xml)
             return {"data": stringify_children(definition_xml)}, []
         else:
             # html is special.  cls.filename_extension is 'xml', but
@@ -353,7 +355,7 @@ class HtmlBlock(ResourceTemplates, XBlock):
         ]
 
     @staticmethod
-    def get_base_url_path_for_course_assets(course_key):  # lint-amnesty, pylint: disable=missing-function-docstring
+    def get_base_url_path_for_course_assets(course_key):  # pylint: disable=missing-function-docstring
         if (course_key is None) or isinstance(course_key, LibraryLocatorV2):
             return None
 
@@ -449,10 +451,9 @@ class HtmlBlock(ResourceTemplates, XBlock):
         scope=Scope.content,
     )
 
-    url_name = String(
-        help=_("Unique identifier for this block in XML."),
-        scope=Scope.settings,
-    )
+    @property
+    def url_name(self):
+        return self.location.block_id  # pylint: disable=no-member
 
     xml_attributes = Dict(
         help="Map of unhandled xml attributes, used only for storage between import and export",
