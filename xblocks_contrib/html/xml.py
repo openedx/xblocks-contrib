@@ -191,10 +191,9 @@ class XmlMixin:
 
 class EdxJSONEncoder(DjangoJSONEncoder):
     """
-    Custom JSONEncoder that handles `Location` and `datetime.datetime` objects.
+    Custom JSONEncoder that handles ``Location`` and ``datetime.datetime`` objects.
 
-    `Location`s are encoded as their url string form, and `datetime`s as
-    ISO date strings
+    Encodes ``Location`` as its URL string form, and ``datetime.datetime`` as an ISO 8601 string.
     """
 
     def default(self, o):
