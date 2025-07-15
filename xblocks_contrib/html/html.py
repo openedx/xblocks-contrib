@@ -14,21 +14,15 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from fs.errors import ResourceNotFound
 from lxml import etree
-from opaque_keys.edx.keys import CourseKey
+from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys.edx.locator import LibraryLocatorV2
 from path import Path as path
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Boolean, Dict, List, Scope, String, UserScope
+from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
-from xblocks_contrib.utils import (
-    ResourceTemplates,
-    check_html,
-    escape_html_characters,
-    name_to_pathname,
-    stringify_children,
-)
+from xblocks_contrib.utils import check_html, escape_html_characters, name_to_pathname, stringify_children
 
 from .xml import XmlMixin
 
@@ -42,7 +36,7 @@ ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_
 
 @XBlock.needs("i18n")
 @XBlock.needs("user")
-class HtmlBlock(XmlMixin, ResourceTemplates, XBlock):
+class HtmlBlock(XmlMixin, XBlock):
     """
     The HTML XBlock
     This provides the base class for all Html-ish blocks (including the HTML XBlock).
@@ -179,7 +173,7 @@ class HtmlBlock(XmlMixin, ResourceTemplates, XBlock):
                 "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
                 "data": self.data,
                 "base_asset_url": self.get_base_url_path_for_course_assets(
-                    self.location.course_key  # pylint: disable=no-member
+                    self.location.course_key
                 ),
                 "enable_latex_compiler": self.use_latex_compiler,
                 "editor": self.editor,
@@ -269,6 +263,11 @@ class HtmlBlock(XmlMixin, ResourceTemplates, XBlock):
         support loading separate .html files, the HTML data is assumed to be in
         a CDATA child or otherwise just inline in the OLX.
         """
+        keys = ScopeIds(
+            user_id=None,
+            block_type=cls.entry_point,
+            usage_id=runtime.make_usage_id(None),
+        )
         block = runtime.construct_xblock_from_class(cls, keys)
         block.data = stringify_children(node)
         # Attributes become fields.
@@ -451,9 +450,26 @@ class HtmlBlock(XmlMixin, ResourceTemplates, XBlock):
         scope=Scope.content,
     )
 
+    url_name = String(
+        help=_("Unique URL-friendly identifier of the block."),
+        scope=Scope.settings,
+    )
+
     @property
-    def url_name(self):
-        return self.location.block_id  # pylint: disable=no-member
+    def _url_name(self):
+        return self.location.block_id
+
+    @property
+    def location(self):
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=str(value),
+            usage_id=value,
+        )
 
     xml_attributes = Dict(
         help="Map of unhandled xml attributes, used only for storage between import and export",
