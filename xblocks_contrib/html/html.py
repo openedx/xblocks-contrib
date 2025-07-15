@@ -19,7 +19,7 @@ from opaque_keys.edx.locator import LibraryLocatorV2
 from path import Path as path
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Boolean, Dict, List, Scope, ScopeIds, String, UserScope
+from xblock.fields import Boolean, Dict, List, Scope, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
 from xblocks_contrib.utils import check_html, escape_html_characters, name_to_pathname, stringify_children
@@ -263,11 +263,6 @@ class HtmlBlock(XmlMixin, XBlock):
         support loading separate .html files, the HTML data is assumed to be in
         a CDATA child or otherwise just inline in the OLX.
         """
-        keys = ScopeIds(
-            user_id=None,
-            block_type=cls.entry_point,
-            usage_id=runtime.make_usage_id(None),
-        )
         block = runtime.construct_xblock_from_class(cls, keys)
         block.data = stringify_children(node)
         # Attributes become fields.
