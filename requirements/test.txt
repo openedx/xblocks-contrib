@@ -27,7 +27,7 @@ botocore==1.39.4
     #   s3transfer
 cachetools==6.1.0
     # via tox
-certifi==2025.7.9
+certifi==2025.7.14
     # via requests
 chardet==5.2.0
     # via
@@ -47,6 +47,8 @@ cookiecutter==2.6.0
     # via xblock-sdk
 coverage[toml]==7.9.2
     # via pytest-cov
+ddt==1.7.2
+    # via -r requirements/test.in
 distlib==0.3.9
     # via virtualenv
     # via
@@ -70,7 +72,9 @@ dnspython==2.7.0
 edx-i18n-tools==1.9.0
     # via -r requirements/base.txt
 edx-opaque-keys==3.0.0
-    # via -r requirements/base.txt
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/test.in
 filelock==3.18.0
     # via
     #   tox
