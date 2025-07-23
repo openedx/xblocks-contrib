@@ -16,7 +16,7 @@ arrow==1.3.0
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-asgiref==3.8.1
+asgiref==3.9.1
     # via
     #   -r requirements/test.txt
     #   django
@@ -32,22 +32,22 @@ binaryornot==0.4.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.38.13
+boto3==1.39.9
     # via
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.38.13
+botocore==1.39.9
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
 build==1.2.2.post1
     # via -r requirements/doc.in
-cachetools==5.5.2
+cachetools==6.1.0
     # via
     #   -r requirements/test.txt
     #   tox
-certifi==2025.4.26
+certifi==2025.7.14
     # via
     #   -r requirements/test.txt
     #   requests
@@ -62,7 +62,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
-click==8.2.0
+click==8.2.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -77,17 +77,17 @@ cookiecutter==2.6.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.8.0
+coverage[toml]==7.9.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==44.0.3
+cryptography==45.0.5
     # via secretstorage
-distlib==0.3.9
+distlib==0.4.0
     # via
     #   -r requirements/test.txt
     #   virtualenv
-django==4.2.21
+django==4.2.23
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
@@ -102,7 +102,11 @@ django-appconf==1.1.0
     #   django-statici18n
 django-statici18n==2.6.0
     # via -r requirements/test.txt
-doc8==1.1.2
+dnspython==2.7.0
+    # via
+    #   -r requirements/test.txt
+    #   pymongo
+doc8==2.0.0
     # via -r requirements/doc.in
 docutils==0.21.2
     # via
@@ -112,6 +116,8 @@ docutils==0.21.2
     #   restructuredtext-lint
     #   sphinx
 edx-i18n-tools==1.9.0
+    # via -r requirements/test.txt
+edx-opaque-keys==3.0.0
     # via -r requirements/test.txt
 filelock==3.18.0
     # via
@@ -147,7 +153,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.1.0
+jaraco-functools==4.2.1
     # via keyring
 jeepney==0.9.0
     # via
@@ -166,7 +172,7 @@ jmespath==1.0.1
     #   botocore
 keyring==25.6.0
     # via twine
-lxml[html-clean]==5.4.0
+lxml[html-clean]==6.0.0
     # via
     #   -r requirements/test.txt
     #   edx-i18n-tools
@@ -199,8 +205,12 @@ more-itertools==10.7.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.2.21
-    # via readme-renderer
+nh3==0.3.0
+    # via
+    #   -r requirements/test.txt
+    #   readme-renderer
+oauthlib==3.3.1
+    # via -r requirements/test.txt
 openedx-django-pyfs==3.8.0
     # via -r requirements/test.txt
 packaging==25.0
@@ -226,10 +236,11 @@ platformdirs==4.3.8
     #   -r requirements/test.txt
     #   tox
     #   virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r requirements/test.txt
     #   pytest
+    #   pytest-cov
     #   tox
 polib==1.2.0
     # via
@@ -239,31 +250,36 @@ pycparser==2.22
     # via cffi
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
-pygments==2.19.1
+pygments==2.19.2
     # via
     #   -r requirements/test.txt
     #   accessible-pygments
     #   doc8
     #   pydata-sphinx-theme
+    #   pytest
     #   readme-renderer
     #   rich
     #   sphinx
+pymongo==4.13.2
+    # via
+    #   -r requirements/test.txt
+    #   edx-opaque-keys
 pypng==0.20220715.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-pyproject-api==1.9.0
+pyproject-api==1.9.1
     # via
     #   -r requirements/test.txt
     #   tox
 pyproject-hooks==1.2.0
     # via build
-pytest==8.3.5
+pytest==8.4.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.1.1
+pytest-cov==6.2.1
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
@@ -291,7 +307,7 @@ pyyaml==6.0.2
     #   xblock
 readme-renderer==44.0
     # via twine
-requests==2.32.3
+requests==2.32.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
@@ -313,7 +329,7 @@ rich==14.0.0
     #   twine
 roman-numerals-py==3.1.0
     # via sphinx
-s3transfer==0.12.0
+s3transfer==0.13.1
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -362,21 +378,24 @@ stevedore==5.4.1
     #   -r requirements/test.txt
     #   code-annotations
     #   doc8
+    #   edx-opaque-keys
 text-unidecode==1.3
     # via
     #   -r requirements/test.txt
     #   python-slugify
-tox==4.25.0
+tox==4.28.0
     # via -r requirements/test.txt
 twine==6.1.0
     # via -r requirements/doc.in
-types-python-dateutil==2.9.0.20241206
+types-python-dateutil==2.9.0.20250708
     # via
     #   -r requirements/test.txt
     #   arrow
-typing-extensions==4.13.2
+typing-extensions==4.14.1
     # via
+    #   -r requirements/test.txt
     #   beautifulsoup4
+    #   edx-opaque-keys
     #   pydata-sphinx-theme
 urllib3==2.2.3
     # via
@@ -405,7 +424,7 @@ xblock==5.2.0
     #   xblock-sdk
 xblock-sdk==0.13.0
     # via -r requirements/test.txt
-zipp==3.21.0
+zipp==3.23.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:

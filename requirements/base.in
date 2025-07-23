@@ -6,6 +6,8 @@ edx-i18n-tools
 XBlock
 openedx-django-pyfs
 # TODO: Run python reqs update
-edx-opaque-keys
 edx-django-utils>=5.14.1
 edxval
+nh3
+oauthlib
+edx-opaque-keys
