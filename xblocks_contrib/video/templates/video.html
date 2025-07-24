@@ -11,8 +11,8 @@
 <div
     id="video_{{ id }}"
     class="video closed"
-    data-metadata='{{ metadata|escapejs }}'
-    data-bumper-metadata='{{ bumper_metadata|escapejs }}'
+    data-metadata="{{ metadata|escape }}"
+    data-bumper-metadata='{{ bumper_metadata|escape }}'
     data-autoadvance-enabled="{{ autoadvance_enabled }}"
     data-poster='{{ poster }}'
     data-block-id='{{ block_id }}'
