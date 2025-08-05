@@ -213,7 +213,7 @@ class WordCloudBlock(StudioEditableXBlockMixin, XBlock):
             data: dict having request get parameters
 
         Returns:
-            json string
+            JSON object
         """
 
         if self.submitted:
