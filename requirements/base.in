@@ -1,10 +1,22 @@
 # Core requirements for using this application
 -c constraints.txt
 
+beautifulsoup4
+chem
+ddt
+defusedxml
 django-statici18n
+edx-codejail
 edx-i18n-tools
-XBlock
-openedx-django-pyfs
-nh3
-oauthlib
 edx-opaque-keys
+edx-submissions
+edx-toggles
+html5lib
+nh3
+numpy
+oauthlib
+openedx-calc
+openedx-django-pyfs
+random2
+shapely
+XBlock

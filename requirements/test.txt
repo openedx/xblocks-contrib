@@ -14,13 +14,15 @@ asgiref==3.9.1
     # via
     #   -r requirements/base.txt
     #   django
+beautifulsoup4==4.13.4
+    # via -r requirements/base.txt
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.40.1
+boto3==1.40.3
     # via
     #   -r requirements/base.txt
     #   fs-s3fs
-botocore==1.40.1
+botocore==1.40.3
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -29,47 +31,104 @@ cachetools==6.1.0
     # via tox
 certifi==2025.8.3
     # via requests
+cffi==1.17.1
+    # via
+    #   -r requirements/base.txt
+    #   pynacl
 chardet==5.2.0
     # via
     #   binaryornot
     #   tox
 charset-normalizer==3.4.2
     # via requests
+chem==2.0.0
+    # via -r requirements/base.txt
 click==8.2.1
     # via
+    #   -r requirements/base.txt
     #   code-annotations
     #   cookiecutter
+    #   edx-django-utils
+    #   nltk
 code-annotations==2.3.0
-    # via -r requirements/test.in
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/test.in
+    #   edx-toggles
 colorama==0.4.6
     # via tox
 cookiecutter==2.6.0
     # via xblock-sdk
-coverage[toml]==7.10.1
+coverage[toml]==7.10.2
     # via pytest-cov
+ddt==1.7.2
+    # via -r requirements/base.txt
+defusedxml==0.7.1
+    # via -r requirements/base.txt
 distlib==0.4.0
     # via virtualenv
     # via
     #   -c https:/raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   django-appconf
+    #   django-crum
+    #   django-model-utils
     #   django-statici18n
+    #   django-waffle
+    #   djangorestframework
+    #   edx-django-release-util
+    #   edx-django-utils
     #   edx-i18n-tools
+    #   edx-submissions
+    #   edx-toggles
+    #   jsonfield
     #   openedx-django-pyfs
     #   xblock-sdk
 django-appconf==1.1.0
     # via
     #   -r requirements/base.txt
     #   django-statici18n
+django-crum==0.7.9
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+    #   edx-toggles
+django-model-utils==5.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-submissions
 django-statici18n==2.6.0
     # via -r requirements/base.txt
+django-waffle==5.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+    #   edx-toggles
+djangorestframework==3.16.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-submissions
 dnspython==2.7.0
     # via
     #   -r requirements/base.txt
     #   pymongo
+edx-codejail==4.0.0
+    # via -r requirements/base.txt
+edx-django-release-util==1.5.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-submissions
+edx-django-utils==8.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-toggles
 edx-i18n-tools==1.9.0
     # via -r requirements/base.txt
 edx-opaque-keys==3.0.0
+    # via -r requirements/base.txt
+edx-submissions==3.11.1
+    # via -r requirements/base.txt
+edx-toggles==5.4.1
     # via -r requirements/base.txt
 filelock==3.18.0
     # via
@@ -86,12 +145,15 @@ fs-s3fs==1.1.1
     #   -r requirements/base.txt
     #   openedx-django-pyfs
     #   xblock-sdk
+html5lib==1.1
+    # via -r requirements/base.txt
 idna==3.10
     # via requests
 iniconfig==2.1.0
     # via pytest
 jinja2==3.1.6
     # via
+    #   -r requirements/base.txt
     #   code-annotations
     #   cookiecutter
 jmespath==1.0.1
@@ -99,11 +161,20 @@ jmespath==1.0.1
     #   -r requirements/base.txt
     #   boto3
     #   botocore
+joblib==1.5.1
+    # via
+    #   -r requirements/base.txt
+    #   nltk
+jsonfield==3.2.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-submissions
 lxml[html-clean]==6.0.0
     # via
     #   -r requirements/base.txt
     #   edx-i18n-tools
     #   lxml-html-clean
+    #   openedx-calc
     #   xblock
     #   xblock-sdk
 lxml-html-clean==0.4.2
@@ -119,14 +190,33 @@ markdown-it-py==3.0.0
 markupsafe==3.0.2
     # via
     #   -r requirements/base.txt
+    #   chem
     #   jinja2
     #   mako
+    #   openedx-calc
     #   xblock
 mdurl==0.1.2
     # via markdown-it-py
+mpmath==1.3.0
+    # via
+    #   -r requirements/base.txt
+    #   sympy
 nh3==0.3.0
     # via -r requirements/base.txt
+nltk==3.9.1
+    # via
+    #   -r requirements/base.txt
+    #   chem
+numpy==2.3.2
+    # via
+    #   -r requirements/base.txt
+    #   chem
+    #   openedx-calc
+    #   scipy
+    #   shapely
 oauthlib==3.3.1
+    # via -r requirements/base.txt
+openedx-calc==4.0.2
     # via -r requirements/base.txt
 openedx-django-pyfs==3.8.0
     # via -r requirements/base.txt
@@ -156,6 +246,14 @@ polib==1.2.0
     # via
     #   -r requirements/base.txt
     #   edx-i18n-tools
+psutil==7.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+pycparser==2.22
+    # via
+    #   -r requirements/base.txt
+    #   cffi
 pygments==2.19.2
     # via
     #   pytest
@@ -164,6 +262,15 @@ pymongo==4.13.2
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
+pynacl==1.5.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+pyparsing==3.2.3
+    # via
+    #   -r requirements/base.txt
+    #   chem
+    #   openedx-calc
 pypng==0.20220715.0
     # via xblock-sdk
 pyproject-api==1.9.1
@@ -184,19 +291,28 @@ python-dateutil==2.9.0.post0
     #   xblock
 python-slugify==8.0.4
     # via
+    #   -r requirements/base.txt
     #   code-annotations
     #   cookiecutter
 pytz==2025.2
     # via
     #   -r requirements/base.txt
+    #   edx-submissions
     #   xblock
 pyyaml==6.0.2
     # via
     #   -r requirements/base.txt
     #   code-annotations
     #   cookiecutter
+    #   edx-django-release-util
     #   edx-i18n-tools
     #   xblock
+random2==1.0.2
+    # via -r requirements/base.txt
+regex==2025.7.34
+    # via
+    #   -r requirements/base.txt
+    #   nltk
 requests==2.32.4
     # via
     #   cookiecutter
@@ -207,6 +323,12 @@ s3transfer==0.13.1
     # via
     #   -r requirements/base.txt
     #   boto3
+scipy==1.16.1
+    # via
+    #   -r requirements/base.txt
+    #   chem
+shapely==2.1.1
+    # via -r requirements/base.txt
 simplejson==3.20.1
     # via
     #   -r requirements/base.txt
@@ -215,9 +337,16 @@ simplejson==3.20.1
 six==1.17.0
     # via
     #   -r requirements/base.txt
+    #   edx-codejail
+    #   edx-django-release-util
     #   fs
     #   fs-s3fs
+    #   html5lib
     #   python-dateutil
+soupsieve==2.7
+    # via
+    #   -r requirements/base.txt
+    #   beautifulsoup4
 sqlparse==0.5.3
     # via
     #   -r requirements/base.txt
@@ -226,29 +355,45 @@ stevedore==5.4.1
     # via
     #   -r requirements/base.txt
     #   code-annotations
+    #   edx-django-utils
     #   edx-opaque-keys
+sympy==1.14.0
+    # via
+    #   -r requirements/base.txt
+    #   openedx-calc
 text-unidecode==1.3
-    # via python-slugify
+    # via
+    #   -r requirements/base.txt
+    #   python-slugify
 tox==4.28.4
     # via -r requirements/test.in
+tqdm==4.67.1
+    # via
+    #   -r requirements/base.txt
+    #   nltk
 types-python-dateutil==2.9.0.20250708
     # via arrow
 typing-extensions==4.14.1
     # via
     #   -r requirements/base.txt
+    #   beautifulsoup4
     #   edx-opaque-keys
 urllib3==2.5.0
     # via
     #   -r requirements/base.txt
     #   botocore
     #   requests
-virtualenv==20.33.0
+virtualenv==20.33.1
     # via tox
 web-fragments==3.1.0
     # via
     #   -r requirements/base.txt
     #   xblock
     #   xblock-sdk
+webencodings==0.5.1
+    # via
+    #   -r requirements/base.txt
+    #   html5lib
 webob==1.8.9
     # via
     #   -r requirements/base.txt
