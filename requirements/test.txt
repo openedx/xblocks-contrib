@@ -18,11 +18,11 @@ beautifulsoup4==4.13.4
     # via -r requirements/base.txt
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.40.4
+boto3==1.40.5
     # via
     #   -r requirements/base.txt
     #   fs-s3fs
-botocore==1.40.4
+botocore==1.40.5
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -62,7 +62,11 @@ cookiecutter==2.6.0
 coverage[toml]==7.10.2
     # via pytest-cov
 ddt==1.7.2
-    # via -r requirements/test.in
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/test.in
+defusedxml==0.7.1
+    # via -r requirements/base.txt
 distlib==0.4.0
     # via virtualenv
     # via
@@ -102,7 +106,7 @@ django-waffle==5.0.0
     #   -r requirements/base.txt
     #   edx-django-utils
     #   edx-toggles
-djangorestframework==3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements/base.txt
     #   edx-submissions
@@ -126,6 +130,10 @@ edx-opaque-keys==3.0.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.in
+edx-submissions==3.11.1
+    # via -r requirements/base.txt
+edx-toggles==5.4.1
+    # via -r requirements/base.txt
 filelock==3.18.0
     # via
     #   tox

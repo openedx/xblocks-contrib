@@ -33,12 +33,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.4
+boto3==1.40.5
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.4
+botocore==1.40.5
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -120,6 +120,10 @@ ddt==1.7.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
+defusedxml==0.7.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
 diff-cover==9.6.0
     # via -r requirements/dev.in
 dill==0.4.0
@@ -176,7 +180,7 @@ django-waffle==5.0.0
     #   -r requirements/test.txt
     #   edx-django-utils
     #   edx-toggles
-djangorestframework==3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
