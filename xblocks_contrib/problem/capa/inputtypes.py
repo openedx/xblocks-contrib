@@ -705,7 +705,7 @@ class FileSubmission(InputTypeBase):
     Upload some files (e.g. for programming assignments)
     """
 
-    template = "filesubmission.html"
+    template = "capa/templates/filesubmission.html"
     tags = ['filesubmission']
 
     @staticmethod

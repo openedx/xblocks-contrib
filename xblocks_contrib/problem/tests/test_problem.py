@@ -43,7 +43,7 @@ from xblocks_contrib.problem.problem import RANDOMIZATION, SHOWANSWER, ComplexEn
 from xblocks_contrib.problem.sandboxing import SandboxService
 
 MODULE_DIR = path(__file__).dirname()
-DATA_DIR = MODULE_DIR.parent.parent / "common" / "test" / "data"
+DATA_DIR = MODULE_DIR.parent.parent / "problem" / "tests" / "data"
 
 FEATURES_WITH_GRADING_METHOD_IN_PROBLEMS = getattr(settings, 'FEATURES', {}).copy()
 FEATURES_WITH_GRADING_METHOD_IN_PROBLEMS['ENABLE_GRADING_METHOD_IN_PROBLEMS'] = True
