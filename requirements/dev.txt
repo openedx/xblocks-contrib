@@ -29,12 +29,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.3
+boto3==1.40.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.3
+botocore==1.40.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -100,6 +100,10 @@ coverage[toml]==7.10.2
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   pytest-cov
+ddt==1.7.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
 diff-cover==9.6.0
     # via -r requirements/dev.in
 dill==0.4.0
@@ -315,7 +319,7 @@ pylint-plugin-utils==0.9.0
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.13.2
+pymongo==4.14.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
