@@ -1,17 +1,23 @@
+# pylint: disable=missing-module-docstring
 from lxml import etree
 
 
 def stringify_children(node):
-    '''
-    Return all contents of an xml tree, without the outside tags.
-    e.g. if node is parse of
-        "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
-    should return
-        "Hi <div>there <span>Bruce</span><b>!</b></div>"
+    """
+    Return all contents of an XML tree, without the outside tags.
 
-    fixed from
-    http://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
-    '''
+    Example:
+        If ``node`` is a parse of::
+
+            <html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div></html>
+
+        this function should return::
+
+            Hi <div>there <span>Bruce</span><b>!</b></div>
+
+    Fixed from:
+        https://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
+    """
     # Useful things to know:
 
     # node.tostring() -- generates xml for the node, including start

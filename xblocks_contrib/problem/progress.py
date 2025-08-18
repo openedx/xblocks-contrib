@@ -116,7 +116,7 @@ class Progress:
 
         '''
         (a, b) = self.frac()
-        display = lambda n: f'{n:.2f}'.rstrip('0').rstrip('.')
+        display = lambda n: f'{n:.2f}'.rstrip('0').rstrip('.')  # pylint: disable=unnecessary-lambda-assignment
         return f"{display(a)}/{display(b)}"
 
     @staticmethod
