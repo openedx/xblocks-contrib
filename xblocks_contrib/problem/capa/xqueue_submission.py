@@ -6,6 +6,8 @@ to an external grading system through XQueue.
 import json
 import logging
 
+from submissions.api import create_external_grader_detail
+
 from xblocks_contrib.problem.capa.errors import (
     GetSubmissionParamsError,
     JSONParsingError,
@@ -50,7 +52,7 @@ class XQueueInterfaceSubmission:
         header = self._parse_json(header, "header")
         payload = self._parse_json(payload, "payload")
 
-        queue_name = header.get('queue_name', 'default')
+        queue_name = header.get("queue_name", "default")
 
         if not self.block:
             raise GetSubmissionParamsError()
@@ -63,7 +65,7 @@ class XQueueInterfaceSubmission:
 
         try:
             grader_payload = self._parse_json(payload["grader_payload"], "grader_payload")
-            grader_file_name = grader_payload.get("grader", '')
+            grader_file_name = grader_payload.get("grader", "")
         except KeyError as e:
             raise MissingKeyError("grader_payload") from e
 
@@ -77,12 +79,7 @@ class XQueueInterfaceSubmission:
         if student_answer is None:
             raise ValidationError("The field 'student_response' does not exist.")
 
-        student_dict = {
-            'item_id': item_id,
-            'item_type': item_type,
-            'course_id': course_id,
-            'student_id': student_id
-        }
+        student_dict = {"item_id": item_id, "item_type": item_type, "course_id": course_id, "student_id": student_id}
 
         return student_dict, student_answer, queue_name, grader_file_name, points_possible
 
@@ -91,9 +88,8 @@ class XQueueInterfaceSubmission:
         Submits the extracted student data to the edx-submissions system.
         """
         try:
-            from submissions.api import create_external_grader_detail
-            student_item, answer, queue_name, grader_file_name, points_possible = (
-                self.get_submission_params(header, body)
+            student_item, answer, queue_name, grader_file_name, points_possible = self.get_submission_params(
+                header, body
             )
             return create_external_grader_detail(
                 student_item,
@@ -101,7 +97,7 @@ class XQueueInterfaceSubmission:
                 queue_name=queue_name,
                 grader_file_name=grader_file_name,
                 points_possible=points_possible,
-                files=files_to_upload
+                files=files_to_upload,
             )
         except (JSONParsingError, MissingKeyError, ValidationError) as e:
             log.error("%s", e)

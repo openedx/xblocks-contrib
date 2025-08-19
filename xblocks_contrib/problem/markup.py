@@ -1,13 +1,14 @@
+"""Helpers for safely marking strings as plain text or HTML in templates."""
 
 import markupsafe
 
 # Text() can be used to declare a string as plain text, as HTML() is used
 # for HTML.  It simply wraps markupsafe's escape, which will HTML-escape if
 # it isn't already escaped.
-Text = markupsafe.escape                        # pylint: disable=invalid-name
+Text = markupsafe.escape
 
 
-def HTML(html):                                 # pylint: disable=invalid-name
+def HTML(html):
     """
     Mark a string as already HTML, so that it won't be escaped before output.
 

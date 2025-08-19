@@ -1,7 +1,7 @@
 """A registry for finding classes based on tags in the class."""
 
 
-class TagRegistry(object):
+class TagRegistry:
     """
     A registry mapping tags to handlers.
 

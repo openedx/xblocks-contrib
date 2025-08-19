@@ -45,9 +45,12 @@ from xblocks_contrib.problem.sandboxing import SandboxService
 
 log = logging.getLogger("edx.courseware")
 
+
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.gettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
+def _(text):
+    return text
+
 
 resource_loader = ResourceLoader(__name__)
 
@@ -132,8 +135,6 @@ class ProcessingError(Exception):
     For example: if an exception occurs while checking a capa problem.
     """
 
-    pass
-
 
 class NotFoundError(Exception):
     pass
@@ -165,7 +166,7 @@ class ShowCorrectness:
             return True
         elif show_correctness == cls.PAST_DUE:
             # Is it now past the due date?
-            return due_date is None or due_date < datetime.now(datetime.UTC)
+            return due_date is None or due_date < datetime.datetime.now(datetime.UTC)
 
         # else: show_correctness == cls.ALWAYS
         return True
@@ -268,7 +269,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
     )
     showanswer = String(
         display_name=_("Show Answer"),
-        help=_("Defines when to show the answer to the problem. " "A default value can be set in Advanced Settings."),
+        help=_("Defines when to show the answer to the problem. A default value can be set in Advanced Settings."),
         scope=Scope.settings,
         default=SHOWANSWER.FINISHED,
         values=[
@@ -386,8 +387,10 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         default=False,
     )
 
-    def bind_for_student(self, *args, **kwargs):  # lint-amnesty, pylint: disable=signature-differs
-        super().bind_for_student(*args, **kwargs)
+    def bind_for_student(self, *args, **kwargs):
+        """Bind block to student-specific runtime, removing cached LoncapaProblem if present."""
+
+        super().bind_for_student(*args, **kwargs)  # pylint: disable=no-member
 
         # Capa was an XModule. When bind_for_student() was called on it with a new runtime, a new CapaModule object
         # was initialized when XModuleDescriptor._xmodule() was called next. self.lcp was constructed in CapaModule
@@ -402,7 +405,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         # self.score is initialized in self.lcp but in this method is accessed before self.lcp so just call it first.
         try:
             self.lcp
-        except Exception as err:  # lint-amnesty, pylint: disable=broad-except
+        except Exception as err:  # pylint: disable=broad-exception-caught
             html = self.handle_fatal_lcp_error(err if show_detailed_errors else None)
         else:
             html = self.get_html()
@@ -424,7 +427,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             return self.student_view(context)
         else:
             # Show a message that this content requires users to login/enroll.
-            return super().public_view(context)
+            return super().public_view(context)  # pylint: disable=no-member
 
     def author_view(self, context):
         """
@@ -455,13 +458,15 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
         `data` is request.POST.
 
-        Returns a json dictionary:
-        { 'progress_changed' : True/False,
-          'progress' : 'none'/'in_progress'/'done',
-          <other request-specific values here > }
+        Returns a json dictionary::
+
+            { 'progress_changed' : True/False,
+            'progress' : 'none'/'in_progress'/'done',
+            <other request-specific values here > }
         """
+
         # self.score is initialized in self.lcp but in this method is accessed before self.lcp so just call it first.
-        self.lcp  # lint-amnesty, pylint: disable=pointless-statement
+        # self.lcp
         handlers = {
             "hint_button": self.hint_button,
             "problem_get": self.get_problem,
@@ -482,7 +487,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         )
 
         not_found_error_message = _(
-            "The state of this problem has changed since you loaded this page. " "Please refresh your page."
+            "The state of this problem has changed since you loaded this page. Please refresh your page."
         )
 
         if dispatch not in handlers:
@@ -504,7 +509,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             _, _, traceback_obj = sys.exc_info()
             raise ProcessingError(not_found_error_message).with_traceback(traceback_obj) from ex
 
-        except Exception as ex:  # lint-amnesty, pylint: disable=broad-except
+        except Exception as ex:
             log.exception(
                 "Unknown error when dispatching %s to %s for user %s",
                 dispatch,
@@ -589,11 +594,11 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
     def get_context(self):
         """
-        Return the context to render the mako template with
+        Return the context to render the django template with
         """
         return {
             "module": self,
-            "editable_metadata_fields": self.editable_metadata_fields,
+            "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
             "data": self.data,
             "markdown": self.markdown,
             "enable_markdown": self.markdown is not None,
@@ -612,7 +617,9 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
     @property
     def non_editable_metadata_fields(self):
-        non_editable_fields = super().non_editable_metadata_fields
+        """Return metadata fields that cannot be edited in Studio."""
+
+        non_editable_fields = super().non_editable_metadata_fields  # pylint: disable=no-member
         non_editable_fields.extend(
             [
                 ProblemBlock.due,
@@ -744,20 +751,24 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         Return a list of student responses to this block in a readable way.
 
         Arguments:
-            user_state_iterator: iterator over UserStateClient objects.
+            user_state_iterator (iterator): iterator over UserStateClient objects.
                 E.g. the result of user_state_client.iter_all_for_block(block_key)
 
-            limit_responses (int|None): maximum number of responses to include.
+            limit_responses (int | None): maximum number of responses to include.
                 Set to None (default) to include all.
 
         Returns:
-            each call returns a tuple like:
-            ("username", {
-                           "Question": "2 + 2 equals how many?",
-                           "Answer": "Four",
-                           "Answer ID": "98e6a8e915904d5389821a94e48babcf_10_1"
-            })
+            tuple: Each call returns a tuple like ``("username", {...})``.
+
+            Example::
+
+                ("username", {
+                    "Question": "2 + 2 equals how many?",
+                    "Answer": "Four",
+                    "Answer ID": "98e6a8e915904d5389821a94e48babcf_10_1"
+                })
         """
+
         if self.category != "problem":
             raise NotImplementedError()
 
@@ -886,10 +897,13 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         return self.seed
 
     @cached_property
-    def lcp(self):  # lint-amnesty, pylint: disable=method-hidden, missing-function-docstring
+    def lcp(self):  # pylint: disable=method-hidden
+        """
+        Lazily create and return a LoncapaProblem instance for this block.
+        """
         try:
             lcp = self.new_lcp(self.get_state_for_lcp())
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:
             msg = "cannot create LoncapaProblem {loc}: {err}".format(loc=str(self.location), err=err)
             raise LoncapaProblemError(msg).with_traceback(sys.exc_info()[2])
 
@@ -1037,7 +1051,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         curr_score, total_possible = self.get_display_progress()
 
         return resource_loader.render_django_template(
-            "problem_ajax.html",
+            "templates/problem_ajax.html",
             {
                 "element_id": self.location.html_id(),
                 "id": str(self.location),
@@ -1050,7 +1064,11 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             },
         )
 
-    def handle_fatal_lcp_error(self, error):  # lint-amnesty, pylint: disable=missing-function-docstring
+    def handle_fatal_lcp_error(self, error):
+        """
+        Log a fatal LoncapaProblem error and return an HTML message for display to the user.
+        """
+
         log.exception(f"LcpFatalError Encountered for {str(self.location)}")
         if error:
             return markupsafe.Markup(
@@ -1058,8 +1076,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             ).format(msg=str(error))
         else:
             return markupsafe.Markup(
-                "<p>Could not format HTML for problem. "
-                "Contact course staff in the discussion forum for assistance.</p>"
+                "<p>Could not format HTML for problem. Contact course staff in the discussion forum for assistance.</p>"
             )
 
     def submit_button_name(self):
@@ -1172,7 +1189,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         log.exception("ProblemGetHtmlError: %r, %r, %s", problem_display_name, problem_location, str(err))
 
         if self.debug:
-            msg = markupsafe.Markup("[courseware.capa.capa_block] " "Failed to generate HTML for problem {url}").format(
+            msg = markupsafe.Markup("[courseware.capa.capa_block] Failed to generate HTML for problem {url}").format(
                 url=str(self.location)
             )
             msg += markupsafe.Markup("<p>Error:</p><p><pre>{msg}</pre></p>").format(msg=str(err))
@@ -1327,7 +1344,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
         # If we cannot construct the problem HTML,
         # then generate an error message instead.
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:  # pylint: disable=broad-exception-caught
             html = self.handle_problem_html_error(err)
 
         html = self.remove_tags_from_html(html)
@@ -1385,7 +1402,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             "submit_disabled_cta": submit_disabled_ctas[0] if submit_disabled_ctas else None,
         }
 
-        html = resource_loader.render_django_template("problem.html", context)
+        html = resource_loader.render_django_template("templates/problem.html", context)
 
         if encapsulate:
             html = markupsafe.Markup(
@@ -1482,7 +1499,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         for tag in tags:
             html = re.sub(
                 rf"<{tag}.*?>.*?</{tag}>", "", html, flags=re.DOTALL
-            )  # xss-lint: disable=python-interpolate-html  # lint-amnesty, pylint: disable=line-too-long
+            )  # xss-lint: disable=python-interpolate-html
             # Some of these tags span multiple lines
         # Note: could probably speed this up by calling sub() once with a big regex
         # vs. simply calling sub() many times as we have here.
@@ -1673,28 +1690,29 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         event_info = {}
         event_info["problem_id"] = str(self.location)
         self.publish_unmasked("showanswer", event_info)
-        if not self.answer_available():  # lint-amnesty, pylint: disable=no-else-raise
+        if not self.answer_available():
             raise NotFoundError("Answer is not available")
-        else:
-            answers = self.lcp.get_question_answers()
-            self.set_state_from_lcp()
+
+        answers = self.lcp.get_question_answers()
+        self.set_state_from_lcp()
 
         # answers (eg <solution>) may have embedded images
         #   but be careful, some problems are using non-string answer dicts
         new_answers = {}
-        for answer_id in answers:
+        for answer_id, answer_value in answers.items():
             try:
-                answer_content = self.runtime.service(self, "replace_urls").replace_urls(answers[answer_id])
+                answer_content = self.runtime.service(self, "replace_urls").replace_urls(answer_value)
                 new_answer = {answer_id: answer_content}
             except TypeError:
-                log.debug("Unable to perform URL substitution on answers[%s]: %s", answer_id, answers[answer_id])
-                new_answer = {answer_id: answers[answer_id]}
+                log.debug("Unable to perform URL substitution on answers[%s]: %s", answer_id, answer_value)
+                new_answer = {answer_id: answer_value}
             new_answers.update(new_answer)
 
         return {
             "answers": new_answers,
-            "correct_status_html": self.runtime.service(self, "mako").render_lms_template(
-                "status_span.html", {"status": Status("correct", self.runtime.service(self, "i18n").gettext)}
+            "correct_status_html": resource_loader.render_django_template(
+                "capa/templates/status_span.html",
+                {"status": Status("correct", self.runtime.service(self, "i18n").gettext)},
             ),
         }
 
@@ -1756,39 +1774,36 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             # If key has no underscores, then partition
             # will return (key, '', '')
             # We detect this and raise an error
-            if not name:  # lint-amnesty, pylint: disable=no-else-raise
+            if not name:
                 raise ValueError(f"{key} must contain at least one underscore")
 
+            # This allows for answers which require more than one value for
+            # the same form input (e.g. checkbox inputs). The convention is that
+            # if the name ends with '[]' (which looks like an array), then the
+            # answer will be an array.
+            # if the name ends with '{}' (Which looks like a dict),
+            # then the answer will be a dict
+            is_list_key = name.endswith("[]")
+            is_dict_key = name.endswith("{}")
+            name = name[:-2] if is_list_key or is_dict_key else name
+
+            if is_list_key:
+                val = data.getall(key)
+            elif is_dict_key:
+                try:
+                    val = json.loads(data[key])
+                # If the submission wasn't deserializable, raise an error.
+                except (KeyError, ValueError) as exc:
+                    raise ValueError(f"Invalid submission: {data[key]} for {key}") from exc
             else:
-                # This allows for answers which require more than one value for
-                # the same form input (e.g. checkbox inputs). The convention is that
-                # if the name ends with '[]' (which looks like an array), then the
-                # answer will be an array.
-                # if the name ends with '{}' (Which looks like a dict),
-                # then the answer will be a dict
-                is_list_key = name.endswith("[]")
-                is_dict_key = name.endswith("{}")
-                name = name[:-2] if is_list_key or is_dict_key else name
+                val = data[key]
 
-                if is_list_key:
-                    val = data.getall(key)
-                elif is_dict_key:
-                    try:
-                        val = json.loads(data[key])
-                    # If the submission wasn't deserializable, raise an error.
-                    except (KeyError, ValueError):
-                        raise ValueError(  # lint-amnesty, pylint: disable=raise-missing-from
-                            f"Invalid submission: {data[key]} for {key}"
-                        )
-                else:
-                    val = data[key]
+            # If the name already exists, then we don't want
+            # to override it.  Raise an error instead
+            if name in answers:
+                raise ValueError(f"Key {name} already exists in answers dict")
 
-                # If the name already exists, then we don't want
-                # to override it.  Raise an error instead
-                if name in answers:  # lint-amnesty, pylint: disable=no-else-raise
-                    raise ValueError(f"Key {name} already exists in answers dict")
-                else:
-                    answers[name] = val
+            answers[name] = val
 
         return answers
 
@@ -1810,8 +1825,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
         return {"grade": self.score.raw_earned, "max_grade": self.score.raw_possible}
 
-    # pylint: disable=too-many-statements
-    def submit_problem(self, data, override_time=False):
+    def submit_problem(self, data, override_time=False):  # pylint: disable=too-many-statements
         """
         Checks whether answers to a problem are correct
 
@@ -1829,7 +1843,6 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         self.student_answers_history.append(answers_without_files)
         event_info["answers"] = answers_without_files
 
-        metric_name = "xblocks_contrib.problem.capa.check_problem.{}".format  # lint-amnesty, pylint: disable=unused-variable
         # Can override current time
         current_time = datetime.datetime.now(utc)
         if override_time is not False:
@@ -1964,8 +1977,6 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
         return {"success": success, "contents": html}
 
-    # pylint: enable=too-many-statements
-
     def get_score_with_grading_method(self, current_score: Score) -> Score:
         """
         Calculate and return the current score based on the grading method.
@@ -2068,12 +2079,14 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
     def get_submission_metadata_safe(self, answers, correct_map):
         """
-        Ensures that no exceptions are thrown while generating input metadata summaries.  Returns the
-        summary if it is successfully created, otherwise an empty dictionary.
+        Ensures that no exceptions are thrown while generating input metadata summaries.
+
+        Returns the summary if it is successfully created, otherwise an empty dictionary.
         """
+
         try:
             return self.get_submission_metadata(answers, correct_map)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-exception-caught
             # NOTE: The above process requires deep inspection of capa structures that may break for some
             # uncommon problem types.  Ensure that it does not prevent answer submission in those
             # cases.  Any occurrences of errors in this block should be investigated and resolved.
@@ -2086,25 +2099,31 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         Return a map of inputs to their corresponding summarized metadata.
 
         Returns:
-            A map whose keys are a unique identifier for the input (in this case a capa input_id) and
-            whose values are:
+            A dictionary whose keys are a unique identifier for the input (in this case, a capa input_id)
+            and whose values are dictionaries containing:
 
-                question (str): Is the prompt that was presented to the student.  It corresponds to the
-                    label of the input.
-                answer (mixed): Is the answer the student provided.  This may be a rich structure,
-                    however it must be json serializable.
-                response_type (str): The XML tag of the capa response type.
-                input_type (str): The XML tag of the capa input type.
-                correct (bool): Whether or not the provided answer is correct.  Will be an empty
-                    string if correctness could not be determined.
-                variant (str): In some cases the same question can have several different variants.
-                    This string should uniquely identify the variant of the question that was answered.
-                    In the capa context this corresponds to the `seed`.
+            - question (str)
+                The prompt that was presented to the student. Corresponds to the label of the input.
+            - answer (mixed)
+                The answer the student provided. May be a rich structure, but must be JSON serializable.
+            - response_type (str)
+                The XML tag of the capa response type.
+            - input_type (str)
+                The XML tag of the capa input type.
+            - correct (bool)
+                Whether or not the provided answer is correct. Will be an empty string if correctness
+                could not be determined.
+            - variant (str)
+                In some cases the same question can have multiple variants. This string uniquely
+                identifies the variant of the question that was answered. In the capa context, this
+                corresponds to the `seed`.
+            - group_label (str)
+                Optional group label if present in response data.
 
-        This function attempts to be very conservative and make very few assumptions about the structure
-        of the problem.  If problem related metadata cannot be located it should be replaced with empty
-        strings ''.
+        This function is conservative and makes very few assumptions about the structure of the
+        problem. If problem-related metadata cannot be located, it is replaced with empty strings ''.
         """
+
         input_metadata = {}
         for input_id, internal_answer in answers.items():
             answer_input = self.lcp.inputs.get(input_id)
@@ -2170,10 +2189,9 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             self.publish_unmasked("save_problem_fail", event_info)
             return {
                 "success": False,
-                # pylint: disable=line-too-long
-                # Translators: 'closed' means the problem's due date has passed. You may no longer attempt to solve the problem.
+                # Translators: 'closed' means the problem's due date has passed.
+                # You may no longer attempt to solve the problem.
                 "msg": _("Problem is closed."),
-                # pylint: enable=line-too-long
             }
 
         # Problem submitted. Student should reset before saving
@@ -2219,10 +2237,9 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             self.publish_unmasked("reset_problem_fail", event_info)
             return {
                 "success": False,
-                # pylint: disable=line-too-long
-                # Translators: 'closed' means the problem's due date has passed. You may no longer attempt to solve the problem.
+                # Translators: 'closed' means the problem's due date has passed.
+                # You may no longer attempt to solve the problem.
                 "msg": _("You cannot select Reset for a problem that is closed."),
-                # pylint: enable=line-too-long
             }
 
         if not self.is_submitted():
@@ -2283,10 +2300,10 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         if not self.lcp.supports_rescoring():
             event_info["failure"] = "unsupported"
             self.publish_unmasked("problem_rescore_fail", event_info)
-            # pylint: disable=line-too-long
-            # Translators: 'rescoring' refers to the act of re-submitting a student's solution so it can get a new score.
+
+            # Translators: 'rescoring' refers to the act of re-submitting a student's
+            # solution so it can get a new score.
             raise NotImplementedError(_("Problem's definition does not support rescoring."))
-            # pylint: enable=line-too-long
 
         if not self.done:
             event_info["failure"] = "unanswered"
@@ -2303,7 +2320,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             StudentInputError,
             ResponseError,
             LoncapaProblemError,
-        ) as inst:  # lint-amnesty, pylint: disable=unused-variable
+        ):
             log.warning("Input error in capa_block:problem_rescore", exc_info=True)
             event_info["failure"] = "input_error"
             self.publish_unmasked("problem_rescore_fail", event_info)
@@ -2439,12 +2456,15 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         """
         Returns the URL for the ajax handler.
         """
-        return self.runtime.handler_url(self, 'xmodule_handler', '', '').rstrip('/?')
+        return self.runtime.handler_url(self, "xmodule_handler", "", "").rstrip("/?")
 
     @property
     def category(self):
         return self.scope_ids.block_type
 
+    @property
+    def url_name(self):
+        return self.location.block_id
 
     @property
     def location(self):
@@ -2460,9 +2480,8 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
     @XBlock.handler
     def xmodule_handler(self, request, suffix=None):
-        """
-        XBlock handler that wraps `handle_ajax`
-        """
+        """XBlock handler that wraps `handle_ajax`"""
+
         class FileObjForWebobFiles:
             """
             Turn Webob cgi.FieldStorage uploaded files into pure file objects.
@@ -2473,6 +2492,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             name, so we carry the FieldStorage .filename attribute as the .name.
 
             """
+
             def __init__(self, webob_file):
                 self.file = webob_file.file
                 self.name = webob_file.filename
@@ -2488,8 +2508,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
                 request_post[key] = list(map(FileObjForWebobFiles, request.POST.getall(key)))
 
         response_data = self.handle_ajax(suffix, request_post)
-        return Response(response_data, content_type='application/json', charset='UTF-8')
-
+        return Response(response_data, content_type="application/json", charset="UTF-8")
 
 
 class GradingMethodHandler:
@@ -2593,13 +2612,13 @@ class ComplexEncoder(json.JSONEncoder):
     Extend the JSON encoder to correctly handle complex numbers
     """
 
-    def default(self, obj):  # lint-amnesty, pylint: disable=arguments-differ, method-hidden
+    def default(self, o):
         """
         Print a nicely formatted complex number, or default to the JSON encoder
         """
-        if isinstance(obj, complex):
-            return f"{obj.real:.7g}{obj.imag:+.7g}*j"
-        return json.JSONEncoder.default(self, obj)
+        if isinstance(o, complex):
+            return f"{o.real:.7g}{o.imag:+.7g}*j"
+        return json.JSONEncoder.default(self, o)
 
 
 def randomization_bin(seed, problem_id):

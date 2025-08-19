@@ -1,10 +1,16 @@
-# lint-amnesty, pylint: disable=missing-module-docstring
+"""
+Utilities and services for sandboxed Python execution in XBlocks.
+
+Includes functions for checking course unsafe-code permissions, retrieving
+course-level Python libraries, and the SandboxService class for encapsulating
+these operations.
+"""
 
 import re
 
 from django.conf import settings
 
-DEFAULT_PYTHON_LIB_FILENAME = 'python_lib.zip'
+DEFAULT_PYTHON_LIB_FILENAME = "python_lib.zip"
 
 
 def course_code_library_asset_name():
@@ -16,7 +22,7 @@ def course_code_library_asset_name():
     # .. setting_description: Name of the course file to make available to code in
     #   custom Python-graded problems. By default, this file will not be downloadable
     #   by learners.
-    return getattr(settings, 'PYTHON_LIB_FILENAME', DEFAULT_PYTHON_LIB_FILENAME)
+    return getattr(settings, "PYTHON_LIB_FILENAME", DEFAULT_PYTHON_LIB_FILENAME)
 
 
 def can_execute_unsafe_code(course_id):
@@ -38,7 +44,7 @@ def can_execute_unsafe_code(course_id):
     # in a settings file
     # To others using this: the code as-is is brittle and likely to be changed in the future,
     # as per the TODO, so please consider carefully before adding more values to COURSES_WITH_UNSAFE_CODE
-    for regex in getattr(settings, 'COURSES_WITH_UNSAFE_CODE', []):
+    for regex in getattr(settings, "COURSES_WITH_UNSAFE_CODE", []):
         if re.match(regex, str(course_id)):
             return True
     return False
@@ -63,6 +69,7 @@ class SandboxService:
         contentstore(function): function which creates an instance of xmodule.content.ContentStore
         course_id(string or CourseLocator): identifier for the course
     """
+
     def __init__(self, contentstore, course_id, **kwargs):
         super().__init__(**kwargs)
         self.contentstore = contentstore

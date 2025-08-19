@@ -33,12 +33,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.3
+boto3==1.40.11
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.3
+botocore==1.40.11
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -70,7 +70,7 @@ chardet==5.2.0
     #   binaryornot
     #   diff-cover
     #   tox
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -111,7 +111,7 @@ cookiecutter==2.6.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.10.2
+coverage[toml]==7.10.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -180,7 +180,7 @@ django-waffle==5.0.0
     #   -r requirements/test.txt
     #   edx-django-utils
     #   edx-toggles
-djangorestframework==3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -223,7 +223,7 @@ edx-toggles==5.4.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-filelock==3.18.0
+filelock==3.19.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -302,7 +302,7 @@ mako==1.3.10
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   xblock
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -373,7 +373,7 @@ path==16.16.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-i18n-tools
-pbr==6.1.1
+pbr==7.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -421,7 +421,7 @@ pygments==2.19.2
     #   diff-cover
     #   pytest
     #   rich
-pylint==3.3.7
+pylint==3.3.8
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -441,7 +441,7 @@ pylint-plugin-utils==0.9.0
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.13.2
+pymongo==4.14.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -609,7 +609,7 @@ tqdm==4.67.1
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   nltk
-types-python-dateutil==2.9.0.20250708
+types-python-dateutil==2.9.0.20250809
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -626,7 +626,7 @@ urllib3==2.5.0
     #   -r requirements/test.txt
     #   botocore
     #   requests
-virtualenv==20.33.1
+virtualenv==20.34.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
