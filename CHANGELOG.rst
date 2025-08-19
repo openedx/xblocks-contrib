@@ -29,14 +29,6 @@ Added
 
 * Implemented the poll XBlock & HTML XBlock, extracted from edx-platform.
 
-0.5.0 – 2025-08-8
-**********************************************
-
-Added
-=====
-
-* Implemented the poll XBlock & HTML XBlock, extracted from edx-platform.
-
 0.4.0 – 2025-05-7
 **********************************************
 
