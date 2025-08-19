@@ -23,7 +23,7 @@ registry = TagRegistry()
 # -----------------------------------------------------------------------------
 
 
-class MathRenderer(object):  # lint-amnesty, pylint: disable=missing-class-docstring, disable=useless-object-inheritance
+class MathRenderer:  # pylint: disable=missing-class-docstring
     tags = ["math"]
 
     def __init__(self, system, xml):
@@ -86,7 +86,7 @@ registry.register(MathRenderer)
 # -----------------------------------------------------------------------------
 
 
-class SolutionRenderer(object):  # pylint: disable=useless-object-inheritance
+class SolutionRenderer:
     """
     A solution is just a <span>...</span> which is given an ID, that is used for displaying an
     extended answer (a problem "solution") after "show answers" is pressed.
@@ -115,7 +115,7 @@ registry.register(SolutionRenderer)
 # -----------------------------------------------------------------------------
 
 
-class TargetedFeedbackRenderer(object):  # pylint: disable=useless-object-inheritance
+class TargetedFeedbackRenderer:
     """
     A targeted feedback is just a <span>...</span> that is used for displaying an
     extended piece of feedback to students if they incorrectly answered a question.
@@ -164,7 +164,7 @@ registry.register(TargetedFeedbackRenderer)
 # -----------------------------------------------------------------------------
 
 
-class ClarificationRenderer(object):  # pylint: disable=useless-object-inheritance
+class ClarificationRenderer:
     """
     A clarification appears as an inline icon which reveals more information when the user
     hovers over it.

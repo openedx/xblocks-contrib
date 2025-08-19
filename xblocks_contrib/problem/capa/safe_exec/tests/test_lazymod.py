@@ -6,7 +6,7 @@ import unittest
 from xblocks_contrib.problem.capa.safe_exec.lazymod import LazyModule
 
 
-class ModuleIsolation(object):  # pylint: disable=useless-object-inheritance
+class ModuleIsolation:
     """
     Manage changes to sys.modules so that we can roll back imported modules.
 

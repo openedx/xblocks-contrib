@@ -67,7 +67,7 @@ log = logging.getLogger(__name__)
 registry = TagRegistry()
 
 
-class Status(object):  # pylint: disable=useless-object-inheritance
+class Status:
     """
     Problem status
     attributes: classname, display_name, display_tooltip
@@ -119,7 +119,7 @@ class Status(object):  # pylint: disable=useless-object-inheritance
         return hash(str(self))
 
 
-class Attribute(object):  # pylint: disable=useless-object-inheritance
+class Attribute:
     """
     Allows specifying required and optional attributes for input types.
     """
@@ -176,7 +176,7 @@ class Attribute(object):  # pylint: disable=useless-object-inheritance
         return val
 
 
-class InputTypeBase(object):  # pylint: disable=useless-object-inheritance
+class InputTypeBase:
     """
     Abstract base class for input types.
     """

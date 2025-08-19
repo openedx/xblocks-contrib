@@ -19,7 +19,7 @@ logging.basicConfig(format="%(levelname)s %(message)s")
 log = logging.getLogger("capa.checker")
 
 
-class DemoSystem(object):  # lint-amnesty, pylint: disable=missing-class-docstring, disable=useless-object-inheritance
+class DemoSystem:  # pylint: disable=missing-class-docstring
     def __init__(self):
         self.lookup = TemplateLookup(directories=[path(__file__).dirname() / "templates"])
         self.DEBUG = True

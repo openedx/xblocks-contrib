@@ -81,7 +81,7 @@ log = logging.getLogger(__name__)
 # main class for this module
 
 
-class LoncapaSystem(object):  # pylint: disable=useless-object-inheritance
+class LoncapaSystem:
     """
     An encapsulation of resources needed from the outside.
 

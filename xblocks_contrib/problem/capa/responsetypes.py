@@ -59,7 +59,8 @@ CORRECTMAP_PY = None
 
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
+def _(text):
+    return text
 
 QUESTION_HINT_CORRECT_STYLE = "feedback-hint-correct"
 QUESTION_HINT_INCORRECT_STYLE = "feedback-hint-incorrect"
