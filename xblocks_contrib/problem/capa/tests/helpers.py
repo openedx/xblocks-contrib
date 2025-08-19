@@ -1,12 +1,11 @@
 """Tools for helping with testing capa."""
 
-
 import gettext
 import io
 import os
 import os.path
-import xml.sax.saxutils as saxutils
 from unittest.mock import MagicMock, Mock
+from xml.sax import saxutils
 
 import fs.osfs
 from mako.lookup import TemplateLookup
@@ -23,8 +22,7 @@ def get_template(template_name):
     Return template for a capa inputtype.
     """
     return TemplateLookup(
-        directories=[Path(__file__).dirname().dirname() / 'templates'],
-        default_filters=['decode.utf8']
+        directories=[Path(__file__).dirname().dirname() / "templates"], default_filters=["decode.utf8"]
     ).get_template(template_name)
 
 
@@ -37,24 +35,28 @@ def capa_render_template(template, context):
 
 def tst_render_template(template, context):  # pylint: disable=unused-argument
     """
-    A test version of render to template.  Renders to the repr of the context, completely ignoring
-    the template name.  To make the output valid xml, quotes the content, and wraps it in a <div>
+    Render a test version of the template.
+
+    Render the repr of the context, completely ignore the template name, escape the
+    content for XML, and wrap it in a <div>.
     """
-    return '<div>{0}</div>'.format(saxutils.escape(repr(context)))
+    return "<div>{0}</div>".format(saxutils.escape(repr(context)))
 
 
 class StubXQueueService:
     """
     Stubs out the XQueueService for Capa problem tests.
     """
+
     def __init__(self):
+        """Initialize the stubbed XQueueService instance."""
         self.interface = MagicMock()
-        self.interface.send_to_queue.return_value = (0, 'Success!')
-        self.default_queuename = 'testqueue'
+        self.interface.send_to_queue.return_value = (0, "Success!")
+        self.default_queuename = "testqueue"
         self.waittime = 10
 
-    def construct_callback(self, dispatch='score_update'):
-        """A callback url method to use in tests."""
+    def construct_callback(self, dispatch="score_update"):
+        """Return a callback URL to use in tests."""
         return dispatch
 
 
@@ -64,8 +66,8 @@ def mock_capa_system(render_template=None):
     """
     the_system = Mock(
         spec=LoncapaSystem,
-        ajax_url='/dummy-ajax-url',
-        anonymous_student_id='student',
+        ajax_url="/dummy-ajax-url",
+        anonymous_student_id="student",
         cache=None,
         can_execute_unsafe_code=lambda: False,
         get_python_lib_zip=lambda: None,
@@ -74,7 +76,7 @@ def mock_capa_system(render_template=None):
         render_template=render_template or tst_render_template,
         resources_fs=fs.osfs.OSFS(os.path.join(TEST_DIR, "test_files")),
         seed=0,
-        STATIC_URL='/dummy-static/',
+        STATIC_URL="/dummy-static/",
         STATUS_CLASS=Status,
         xqueue=StubXQueueService(),
     )
@@ -83,13 +85,14 @@ def mock_capa_system(render_template=None):
 
 def mock_capa_block():
     """
-    capa response types needs just two things from the capa_block: location and publish.
+    Capa response types need just two things from the capa_block: location and publish.
     """
+
     def mock_location_text(self):  # lint-amnesty, pylint: disable=unused-argument
         """
         Mock implementation of __unicode__ or __str__ for the block's location.
         """
-        return 'i4x://Foo/bar/mock/abc'
+        return "i4x://Foo/bar/mock/abc"
 
     capa_block = Mock()
     capa_block.location.__str__ = mock_location_text
@@ -98,20 +101,27 @@ def mock_capa_block():
     return capa_block
 
 
-def new_loncapa_problem(xml, problem_id='1', capa_system=None, seed=723, use_capa_render_template=False):
+def new_loncapa_problem(xml, problem_id="1", capa_system=None, seed=723, use_capa_render_template=False):
     """Construct a `LoncapaProblem` suitable for unit tests."""
     render_template = capa_render_template if use_capa_render_template else None
-    return LoncapaProblem(xml, id=problem_id, seed=seed, capa_system=capa_system or mock_capa_system(render_template),
-                          capa_block=mock_capa_block())
+    return LoncapaProblem(
+        xml,
+        id=problem_id,
+        seed=seed,
+        capa_system=capa_system or mock_capa_system(render_template),
+        capa_block=mock_capa_block(),
+    )
 
 
 def load_fixture(relpath):
     """
-    Return a `unicode` object representing the contents
-    of the fixture file at the given path within a test_files directory
-    in the same directory as the test file.
+    Return the contents of a fixture file as text.
+
+    Read and return a `unicode` string representing the contents of the fixture
+    file at the given path within a `test_files` directory located alongside
+    the test file.
     """
-    abspath = os.path.join(os.path.dirname(__file__), 'test_files', relpath)
+    abspath = os.path.join(os.path.dirname(__file__), "test_files", relpath)
     with io.open(abspath, encoding="utf-8") as fixture_file:
         contents = fixture_file.read()
         return contents

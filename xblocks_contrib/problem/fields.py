@@ -41,7 +41,7 @@ class Date(JSONField):
             result = result.replace(tzinfo=UTC)
         return result
 
-    def from_json(self, field):  # lint-amnesty, pylint: disable=arguments-differ
+    def from_json(self, field): # pylint: disable=arguments-renamed
         """
         Parse an optional metadata key containing a time: if present, complain
         if it doesn't parse.
@@ -95,7 +95,7 @@ class Timedelta(JSONField):  # lint-amnesty, pylint: disable=missing-class-docst
     # Timedeltas are immutable, see http://docs.python.org/2/library/datetime.html#available-types
     MUTABLE = False
 
-    def from_json(self, time_str):  # lint-amnesty, pylint: disable=arguments-differ
+    def from_json(self, time_str):  # pylint: disable=inconsistent-return-statements,disable=arguments-renamed
         """
         time_str: A string with the following components:
             <D> day[s] (optional)

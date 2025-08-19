@@ -1,6 +1,7 @@
 """
 LMS Interface to external queueing system (xqueue)
 """
+
 import hashlib
 import json
 import logging
@@ -19,9 +20,9 @@ if TYPE_CHECKING:
     from xblocks_contrib.problem.problem import ProblemBlock
 
 log = logging.getLogger(__name__)
-dateformat = '%Y%m%d%H%M%S'
+dateformat = "%Y%m%d%H%M%S"
 
-XQUEUE_METRIC_NAME = 'edxapp.xqueue'
+XQUEUE_METRIC_NAME = "edxapp.xqueue"
 
 # Wait time for response from Xqueue.
 XQUEUE_TIMEOUT = 35  # seconds
@@ -41,7 +42,7 @@ READ_TIMEOUT = 10  # seconds
 # SEND_TO_SUBMISSION_COURSE_FLAG = CourseWaffleFlag('send_to_submission_course.enable', __name__)
 
 
-def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
+def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:  # pylint: disable=unused-argument
     """
     Determines whether edx-submissions should be used instead of legacy XQueue.
 
@@ -54,7 +55,8 @@ def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
     Returns:
         bool: True if edx-submissions should be used, False otherwise.
     """
-    return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+    # return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+    return False
 
 
 def make_hashkey(seed):
@@ -62,7 +64,7 @@ def make_hashkey(seed):
     Generate a string key by hashing
     """
     h = hashlib.md5()
-    h.update(str(seed).encode('latin-1'))
+    h.update(str(seed).encode("latin-1"))
     return h.hexdigest()
 
 
@@ -70,34 +72,37 @@ def make_xheader(lms_callback_url, lms_key, queue_name):
     """
     Generate header for delivery and reply of queue request.
 
-    Xqueue header is a JSON-serialized dict:
+    Xqueue header is a JSON-serialized dict::
+
         { 'lms_callback_url': url to which xqueue will return the request (string),
           'lms_key': secret key used by LMS to protect its state (string),
           'queue_name': designate a specific queue within xqueue server, e.g. 'MITx-6.00x' (string)
         }
+        
     """
-    return json.dumps({
-        'lms_callback_url': lms_callback_url,
-        'lms_key': lms_key,
-        'queue_name': queue_name
-    })
+    return json.dumps({"lms_callback_url": lms_callback_url, "lms_key": lms_key, "queue_name": queue_name})
 
 
 def parse_xreply(xreply):
     """
-    Parse the reply from xqueue. Messages are JSON-serialized dict:
-        { 'return_code': 0 (success), 1 (fail)
-          'content': Message from xqueue (string)
+    Parse the reply from xqueue. 
+    
+    Messages are JSON-serialized dict::
+
+        {
+            'return_code': 0 (success), 1 (fail),
+            'content': Message from xqueue (string)
         }
+
     """
     try:
         xreply = json.loads(xreply)
     except ValueError as err:
         log.error(err)
-        return (1, 'unexpected reply from server')
+        return (1, "unexpected reply from server")
 
-    return_code = xreply['return_code']
-    content = xreply['content']
+    return_code = xreply["return_code"]
+    content = xreply["content"]
 
     return (return_code, content)
 
@@ -105,9 +110,13 @@ def parse_xreply(xreply):
 class XQueueInterface:
     """Initializes the XQueue interface."""
 
-    def __init__(self, url: str, django_auth: Dict[str, str],
-                 requests_auth: Optional[HTTPBasicAuth] = None,
-                 block: 'ProblemBlock' = None):
+    def __init__(
+        self,
+        url: str,
+        django_auth: Dict[str, str],
+        requests_auth: Optional[HTTPBasicAuth] = None,
+        block: "ProblemBlock" = None,
+    ):
         """
         Initializes the XQueue interface.
 
@@ -142,13 +151,13 @@ class XQueueInterface:
 
         # log the send to xqueue
         header_info = json.loads(header)
-        queue_name = header_info.get('queue_name', '')  # lint-amnesty, pylint: disable=unused-variable
+        queue_name = header_info.get("queue_name", "")  # lint-amnesty, pylint: disable=unused-variable
 
         # Attempt to send to queue
         (error, msg) = self._send_to_queue(header, body, files_to_upload)
 
         # Log in, then try again
-        if error and (msg == 'login_required'):
+        if error and (msg == "login_required"):
             (error, content) = self._login()
             if error != 0:
                 # when the login fails
@@ -163,17 +172,11 @@ class XQueueInterface:
         return error, msg
 
     def _login(self):  # lint-amnesty, pylint: disable=missing-function-docstring
-        payload = {
-            'username': self.auth['username'],
-            'password': self.auth['password']
-        }
-        return self._http_post(self.url + '/xqueue/login/', payload)
+        payload = {"username": self.auth["username"], "password": self.auth["password"]}
+        return self._http_post(self.url + "/xqueue/login/", payload)
 
     def _send_to_queue(self, header, body, files_to_upload):  # lint-amnesty, pylint: disable=missing-function-docstring
-        payload = {
-            'xqueue_header': header,
-            'xqueue_body': body
-        }
+        payload = {"xqueue_header": header, "xqueue_body": body}
         files = {}
         if files_to_upload is not None:
             for f in files_to_upload:
@@ -185,31 +188,29 @@ class XQueueInterface:
                 "Unexpected None block: falling back to legacy xqueue submission. "
                 "This may indicate a problem with the xqueue transition."
             )
-            return self._http_post(self.url + '/xqueue/submit/', payload, files=files)
+            return self._http_post(self.url + "/xqueue/submit/", payload, files=files)
 
         course_key = self.block.scope_ids.usage_id.context_key
 
         if use_edx_submissions_for_xqueue(course_key):
-            submission = self.submission.send_to_submission(header, body, files)
-            return None, ''
+            submission = self.submission.send_to_submission(header, body, files)  # pylint: disable=unused-variable
+            return None, ""
 
-        return self._http_post(self.url + '/xqueue/submit/', payload, files=files)
+        return self._http_post(self.url + "/xqueue/submit/", payload, files=files)
 
     def _http_post(self, url, data, files=None):  # lint-amnesty, pylint: disable=missing-function-docstring
         try:
-            response = self.session.post(
-                url, data=data, files=files, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT)
-            )
+            response = self.session.post(url, data=data, files=files, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
         except requests.exceptions.ConnectionError as err:
             log.error(err)
-            return 1, 'cannot connect to server'
+            return 1, "cannot connect to server"
 
         except requests.exceptions.ReadTimeout as err:
             log.error(err)
-            return 1, 'failed to read from the server'
+            return 1, "failed to read from the server"
 
         if response.status_code not in [200]:
-            return 1, 'unexpected HTTP status code [%d]' % response.status_code
+            return 1, "unexpected HTTP status code [%d]" % response.status_code
 
         return parse_xreply(response.text)
 
@@ -222,12 +223,11 @@ class XQueueService:
         block: The `ProblemBlock` instance.
     """
 
-    def __init__(self, block: 'ProblemBlock'):
-        basic_auth = settings.XQUEUE_INTERFACE.get('basic_auth')
+    def __init__(self, block: "ProblemBlock"):
+        basic_auth = settings.XQUEUE_INTERFACE.get("basic_auth")
         requests_auth = HTTPBasicAuth(*basic_auth) if basic_auth else None
         self._interface = XQueueInterface(
-            settings.XQUEUE_INTERFACE['url'], settings.XQUEUE_INTERFACE['django_auth'], requests_auth,
-            block=block
+            settings.XQUEUE_INTERFACE["url"], settings.XQUEUE_INTERFACE["django_auth"], requests_auth, block=block
         )
 
         self._block = block
@@ -268,7 +268,7 @@ class XQueueService:
         Returns the default queue name for the current course.
         """
         course_id = self._block.scope_ids.usage_id.context_key
-        return f'{course_id.org}-{course_id.course}'.replace(' ', '_')
+        return f"{course_id.org}-{course_id.course}".replace(" ", "_")
 
     @property
     def waittime(self) -> int:
