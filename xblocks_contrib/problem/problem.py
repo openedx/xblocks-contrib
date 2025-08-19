@@ -454,9 +454,10 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
     def handle_ajax(self, dispatch, data):
         """
-        This is called by courseware.block_render, to handle an AJAX call.
+        Called by ``courseware.block_render`` to handle an AJAX call.
 
-        `data` is request.POST.
+        Args:
+            data (dict): Equivalent to ``request.POST``.
 
         Returns a json dictionary::
 
@@ -485,7 +486,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             "We're sorry, there was an error with processing your request. "
             "Please try reloading your page and trying again."
         )
-
+        # pylint: disable=implicit-str-concat
         not_found_error_message = _(
             "The state of this problem has changed since you loaded this page. Please refresh your page."
         )
@@ -596,6 +597,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         """
         Return the context to render the django template with
         """
+        # pylint: disable=no-member
         return {
             "module": self,
             "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
@@ -2316,6 +2318,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         event_info["orig_total"] = orig_score.raw_possible
         try:
             calculated_score = self.calculate_score()
+         # pylint: disable=unused-variable
         except (
             StudentInputError,
             ResponseError,

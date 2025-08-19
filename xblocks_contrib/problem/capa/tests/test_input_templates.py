@@ -461,7 +461,7 @@ class TextlineTemplateTest(TemplateTestCase):
     Test django template for `<textline>` input.
     """
 
-    TEMPLATE_NAME = "capa/templates/textline.html"
+    TEMPLATE_NAME = "textline.html"
 
     def setUp(self):
         super().setUp()

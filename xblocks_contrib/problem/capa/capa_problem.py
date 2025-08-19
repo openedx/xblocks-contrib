@@ -387,6 +387,7 @@ class LoncapaProblem:
             'total': get_max_score()}
 
         Takes an optional correctness map for use in the rescore workflow.
+
         """
         if correct_map is None:
             correct_map = self.correct_map
@@ -578,7 +579,7 @@ class LoncapaProblem:
             answer_ids.append(list(results.keys()))
         return answer_ids
 
-    def find_correct_answer_text(self, answer_id):
+    def find_correct_answer_text(self, answer_id):  # pylint: disable=inconsistent-return-statements
         """
         Returns the correct answer(s) for the provided answer_id as a single string.
 

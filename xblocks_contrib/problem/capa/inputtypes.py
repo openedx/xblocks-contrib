@@ -398,7 +398,7 @@ class OptionInput(InputTypeBase):
     # TODO: allow ordering to be randomized
     """
 
-    template = "capa/templates/optioninput.html"
+    template = "optioninput.html"
     tags = ["optioninput"]
 
     @staticmethod
@@ -454,22 +454,22 @@ class ChoiceGroup(InputTypeBase):
     TODO: allow order of choices to be randomized, following lon-capa spec.
     Use the "location" attribute, e.g., random, top, bottom.
 
-    Example:
+    Example::
 
-    <choicegroup>
-    <choice correct="false" name="foil1">
-    <text>This is foil One.</text>
-    </choice>
-    <choice correct="false" name="foil2">
-    <text>This is foil Two.</text>
-    </choice>
-    <choice correct="true" name="foil3">
-    <text>This is foil Three.</text>
-    </choice>
-    </choicegroup>
+        <choicegroup>
+        <choice correct="false" name="foil1">
+            <text>This is foil One.</text>
+        </choice>
+        <choice correct="false" name="foil2">
+            <text>This is foil Two.</text>
+        </choice>
+        <choice correct="true" name="foil3">
+            <text>This is foil Three.</text>
+        </choice>
+        </choicegroup>
     """
 
-    template = "capa/templates/choicegroup.html"
+    template = "choicegroup.html"
     tags = ["choicegroup", "radiogroup", "checkboxgroup"]
 
     def setup(self):
@@ -645,7 +645,7 @@ class TextLine(InputTypeBase):
     after the end of the text line.
     """
 
-    template = "capa/templates/textline.html"
+    template = "textline.html"
     tags = ["textline"]
 
     @classmethod
@@ -698,7 +698,7 @@ class FileSubmission(InputTypeBase):
     Upload some files (e.g. for programming assignments)
     """
 
-    template = "capa/templates/filesubmission.html"
+    template = "filesubmission.html"
     tags = ["filesubmission"]
 
     @staticmethod
@@ -1250,7 +1250,7 @@ class FormulaEquationInput(InputTypeBase):
                               rendered, same as textline (useful for units)
     """
 
-    template = "capa/templates/formulaequationinput.html"
+    template = "formulaequationinput.html"
     tags = ["formulaequationinput"]
 
     @classmethod

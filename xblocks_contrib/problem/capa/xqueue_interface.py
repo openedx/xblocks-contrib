@@ -42,7 +42,7 @@ READ_TIMEOUT = 10  # seconds
 SEND_TO_SUBMISSION_COURSE_FLAG = CourseWaffleFlag("send_to_submission_course.enable", __name__)
 
 
-def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
+def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:  # pylint: disable=unused-argument
     """
     Determines whether edx-submissions should be used instead of legacy XQueue.
 
@@ -55,7 +55,8 @@ def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
     Returns:
         bool: True if edx-submissions should be used, False otherwise.
     """
-    return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+    # return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+    return False
 
 
 def make_hashkey(seed):

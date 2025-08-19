@@ -99,7 +99,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\\n", "").replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (
@@ -120,7 +119,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\\n", "").replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (
@@ -140,7 +138,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\\n", "").replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (
@@ -319,7 +316,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (
@@ -397,7 +393,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (
@@ -482,7 +477,6 @@ class CapaTargetedFeedbackTest(unittest.TestCase):
 
         the_html = problem.get_html()
         without_new_lines = the_html.replace("\n", "")
-
         self.assertRegex(
             without_new_lines,
             (

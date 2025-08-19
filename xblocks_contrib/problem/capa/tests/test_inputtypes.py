@@ -117,8 +117,7 @@ class ChoiceGroupTest(unittest.TestCase):
     Test choice groups, radio groups, and checkbox groups
     """
 
-    def check_group(self, tag, expected_input_type, expected_suffix):
-        """Check that a choice group input renders with correct context and attributes."""
+    def check_group(self, tag, expected_input_type, expected_suffix):  # lint-amnesty, pylint: disable=missing-function-docstring
         xml_str = """
   <{tag}>
     <choice correct="false" name="foil1"><text>This is foil One.</text></choice>
@@ -475,10 +474,10 @@ class MatlabTest(unittest.TestCase):
     """
 
     def setUp(self):
-        super().setUp()
-        self.rows = "10"
-        self.cols = "80"
-        self.tabsize = "4"
+        super(MatlabTest, self).setUp()  # lint-amnesty, pylint: disable=super-with-arguments
+        self.rows = '10'
+        self.cols = '80'
+        self.tabsize = '4'
         self.mode = ""
         self.payload = "payload"
         self.linenumbers = "true"
@@ -597,8 +596,8 @@ class MatlabTest(unittest.TestCase):
 
             assert context == expected
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=10)
-    def test_rendering_while_queued(self, time):  # pylint: disable=unused-argument
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=10)
+    def test_rendering_while_queued(self, time):  # lint-amnesty, pylint: disable=unused-argument
         state = {
             "value": 'print "good evening"',
             "status": "incomplete",
@@ -649,16 +648,14 @@ class MatlabTest(unittest.TestCase):
         assert "queuekey" not in self.the_input.input_state
         assert "queuestate" not in self.the_input.input_state
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=10)
-    def test_ungraded_response_success(self, time):  # pylint: disable=unused-argument
-        queuekey = "abcd"
-        input_state = {"queuekey": queuekey, "queuestate": "queued", "queuetime": 5}
-        state = {
-            "value": 'print "good evening"',
-            "status": "incomplete",
-            "input_state": input_state,
-            "feedback": {"message": "3"},
-        }
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=10)
+    def test_ungraded_response_success(self, time):  # lint-amnesty, pylint: disable=unused-argument
+        queuekey = 'abcd'
+        input_state = {'queuekey': queuekey, 'queuestate': 'queued', 'queuetime': 5}
+        state = {'value': 'print "good evening"',
+                 'status': 'incomplete',
+                 'input_state': input_state,
+                 'feedback': {'message': '3'}, }
         elt = etree.fromstring(self.xml)
 
         the_input = self.input_class(mock_capa_system(), elt, state)
@@ -670,16 +667,14 @@ class MatlabTest(unittest.TestCase):
         assert input_state["queuestate"] is None
         assert input_state["queue_msg"] == inner_msg
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=10)
-    def test_ungraded_response_key_mismatch(self, time):  # pylint: disable=unused-argument
-        queuekey = "abcd"
-        input_state = {"queuekey": queuekey, "queuestate": "queued", "queuetime": 5}
-        state = {
-            "value": 'print "good evening"',
-            "status": "incomplete",
-            "input_state": input_state,
-            "feedback": {"message": "3"},
-        }
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=10)
+    def test_ungraded_response_key_mismatch(self, time):  # lint-amnesty, pylint: disable=unused-argument
+        queuekey = 'abcd'
+        input_state = {'queuekey': queuekey, 'queuestate': 'queued', 'queuetime': 5}
+        state = {'value': 'print "good evening"',
+                 'status': 'incomplete',
+                 'input_state': input_state,
+                 'feedback': {'message': '3'}, }
         elt = etree.fromstring(self.xml)
 
         the_input = self.input_class(mock_capa_system(), elt, state)
@@ -691,8 +686,8 @@ class MatlabTest(unittest.TestCase):
         assert input_state["queuestate"] == "queued"
         assert "queue_msg" not in input_state
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=20)
-    def test_matlab_response_timeout_not_exceeded(self, time):  # pylint: disable=unused-argument
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=20)
+    def test_matlab_response_timeout_not_exceeded(self, time):  # lint-amnesty, pylint: disable=unused-argument
 
         state = {"input_state": {"queuestate": "queued", "queuetime": 5}}
         elt = etree.fromstring(self.xml)
@@ -700,8 +695,8 @@ class MatlabTest(unittest.TestCase):
         the_input = self.input_class(mock_capa_system(), elt, state)
         assert the_input.status == "queued"
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=45)
-    def test_matlab_response_timeout_exceeded(self, time):  # pylint: disable=unused-argument
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=45)
+    def test_matlab_response_timeout_exceeded(self, time):  # lint-amnesty, pylint: disable=unused-argument
 
         state = {"input_state": {"queuestate": "queued", "queuetime": 5}}
         elt = etree.fromstring(self.xml)
@@ -710,8 +705,8 @@ class MatlabTest(unittest.TestCase):
         assert the_input.status == "unsubmitted"
         assert the_input.msg == "No response from Xqueue within {} seconds. Aborted.".format(XQUEUE_TIMEOUT)
 
-    @patch("xblocks_contrib.problem.capa.inputtypes.time.time", return_value=20)
-    def test_matlab_response_migration_of_queuetime(self, time):  # pylint: disable=unused-argument
+    @patch('xblocks_contrib.problem.capa.inputtypes.time.time', return_value=20)
+    def test_matlab_response_migration_of_queuetime(self, time):  # lint-amnesty, pylint: disable=unused-argument
         """
         Test if problem was saved before queuetime was introduced.
         """
@@ -730,8 +725,8 @@ class MatlabTest(unittest.TestCase):
         system.matlab_api_key = "test_api_key"
         the_input = lookup_tag("matlabinput")(system, elt, {})
 
-        data = {"submission": "x = 1234;"}
-        response = the_input.handle_ajax("plot", data)  # pylint: disable=unused-variable
+        data = {'submission': 'x = 1234;'}
+        response = the_input.handle_ajax("plot", data)  # lint-amnesty, pylint: disable=unused-variable
 
         body = system.xqueue.interface.send_to_queue.call_args[1]["body"]
         payload = json.loads(body)
@@ -765,17 +760,12 @@ class MatlabTest(unittest.TestCase):
 
         # test html, that is correct HTML5 html, but is not parsable by XML parser.
         old_render_template = self.the_input.capa_system.render_template
-        self.the_input.capa_system.render_template = lambda *args: textwrap.dedent(
-            (
-                "<div class='matlabResponse'><div id='mwAudioPlaceHolder'>"
-                "<audio controls autobuffer autoplay src='data:audio/wav;base64='>"
-                "Audio is not supported on this browser.</audio>"
-                "<div>Right click "
-                "<a href=https://endpoint.mss-mathworks.com/media/filename.wav>here</a> "
-                'and click "Save As" to download the file</div></div>'
-                "<div style='white-space:pre' class='commandWindowOutput'></div><ul></ul></div>"
-            )
-        ).replace("\n", "")
+        self.the_input.capa_system.render_template = lambda *args: textwrap.dedent("""
+                <div class='matlabResponse'><div id='mwAudioPlaceHolder'>
+                <audio controls autobuffer autoplay src='data:audio/wav;base64='>Audio is not supported on this browser.</audio>
+                <div>Right click <a href=https://endpoint.mss-mathworks.com/media/filename.wav>here</a> and click \"Save As\" to download the file</div></div>
+                <div style='white-space:pre' class='commandWindowOutput'></div><ul></ul></div>
+            """).replace('\n', '')
 
         output = self.the_input.get_html()
         elements = []
@@ -807,10 +797,8 @@ class MatlabTest(unittest.TestCase):
 
     def test_malformed_queue_msg(self):
         # an actual malformed response
-        queue_msg = textwrap.dedent(
-            """
-    <div class='matlabResponse'><div style='white-space:pre' class='commandWindowOutput'>
-      <strong>if</strong> Conditionally execute statements.
+        queue_msg = textwrap.dedent("""
+    <div class='matlabResponse'><div style='white-space:pre' class='commandWindowOutput'> <strong>if</strong> Conditionally execute statements.
     The general form of the <strong>if</strong> statement is
 
        <strong>if</strong> expression
@@ -837,10 +825,7 @@ class MatlabTest(unittest.TestCase):
          A(I,J) = 0;
        end
 
-    See also <a href="matlab:help relop">relop</a>, <a href="matlab:help else">else</a>,
-      <a href="matlab:help elseif">elseif</a>, <a href="matlab:help end">end</a>,
-        <a href="matlab:help for">for</a>, <a href="matlab:help while">while</a>,
-          <a href="matlab:help switch">switch</a>.
+    See also <a href="matlab:help relop">relop</a>, <a href="matlab:help else">else</a>, <a href="matlab:help elseif">elseif</a>, <a href="matlab:help end">end</a>, <a href="matlab:help for">for</a>, <a href="matlab:help while">while</a>, <a href="matlab:help switch">switch</a>.
 
     Reference page in Help browser
        <a href="matlab:doc if">doc if</a>
@@ -861,27 +846,13 @@ class MatlabTest(unittest.TestCase):
         the_input = self.input_class(mock_capa_system(), elt, state)
         context = the_input._get_render_context()  # pylint: disable=protected-access
         self.maxDiff = None
-        expected = fromstring(
-            '\n<div class="matlabResponse"><div class="commandWindowOutput" style="white-space: pre;">'
-            " <strong>if</strong> Conditionally execute statements.\nThe general form of the <strong>if</strong>"
-            " statement is\n\n   <strong>if</strong> expression\n     statements\n   ELSEIF expression\n"
-            "     statements\n   ELSE\n     statements\n   END\n\nThe statements are executed if the real part of"
-            " the expression \nhas all non-zero elements. The ELSE and ELSEIF parts are optional.\nZero or"
-            " more ELSEIF parts can be used as well as nested <strong>if</strong>'s.\nThe expression is usually"
-            " of the form expr rop expr where \nrop is ==, &lt;, &gt;, &lt;=, &gt;=, or ~=.\n"
-            '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAGkCAIAAACgj==">\n\nExample\n   '
-            "if I == J\n     A(I,J) = 2;\n   elseif abs(I-J) == 1\n     A(I,J) = -1;\n   else\n     A(I,J) = 0;\n"
-            "   end\n\nSee also <a>relop</a>, <a>else</a>, <a>elseif</a>, <a>end</a>, <a>for</a>, <a>while</a>,"
-            " <a>switch</a>.\n\nReference page in Help browser\n   <a>doc if</a>\n\n</div><ul></ul></div>\n"
-        )
-        received = fromstring(context["queue_msg"])
+        expected = fromstring('\n<div class="matlabResponse"><div class="commandWindowOutput" style="white-space: pre;"> <strong>if</strong> Conditionally execute statements.\nThe general form of the <strong>if</strong> statement is\n\n   <strong>if</strong> expression\n     statements\n   ELSEIF expression\n     statements\n   ELSE\n     statements\n   END\n\nThe statements are executed if the real part of the expression \nhas all non-zero elements. The ELSE and ELSEIF parts are optional.\nZero or more ELSEIF parts can be used as well as nested <strong>if</strong>\'s.\nThe expression is usually of the form expr rop expr where \nrop is ==, &lt;, &gt;, &lt;=, &gt;=, or ~=.\n<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAGkCAIAAACgj==">\n\nExample\n   if I == J\n     A(I,J) = 2;\n   elseif abs(I-J) == 1\n     A(I,J) = -1;\n   else\n     A(I,J) = 0;\n   end\n\nSee also <a>relop</a>, <a>else</a>, <a>elseif</a>, <a>end</a>, <a>for</a>, <a>while</a>, <a>switch</a>.\n\nReference page in Help browser\n   <a>doc if</a>\n\n</div><ul></ul></div>\n')  # lint-amnesty, pylint: disable=line-too-long
+        received = fromstring(context['queue_msg'])
         html_tree_equal(received, expected)
 
     def test_rendering_with_invalid_queue_msg(self):
-        self.the_input.queue_msg = (
-            "<div class='matlabResponse'><div style='white-space:pre' class='commandWindowOutput'>"
-            "\nans =\n\n\u0002\n\n</div><ul></ul></div>"
-        )
+        self.the_input.queue_msg = ("<div class='matlabResponse'><div style='white-space:pre' class='commandWindowOutput'>"  # lint-amnesty, pylint: disable=line-too-long
+                                    "\nans =\n\n\u0002\n\n</div><ul></ul></div>")
         context = self.the_input._get_render_context()  # pylint: disable=protected-access
 
         self.maxDiff = None
@@ -945,8 +916,8 @@ class MatlabTest(unittest.TestCase):
         """
         not_allowed_tag = "script"
         self.the_input.msg = "<{0}>Test message</{0}>".format(not_allowed_tag)
-        expected = ""  # pylint: disable=unused-variable
-        assert self.the_input._get_render_context()  # pylint: disable=protected-access
+        expected = ""
+        assert self.the_input._get_render_context()['msg'] == expected  # pylint: disable=protected-access
 
 
 def html_tree_equal(received, expected):
@@ -1020,13 +991,10 @@ class ImageInputTest(unittest.TestCase):
     """
     Check that image inputs work
     """
-
-    def check(self, value, egx, egy):
-        """Verify that an image input renders with expected attributes and context."""
-
-        height = "78"
-        width = "427"
-        src = "http://www.edx.org/cowclicker.jpg"
+    def check(self, value, egx, egy):  # lint-amnesty, pylint: disable=missing-function-docstring
+        height = '78'
+        width = '427'
+        src = 'http://www.edx.org/cowclicker.jpg'
 
         xml_str = """<imageinput id="prob_1_2"
         src="{s}"
@@ -1591,16 +1559,10 @@ class TestChoiceText(unittest.TestCase):
         """
         xml_str = """
   <{tag}>
-      <{choice_tag} correct="false" name="choiceinput_0">this is<numtolerance_input name="choiceinput_0_textinput_0"/>
-      false
-      </{choice_tag}>
-      <choice correct="true" name="choiceinput_1">Is a number<decoy_input name="choiceinput_1_textinput_0"/>
-      <text>!</text>
-      </choice>
+      <{choice_tag} correct="false" name="choiceinput_0">this is<numtolerance_input name="choiceinput_0_textinput_0"/>false</{choice_tag}>
+      <choice correct="true" name="choiceinput_1">Is a number<decoy_input name="choiceinput_1_textinput_0"/><text>!</text></choice>
   </{tag}>
-        """.format(
-            tag=tag, choice_tag=choice_tag
-        )
+        """.format(tag=tag, choice_tag=choice_tag)
         element = etree.fromstring(xml_str)
         prob_id = "choicetext_input"
         state = {"value": "{}", "id": prob_id, "status": inputtypes.Status("answered"), "response_data": RESPONSE_DATA}
@@ -1708,10 +1670,7 @@ class TestStatus(unittest.TestCase):
         """
         Test that display names are "translated"
         """
-
-        def func(t):
-            return t.upper()
-
+        func = lambda t: t.upper()
         # status is in the mapping
         statobj = inputtypes.Status("queued", func)
         assert statobj.display_name == "PROCESSING"

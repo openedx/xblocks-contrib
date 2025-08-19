@@ -41,8 +41,10 @@ def capa_render_template(template, context):
 
 def tst_render_template(template, context):  # pylint: disable=unused-argument
     """
-    A test version of render to template.  Renders to the repr of the context, completely ignoring
-    the template name.  To make the output valid xml, quotes the content, and wraps it in a <div>
+    Render a test version of the template.
+
+    Render the repr of the context, completely ignore the template name, escape the
+    content for XML, and wrap it in a <div>.
     """
     return "<div>{0}</div>".format(saxutils.escape(repr(context)))
 
@@ -53,6 +55,7 @@ class StubXQueueService:
     """
 
     def __init__(self):
+        """Initialize the stubbed XQueueService instance."""
         self.interface = MagicMock()
         self.interface.send_to_queue.return_value = (0, "Success!")
         self.default_queuename = "testqueue"
@@ -88,7 +91,7 @@ def mock_capa_system(render_template=None):
 
 def mock_capa_block():
     """
-    capa response types needs just two things from the capa_block: location and publish.
+    Capa response types need just two things from the capa_block: location and publish.
     """
 
     def mock_location_text(self):  # pylint: disable=unused-argument
@@ -118,9 +121,11 @@ def new_loncapa_problem(xml, problem_id="1", capa_system=None, seed=723, use_cap
 
 def load_fixture(relpath):
     """
-    Return a `unicode` object representing the contents
-    of the fixture file at the given path within a test_files directory
-    in the same directory as the test file.
+    Return the contents of a fixture file as text.
+
+    Read and return a `unicode` string representing the contents of the fixture
+    file at the given path within a `test_files` directory located alongside
+    the test file.
     """
     abspath = os.path.join(os.path.dirname(__file__), "test_files", relpath)
     with io.open(abspath, encoding="utf-8") as fixture_file:
