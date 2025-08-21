@@ -1,368 +1,158 @@
-/* global MathJax, Collapsible, interpolate, JavascriptLoader, Logger, CodeMirror, edx, ngettext, gettext */
-// Note: this code was originally converted from CoffeeScript. Some warnings have been suppressed.
+/* global MathJax, Collapsible, interpolate, JavascriptLoader, Logger, CodeMirror */
+// Note: this code was originally converted from CoffeeScript, and thus follows some
+// coding conventions that are discouraged by eslint. Some warnings have been suppressed
+// to avoid substantial rewriting of the code. Allow the eslint suppressions to exceed
+// the max line length of 120.
 /* eslint max-len: ["error", 120, { "ignoreComments": true }] */
-
-/**
- * A static utility function for making AJAX calls related to specific input types within a problem.
- * This does not require a Problem instance.
- *
- * @param {string} url - The base URL for the problem's AJAX endpoints.
- * @param {string} inputId - The unique ID of the input field (without the 'input_' prefix).
- * @param {string} dispatch - A string indicating the action for the backend to perform.
- * @param {object} data - The data payload to send.
- * @param {function} callback - The function to execute upon a successful response.
- */
-function problemInputAjax(url, inputId, dispatch, data, callback) {
-    'use strict';
-    const postData = { ...data, dispatch, input_id: inputId };
-    return $.postWithPrefix(`${url}/input_ajax`, postData, callback);
-}
 
 function Problem(runtime, element) {
     'use strict';
 
-    // --- Initialization and Scope Setup ---
-    const problemWrapper = $(element);
-    if (problemWrapper.attr('data-problem-processed') === 'true') {
-        return;
-    }
-    problemWrapper.attr('data-problem-processed', 'true');
+    var indexOfHelper = [].indexOf
+        || function(item) {
+            var i, len;
+            for (i = 0, len = this.length; i < len; i++) {
+                if (i in this && this[i] === item) {
+                    return i;
+                }
+            }
+            return -1;
+        };
 
-    // --- Local variables scoped to this instance ---
-    const el = problemWrapper.find('.problems-wrapper');
-    const id = el.data('problem-id');
-    const element_id = el.attr('id');
-    const url = el.data('url');
-    const content = el.data('content');
+    // --- Module-level variables (formerly instance properties) ---
+    var el = $(element).find('.problems-wrapper');
+    var id = el.data('problem-id');
+    var element_id = el.attr('id');
+    var url = el.data('url');
+    var content = el.data('content');
 
-    // State tracking
-    let has_timed_out = false;
-    let has_response = false;
-    let answers = {};
-    let inputs = null;
-    let inputtypeDisplays = {};
+    // State variables
+    var has_timed_out = false;
+    var has_response = false;
+    var answers;
+    var queued_items;
+    var num_queued_items;
+    var new_queued_items;
+    var inputtypeDisplays = {};
 
     // Element references
-    let submitButton, submitButtonLabel, submitButtonSubmitText, submitButtonSubmittingText,
-        hintButton, resetButton, showButton, saveButton, reviewButton,
-        saveNotification, showAnswerNotification, gentleAlertNotification, submitNotification;
+    var inputs;
+    var reviewButton;
+    var submitButton;
+    var submitButtonLabel;
+    var submitButtonSubmitText;
+    var submitButtonSubmittingText;
+    var hintButton;
+    var resetButton;
+    var showButton;
+    var saveButton;
+    var saveNotification;
+    var showAnswerNotification;
+    var gentleAlertNotification;
+    var submitNotification;
 
-    // --- Helper Functions ---
 
-    /**
-     * A scoped jQuery-like selector that searches within this problem's main element.
-     * @param {string} selector - A jQuery selector.
-     * @returns {jQuery} The jQuery object for the matched elements.
-     */
-    const $ = (selector) => el.find(selector);
+    // --- Initialization ---
 
-    // --- Core Logic Functions (formerly prototype methods) ---
+    function init() {
+        // has_timed_out and has_response are used to ensure that
+        // we wait a minimum of ~ 1s before transitioning the submit
+        // button from disabled to enabled
+        has_timed_out = false;
+        has_response = false;
+        render(content);
+    }
 
-    function render(newContent, focusCallback) {
-        if (newContent) {
-            edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(newContent));
-            return JavascriptLoader.executeModuleScripts(el, () => {
+
+    // --- Core Methods ---
+
+    function render(renderContent, focusCallback) {
+        if (renderContent) {
+            edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(renderContent));
+            return JavascriptLoader.executeModuleScripts(el, function() {
                 setupInputTypes();
                 bind();
                 queueing(focusCallback);
                 renderProgressState();
-                if (typeof focusCallback === 'function') {
-                    focusCallback();
-                }
+                // eslint-disable-next-line no-void
+                return typeof focusCallback === 'function' ? focusCallback() : void 0;
+            });
+        } else {
+            return $.postWithPrefix('' + url + '/problem_get', function(response) {
+                edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(response.html));
+                return JavascriptLoader.executeModuleScripts(el, function() {
+                    setupInputTypes();
+                    bind();
+                    queueing();
+                    return forceUpdate(response);
+                });
             });
         }
-        return $.postWithPrefix(`${url}/problem_get`, (response) => {
-            edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(response.html));
-            return JavascriptLoader.executeModuleScripts(el, () => {
-                setupInputTypes();
-                bind();
-                queueing();
-                forceUpdate(response);
-            });
-        });
     }
 
     function bind() {
+        var problemPrefix;
         if (typeof MathJax !== 'undefined' && MathJax !== null) {
-            $('.problem > div').each((index, mathElement) => MathJax.Hub.Queue(['Typeset', MathJax.Hub, mathElement]));
+            el.find('.problem > div').each(function(index, element) {
+                return MathJax.Hub.Queue(['Typeset', MathJax.Hub, element]);
+            });
         }
         if (window.hasOwnProperty('update_schematics')) {
             window.update_schematics();
         }
-
-        const problemPrefix = element_id.replace(/problem_/, '');
-        inputs = $(`[id^="input_${problemPrefix}_"]`);
-
-        // Bind buttons
-        $('div.action button').click(refreshAnswers);
-        reviewButton = $('.notification-btn.review-btn');
+        problemPrefix = element_id.replace(/problem_/, '');
+        inputs = el.find('[id^="input_' + problemPrefix + '_"]');
+        el.find('div.action button').click(refreshAnswers);
+        reviewButton = el.find('.notification-btn.review-btn');
         reviewButton.click(scroll_to_problem_meta);
-        submitButton = $('.action .submit');
-        submitButtonLabel = $('.action .submit .submit-label');
+        submitButton = el.find('.action .submit');
+        submitButtonLabel = el.find('.action .submit .submit-label');
         submitButtonSubmitText = submitButtonLabel.text();
         submitButtonSubmittingText = submitButton.data('submitting');
         submitButton.click(submit_fd);
-        hintButton = $('.action .hint-button');
+        hintButton = el.find('.action .hint-button');
         hintButton.click(hint_button);
-        resetButton = $('.action .reset');
+        resetButton = el.find('.action .reset');
         resetButton.click(reset);
-        showButton = $('.action .show');
+        showButton = el.find('.action .show');
         showButton.click(show);
-        saveButton = $('.action .save');
+        saveButton = el.find('.action .save');
+        saveNotification = el.find('.notification-save');
+        showAnswerNotification = el.find('.notification-show-answer');
         saveButton.click(save);
+        gentleAlertNotification = el.find('.notification-gentle-alert');
+        submitNotification = el.find('.notification-submit');
 
-        // Bind notifications
-        saveNotification = $('.notification-save');
-        showAnswerNotification = $('.notification-show-answer');
-        gentleAlertNotification = $('.notification-gentle-alert');
-        submitNotification = $('.notification-submit');
-
-        // Accessibility bindings
-        $('.clarification').focus((ev) => window.globalTooltipManager.openTooltip($(ev.target).children('i')));
-        $('.clarification').blur(() => window.globalTooltipManager.hide());
-        $('.review-btn').focus((ev) => $(ev.target).removeClass('sr')).blur((ev) => $(ev.target).addClass('sr'));
-
+        // Accessibility helper for sighted keyboard users to show <clarification> tooltips on focus:
+        el.find('.clarification').focus(function(ev) {
+            var icon;
+            icon = $(ev.target).children('i');
+            return window.globalTooltipManager.openTooltip(icon);
+        });
+        el.find('.clarification').blur(function() {
+            return window.globalTooltipManager.hide();
+        });
+        el.find('.review-btn').focus(function(ev) {
+            return $(ev.target).removeClass('sr');
+        });
+        el.find('.review-btn').blur(function(ev) {
+            return $(ev.target).addClass('sr');
+        });
         bindResetCorrectness();
         if (submitButton.length) {
             submitAnswersAndSubmitButton(true);
         }
         Collapsible.setCollapsibles(el);
-        $('input.math').keyup(refreshMath);
+        el.find('input.math').keyup(refreshMath);
         if (typeof MathJax !== 'undefined' && MathJax !== null) {
-            $('input.math').each((index, mathElement) => MathJax.Hub.Queue([refreshMath, null, mathElement]));
-        }
-    }
-
-    function renderProgressState() {
-        const curScore = el.data('problem-score');
-        const totalScore = el.data('problem-total-possible');
-        const attemptsUsed = el.data('attempts-used');
-        let isGraded = el.data('graded') === 'True' && totalScore !== 0;
-        let progressTemplate;
-
-        if (curScore === undefined || totalScore === undefined) {
-            progressTemplate = '';
-        } else if (curScore === null || curScore === 'None') {
-            const msg = isGraded
-                ? ngettext('{num_points} point possible (graded, results hidden)', '{num_points} points possible (graded, results hidden)', totalScore)
-                : ngettext('{num_points} point possible (ungraded, results hidden)', '{num_points} points possible (ungraded, results hidden)', totalScore);
-            progressTemplate = msg;
-        } else if ((attemptsUsed === 0 || totalScore === 0) && curScore === 0) {
-            const msg = isGraded
-                ? ngettext('{num_points} point possible (graded)', '{num_points} points possible (graded)', totalScore)
-                : ngettext('{num_points} point possible (ungraded)', '{num_points} points possible (ungraded)', totalScore);
-            progressTemplate = msg;
-        } else {
-            const msg = isGraded
-                ? ngettext('{earned}/{possible} point (graded)', '{earned}/{possible} points (graded)', totalScore)
-                : ngettext('{earned}/{possible} point (ungraded)', '{earned}/{possible} points (ungraded)', totalScore);
-            progressTemplate = msg;
-        }
-
-        const progress = edx.StringUtils.interpolate(progressTemplate, {
-            earned: curScore,
-            num_points: totalScore,
-            possible: totalScore,
-        });
-
-        $('.problem-progress').text(progress);
-    }
-
-    function updateProgress(response) {
-        if (response.progress_changed) {
-            el.data('problem-score', response.current_score);
-            el.data('problem-total-possible', response.total_possible);
-            el.data('attempts-used', response.attempts_used);
-            el.trigger('progressChanged');
-        }
-        renderProgressState();
-    }
-
-    function forceUpdate(response) {
-        el.data('problem-score', response.current_score);
-        el.data('problem-total-possible', response.total_possible);
-        el.data('attempts-used', response.attempts_used);
-        el.trigger('progressChanged');
-        renderProgressState();
-    }
-
-    function queueing(focusCallback) {
-        if ($('.xqueue').length > 0) {
-            if (window.queuePollerID) {
-                window.clearTimeout(window.queuePollerID);
-            }
-            window.queuePollerID = window.setTimeout(() => poll(1000, focusCallback), 1000);
-        }
-    }
-
-    function poll(previousTimeout, focusCallback) {
-        $.postWithPrefix(`${url}/problem_get`, (response) => {
-            const newQueuedItems = $(response.html).find('.xqueue');
-            if (newQueuedItems.length !== $('.xqueue').length) {
-                edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(response.html)).promise().done(() => {
-                    if (typeof focusCallback === 'function') {
-                        focusCallback();
-                    }
-                });
-                JavascriptLoader.executeModuleScripts(el, () => {
-                    setupInputTypes();
-                    bind();
-                });
-            }
-
-            if (newQueuedItems.length === 0) {
-                forceUpdate(response);
-                delete window.queuePollerID;
-            } else {
-                const newTimeout = previousTimeout * 2;
-                if (newTimeout >= 60000) {
-                    delete window.queuePollerID;
-                    gentle_alert(gettext('The grading process is still running. Refresh the page to see updates.'));
-                } else {
-                    window.queuePollerID = window.setTimeout(() => poll(newTimeout, focusCallback), newTimeout);
-                }
-            }
-        });
-    }
-
-    function setupInputTypes() {
-        inputtypeDisplays = {};
-        el.find('.capa_inputtype').each((index, inputtype) => {
-            const classes = $(inputtype).attr('class').split(' ');
-            const inputId = $(inputtype).attr('id');
-            classes.forEach((cls) => {
-                const setupMethod = inputtypeSetupMethods[cls];
-                if (setupMethod) {
-                    inputtypeDisplays[inputId] = setupMethod(inputtype);
-                }
+            el.find('input.math').each(function(index, mathElement) {
+                return MathJax.Hub.Queue([refreshMath, null, mathElement]);
             });
-        });
-    }
-
-    function submit_save_waitfor(callback) {
-        let flag = false;
-        inputs.each((i, inp) => {
-            if ($(inp).is('input[waitfor]')) {
-                try {
-                    $(inp).data('waitfor')(() => {
-                        refreshAnswers();
-                        return callback();
-                    });
-                } catch (e) {
-                    const message = e.name === 'Waitfor Exception'
-                        ? e.message
-                        : gettext('Could not grade your answer. The submission was aborted.');
-                    alert(message); // eslint-disable-line no-alert
-                    throw e;
-                }
-                flag = true;
-            }
-        });
-        return flag;
-    }
-
-    function scroll_to_problem_meta() {
-        const questionTitle = $('.problem-header');
-        if (questionTitle.length > 0) {
-            $('html, body').animate({ scrollTop: questionTitle.offset().top }, 500);
-            questionTitle.focus();
         }
     }
 
-    function focus_on_notification(type) {
-        const notification = $(`.notification-${type}`);
-        if (notification.length > 0) {
-            notification.focus();
-        }
-    }
 
-    const focus_on_submit_notification = () => focus_on_notification('submit');
-    const focus_on_save_notification = () => focus_on_notification('save');
-    const focus_on_hint_notification = (hintIndex) => $(`.notification-hint .notification-message > ol > li.hint-index-${hintIndex}`).focus();
-
-    function submit_fd() {
-        if (el.find('input:file').length === 0) {
-            submit();
-            return;
-        }
-
-        enableSubmitButton(false);
-        if (!window.FormData) {
-            alert(gettext('Submission aborted! Sorry, your browser does not support file uploads. If you can, please use Chrome or Safari which have been verified to support file uploads.')); // eslint-disable-line no-alert
-            enableSubmitButton(true);
-            return;
-        }
-
-        const timeoutId = enableSubmitButtonAfterTimeout();
-        const fd = new FormData();
-        const maxFileSize = 4 * 1000 * 1000;
-        const errors = [];
-        let fileNotSelected = false;
-
-        inputs.each((index, element) => {
-            if (element.type === 'file') {
-                const requiredFiles = $(element).data('required_files') || [];
-                const allowedFiles = $(element).data('allowed_files') || [];
-
-                if (element.files.length === 0) {
-                    fileNotSelected = true;
-                }
-
-                Array.from(element.files).forEach((file) => {
-                    if (allowedFiles.length && !allowedFiles.includes(file.name)) {
-                        errors.push(edx.StringUtils.interpolate(gettext('You submitted {filename}; only {allowedFiles} are allowed.'), { filename: file.name, allowedFiles }));
-                    }
-                    const reqIndex = requiredFiles.indexOf(file.name);
-                    if (reqIndex >= 0) {
-                        requiredFiles.splice(reqIndex, 1);
-                    }
-                    if (file.size > maxFileSize) {
-                        errors.push(edx.StringUtils.interpolate(gettext('Your file {filename} is too large (max size: {maxSize}MB).'), { filename: file.name, maxSize: maxFileSize / 1e6 }));
-                    }
-                    fd.append(element.id, file);
-                });
-
-                if (requiredFiles.length) {
-                    errors.push(edx.StringUtils.interpolate(gettext('You did not submit the required files: {requiredFiles}.'), { requiredFiles }));
-                }
-            } else {
-                fd.append(element.id, element.value);
-            }
-        });
-
-        if (fileNotSelected) {
-            errors.push(gettext('You did not select any files to submit.'));
-        }
-
-        if (errors.length) {
-            let errorHtml = edx.HtmlUtils.HTML('');
-            errors.forEach(error => {
-                errorHtml = edx.HtmlUtils.joinHtml(errorHtml, edx.HtmlUtils.interpolateHtml(edx.HtmlUtils.HTML('<li>{error}</li>'), { error }));
-            });
-            gentle_alert(edx.HtmlUtils.interpolateHtml(edx.HtmlUtils.HTML('<ul>{errors}</ul>'), { errors: errorHtml }).toString());
-            window.clearTimeout(timeoutId);
-            enableSubmitButton(true);
-        } else {
-            const settings = {
-                type: 'POST',
-                data: fd,
-                processData: false,
-                contentType: false,
-                complete: enableSubmitButtonAfterResponse,
-                success: (response) => {
-                    if (['submitted', 'incorrect', 'correct'].includes(response.success)) {
-                        render(response.contents);
-                        updateProgress(response);
-                    } else {
-                        gentle_alert(response.success);
-                    }
-                    Logger.log('problem_graded', [answers, response.contents], id);
-                },
-                error: (response) => gentle_alert(response.responseJSON.success),
-            };
-            $.ajaxWithPrefix(`${url}/problem_check`, settings);
-        }
-    }
+    // --- Event Handlers & Actions ---
 
     function submit() {
         if (!submit_save_waitfor(submit_internal)) {
@@ -372,36 +162,147 @@ function Problem(runtime, element) {
 
     function submit_internal() {
         Logger.log('problem_check', answers);
-        return $.postWithPrefix(`${url}/problem_check`, answers, (response) => {
-            if (['submitted', 'incorrect', 'correct'].includes(response.success)) {
+        return $.postWithPrefix('' + url + '/problem_check', answers, function(response) {
+            switch (response.success) {
+            case 'submitted':
+            case 'incorrect':
+            case 'correct':
                 window.SR.readTexts(get_sr_status(response.contents));
                 el.trigger('contentChanged', [id, response.contents, response]);
                 render(response.contents, focus_on_submit_notification);
                 updateProgress(response);
+                // This is used by the Learning MFE to know when the Entrance Exam has been passed
+                // for a user. The MFE is then able to respond appropriately.
                 if (response.entrance_exam_passed) {
-                    window.parent.postMessage({ type: 'entranceExam.passed' }, '*');
+                    window.parent.postMessage({type: 'entranceExam.passed'}, '*');
                 }
-            } else {
+                break;
+            default:
                 saveNotification.hide();
                 gentle_alert(response.success);
             }
-            Logger.log('problem_graded', [answers, response.contents], id);
+            return Logger.log('problem_graded', [answers, response.contents], id);
         });
     }
 
-    function get_sr_status(contents) {
-        const labeledStatus = [];
-        $(contents).find('.status').each((i, element) => {
-            const parentSection = $(element).closest('.wrapper-problem-response');
-            const ariaLabel = parentSection.attr('aria-label');
-            if (ariaLabel) {
-                const template = gettext('{label}: {status}');
-                labeledStatus.push(edx.StringUtils.interpolate(template, { label: ariaLabel, status: $(element).text() }));
+    function submit_fd() {
+        var abortSubmission, error, errorHtml, errors, fd, fileNotSelected, fileTooLarge, maxFileSize,
+            requiredFilesNotSubmitted, settings, timeoutId, unallowedFileSubmitted, i, len;
+
+        // If there are no file inputs in the problem, we can fall back on submit.
+        if (el.find('input:file').length === 0) {
+            submit();
+            return;
+        }
+        enableSubmitButton(false);
+        if (!window.FormData) {
+            alert(gettext('Submission aborted! Sorry, your browser does not support file uploads. If you can, please use Chrome or Safari which have been verified to support file uploads.')); // eslint-disable-line max-len, no-alert
+            enableSubmitButton(true);
+            return;
+        }
+        timeoutId = enableSubmitButtonAfterTimeout();
+        fd = new FormData();
+
+        // Sanity checks on submission
+        maxFileSize = 4 * 1000 * 1000;
+        fileTooLarge = false;
+        fileNotSelected = false;
+        requiredFilesNotSubmitted = false;
+        unallowedFileSubmitted = false;
+
+        errors = [];
+        inputs.each(function(index, inputElement) {
+            var allowedFiles, file, maxSize, requiredFiles, loopI, loopLen, ref;
+            if (inputElement.type === 'file') {
+                requiredFiles = $(inputElement).data('required_files');
+                allowedFiles = $(inputElement).data('allowed_files');
+                ref = inputElement.files;
+                for (loopI = 0, loopLen = ref.length; loopI < loopLen; loopI++) {
+                    file = ref[loopI];
+                    if (allowedFiles.length !== 0 && indexOfHelper.call(allowedFiles, file.name) < 0) {
+                        unallowedFileSubmitted = true;
+                        errors.push(edx.StringUtils.interpolate(
+                            gettext('You submitted {filename}; only {allowedFiles} are allowed.'), {
+                                filename: file.name,
+                                allowedFiles: allowedFiles
+                            }
+                        ));
+                    }
+                    if (indexOfHelper.call(requiredFiles, file.name) >= 0) {
+                        requiredFiles.splice(requiredFiles.indexOf(file.name), 1);
+                    }
+                    if (file.size > maxFileSize) {
+                        fileTooLarge = true;
+                        maxSize = maxFileSize / (1000 * 1000);
+                        errors.push(edx.StringUtils.interpolate(
+                            gettext('Your file {filename} is too large (max size: {maxSize}MB).'), {
+                                filename: file.name,
+                                maxSize: maxSize
+                            }
+                        ));
+                    }
+                    fd.append(inputElement.id, file); // xss-lint: disable=javascript-jquery-append
+                }
+                if (inputElement.files.length === 0) {
+                    fileNotSelected = true;
+                    // In case we want to allow submissions with no file
+                    fd.append(inputElement.id, ''); // xss-lint: disable=javascript-jquery-append
+                }
+                if (requiredFiles.length !== 0) {
+                    requiredFilesNotSubmitted = true;
+                    errors.push(edx.StringUtils.interpolate(
+                        gettext('You did not submit the required files: {requiredFiles}.'), {
+                            requiredFiles: requiredFiles
+                        }
+                    ));
+                }
             } else {
-                labeledStatus.push($(element).text());
+                fd.append(inputElement.id, inputElement.value); // xss-lint: disable=javascript-jquery-append
             }
         });
-        return labeledStatus;
+        if (fileNotSelected) {
+            errors.push(gettext('You did not select any files to submit.'));
+        }
+        errorHtml = '';
+        for (i = 0, len = errors.length; i < len; i++) {
+            error = errors[i];
+            errorHtml = edx.HtmlUtils.joinHtml(
+                errorHtml,
+                edx.HtmlUtils.interpolateHtml(edx.HtmlUtils.HTML('<li>{error}</li>'), {error: error})
+            );
+        }
+        errorHtml = edx.HtmlUtils.interpolateHtml(edx.HtmlUtils.HTML('<ul>{errors}</ul>'), {errors: errorHtml});
+        gentle_alert(errorHtml.toString());
+        abortSubmission = fileTooLarge || fileNotSelected || unallowedFileSubmitted || requiredFilesNotSubmitted;
+        if (abortSubmission) {
+            window.clearTimeout(timeoutId);
+            enableSubmitButton(true);
+        } else {
+            settings = {
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                complete: enableSubmitButtonAfterResponse,
+                success: function(response) {
+                    switch (response.success) {
+                    case 'submitted':
+                    case 'incorrect':
+                    case 'correct':
+                        render(response.contents);
+                        updateProgress(response);
+                        break;
+                    default:
+                        gentle_alert(response.success);
+                    }
+                    return Logger.log('problem_graded', [answers, response.contents], id);
+                },
+                error: function(response) {
+                    gentle_alert(response.responseJSON.success);
+                }
+            };
+            $.ajaxWithPrefix('' + url + '/problem_check', settings);
+        }
     }
 
     function reset() {
@@ -410,65 +311,69 @@ function Problem(runtime, element) {
 
     function reset_internal() {
         Logger.log('problem_reset', answers);
-        return $.postWithPrefix(`${url}/problem_reset`, { id }, (response) => {
+        return $.postWithPrefix('' + url + '/problem_reset', {
+            id: id
+        }, function(response) {
             if (response.success) {
                 el.trigger('contentChanged', [id, response.html, response]);
                 render(response.html, scroll_to_problem_meta);
                 updateProgress(response);
-                window.SR.readText(gettext('This problem has been reset.'));
+                return window.SR.readText(gettext('This problem has been reset.'));
             } else {
-                gentle_alert(response.msg);
+                return gentle_alert(response.msg);
             }
         });
     }
 
     function show() {
-        Logger.log('problem_show', { problem: id });
-        return $.postWithPrefix(`${url}/problem_show`, (response) => {
-            const responseAnswers = response.answers;
-            $.each(responseAnswers, (key, value) => {
-                const safeKey = key.replace(/:/g, '\\:').replace(/\./g, '\\.');
+        Logger.log('problem_show', {
+            problem: id
+        });
+        return $.postWithPrefix('' + url + '/problem_show', function(response) {
+            var problemAnswers = response.answers;
+            $.each(problemAnswers, function(key, value) {
+                var safeKey = key.replace(':', '\\:'); // fix for courses which use url_names with colons, e.g. problem:question1
+                safeKey = safeKey.replace(/\./g, '\\.'); // fix for courses which use url_names with periods. e.g. question1.1
+                var answerEl;
                 if (!$.isArray(value)) {
-                    const answerEl = $(`#answer_${safeKey}, #solution_${safeKey}`);
+                    answerEl = el.find('#answer_' + safeKey + ', #solution_' + safeKey);
                     edx.HtmlUtils.setHtml(answerEl, edx.HtmlUtils.HTML(value));
                     Collapsible.setCollapsibles(answerEl);
+                    try {
+                        return $(value).find('.detailed-solution');
+                    } catch (e) {
+                        return {};
+                    }
                 }
             });
-
-            el.find('.capa_inputtype').each((index, inputtype) => {
-                const classes = $(inputtype).attr('class').split(' ');
-                classes.forEach((cls) => {
-                    const display = inputtypeDisplays[$(inputtype).attr('id')];
-                    const showMethod = inputtypeShowAnswerMethods[cls];
-                    if (showMethod) {
-                        showMethod(inputtype, display, responseAnswers, response.correct_status_html);
+            el.find('.capa_inputtype').each(function(index, inputtype) {
+                var classes, cls, display, showMethod, i, len, results;
+                classes = $(inputtype).attr('class').split(' ');
+                results = [];
+                for (i = 0, len = classes.length; i < len; i++) {
+                    cls = classes[i];
+                    display = inputtypeDisplays[$(inputtype).attr('id')];
+                    showMethod = inputtypeShowAnswerMethods[cls];
+                    if (showMethod != null) {
+                        results.push(showMethod(inputtype, display, problemAnswers, response.correct_status_html));
+                    } else {
+                        // eslint-disable-next-line no-void
+                        results.push(void 0);
                     }
-                });
+                }
+                return results;
             });
-
             if (typeof MathJax !== 'undefined' && MathJax !== null) {
-                $('.problem > div').each((index, element) => MathJax.Hub.Queue(['Typeset', MathJax.Hub, element]));
+                el.find('.problem > div').each(function(index, mathElement) {
+                    return MathJax.Hub.Queue(['Typeset', MathJax.Hub, mathElement]);
+                });
             }
-            $('.show').attr('disabled', 'disabled');
+            el.find('.show').attr('disabled', 'disabled');
             updateProgress(response);
             clear_all_notifications();
             showAnswerNotification.show();
             focus_on_notification('show-answer');
         });
-    }
-
-    function clear_all_notifications() {
-        if (submitNotification) submitNotification.remove();
-        if (gentleAlertNotification) gentleAlertNotification.hide();
-        if (saveNotification) saveNotification.hide();
-        if (showAnswerNotification) showAnswerNotification.hide();
-    }
-
-    function gentle_alert(msg) {
-        edx.HtmlUtils.setHtml($('.notification-gentle-alert .notification-message'), edx.HtmlUtils.HTML(msg));
-        clear_all_notifications();
-        gentleAlertNotification.show();
-        gentleAlertNotification.focus();
     }
 
     function save() {
@@ -479,40 +384,139 @@ function Problem(runtime, element) {
 
     function save_internal() {
         Logger.log('problem_save', answers);
-        return $.postWithPrefix(`${url}/problem_save`, answers, (response) => {
+        return $.postWithPrefix('' + url + '/problem_save', answers, function(response) {
+            var saveMessage;
+            saveMessage = response.msg;
             if (response.success) {
                 el.trigger('contentChanged', [id, response.html, response]);
-                edx.HtmlUtils.setHtml($('.notification-save .notification-message'), edx.HtmlUtils.HTML(response.msg));
+                edx.HtmlUtils.setHtml(
+                    el.find('.notification-save .notification-message'),
+                    edx.HtmlUtils.HTML(saveMessage)
+                );
                 clear_all_notifications();
-                $('.wrapper-problem-response .message').hide();
+                el.find('.wrapper-problem-response .message').hide();
                 saveNotification.show();
                 focus_on_save_notification();
+            } else {
+                gentle_alert(saveMessage);
+            }
+        });
+    }
+
+    function hint_button() {
+        var hintContainer, hintIndex, nextIndex;
+        hintContainer = el.find('.problem-hint');
+        hintIndex = hintContainer.attr('hint_index');
+        // eslint-disable-next-line no-void
+        if (hintIndex === void 0) {
+            nextIndex = 0;
+        } else {
+            nextIndex = parseInt(hintIndex, 10) + 1;
+        }
+        return $.postWithPrefix('' + url + '/hint_button', {
+            hint_index: nextIndex,
+            input_id: id
+        }, function(response) {
+            var hintMsgContainer;
+            if (response.success) {
+                hintMsgContainer = el.find('.problem-hint .notification-message');
+                hintContainer.attr('hint_index', response.hint_index);
+                edx.HtmlUtils.setHtml(hintMsgContainer, edx.HtmlUtils.HTML(response.msg));
+                MathJax.Hub.Queue(['Typeset', MathJax.Hub, hintContainer[0]]);
+                if (response.should_enable_next_hint) {
+                    hintButton.removeAttr('disabled');
+                } else {
+                    hintButton.attr({disabled: 'disabled'});
+                }
+                el.find('.notification-hint').show();
+                focus_on_hint_notification(nextIndex);
             } else {
                 gentle_alert(response.msg);
             }
         });
     }
 
-    function refreshMath(event, element) {
-        const targetElement = element || event.target;
-        const elid = targetElement.id.replace(/^input_/, '');
-        const target = `display_${elid}`;
-        const preprocessorTag = `inputtype_${elid}`;
-        const mathjaxPreprocessor = inputtypeDisplays[preprocessorTag];
+    // --- Helper Functions ---
 
+    function get_sr_status(contents) {
+        var addedStatus, ariaLabel, srElement, labeledStatus, parentSection, statusElement, template, i, len;
+        statusElement = $(contents).find('.status');
+        labeledStatus = [];
+        for (i = 0, len = statusElement.length; i < len; i++) {
+            srElement = statusElement[i];
+            parentSection = $(srElement).closest('.wrapper-problem-response');
+            addedStatus = false;
+            if (parentSection) {
+                ariaLabel = parentSection.attr('aria-label');
+                if (ariaLabel) {
+                    template = gettext('{label}: {status}');
+                    labeledStatus.push(edx.StringUtils.interpolate(
+                        template, {
+                            label: ariaLabel,
+                            status: $(srElement).text()
+                        }
+                    ));
+                    addedStatus = true;
+                }
+            }
+            if (!addedStatus) {
+                labeledStatus.push($(srElement).text());
+            }
+        }
+        return labeledStatus;
+    }
+
+    function gentle_alert(msg) {
+        edx.HtmlUtils.setHtml(
+            el.find('.notification-gentle-alert .notification-message'),
+            edx.HtmlUtils.HTML(msg)
+        );
+        clear_all_notifications();
+        gentleAlertNotification.show();
+        gentleAlertNotification.focus();
+    }
+
+    function clear_all_notifications() {
+        submitNotification.remove();
+        gentleAlertNotification.hide();
+        saveNotification.hide();
+        showAnswerNotification.hide();
+    }
+
+    function refreshAnswers() {
+        el.find('input.schematic').each(function(index, schematicElement) {
+            return schematicElement.schematic.update_value();
+        });
+        el.find('.CodeMirror').each(function(index, cmElement) {
+            if (cmElement.CodeMirror.save) {
+                cmElement.CodeMirror.save();
+            }
+        });
+        answers = inputs.serialize();
+    }
+
+    function refreshMath(event, mathElement) {
+        var elid, eqn, jax, mathjaxPreprocessor, preprocessorTag, target;
+        if (!mathElement) {
+            mathElement = event.target; // eslint-disable-line no-param-reassign
+        }
+        elid = mathElement.id.replace(/^input_/, '');
+        target = 'display_' + elid;
+        preprocessorTag = 'inputtype_' + elid;
+        mathjaxPreprocessor = inputtypeDisplays[preprocessorTag];
         if (typeof MathJax !== 'undefined' && MathJax !== null && MathJax.Hub.getAllJax(target)[0]) {
-            const jax = MathJax.Hub.getAllJax(target)[0];
-            let eqn = $(targetElement).val();
+            jax = MathJax.Hub.getAllJax(target)[0];
+            eqn = $(mathElement).val();
             if (mathjaxPreprocessor) {
                 eqn = mathjaxPreprocessor(eqn);
             }
-            MathJax.Hub.Queue(['Text', jax, eqn], [updateMathML, jax, targetElement]);
+            MathJax.Hub.Queue(['Text', jax, eqn], [updateMathML, jax, mathElement]);
         }
     }
 
-    function updateMathML(jax, element) {
+    function updateMathML(jax, mathElement) {
         try {
-            $(`#${element.id}_dynamath`).val(jax.root.toMathML(''));
+            $('#' + mathElement.id + '_dynamath').val(jax.root.toMathML(''));
         } catch (exception) {
             if (!exception.restart) {
                 throw exception;
@@ -523,114 +527,180 @@ function Problem(runtime, element) {
         }
     }
 
-    function refreshAnswers() {
-        $('input.schematic').each((index, element) => {
-            if (element.schematic) element.schematic.update_value();
-        });
-        $('.CodeMirror').each((index, element) => {
-            if (element.CodeMirror && element.CodeMirror.save) {
-                element.CodeMirror.save();
-            }
-        });
-        answers = inputs.serialize();
+    function scroll_to_problem_meta() {
+        var questionTitle;
+        questionTitle = el.find('.problem-header');
+        if (questionTitle.length > 0) {
+            $('html, body').animate({
+                scrollTop: questionTitle.offset().top
+            }, 500);
+            questionTitle.focus();
+        }
     }
 
-    function submitAnswersAndSubmitButton(isInitialBind = false) {
-        let isAnswered = true;
-        let atLeastOneTextInputFound = false;
-        let oneTextInputFilled = false;
+    function focus_on_notification(type) {
+        var notification;
+        notification = el.find('.notification-' + type);
+        if (notification.length > 0) {
+            notification.focus();
+        }
+    }
 
-        el.find('input:text').each((i, textField) => {
-            if ($(textField).is(':visible')) {
-                atLeastOneTextInputFound = true;
-                if ($(textField).val() !== '') {
-                    oneTextInputFilled = true;
-                }
-                if (isInitialBind) {
-                    $(textField).on('input', () => {
-                        saveNotification.hide();
-                        showAnswerNotification.hide();
-                        submitAnswersAndSubmitButton();
-                    });
-                }
-            }
-        });
-        if (atLeastOneTextInputFound && !oneTextInputFilled) {
-            isAnswered = false;
+    function focus_on_submit_notification() {
+        focus_on_notification('submit');
+    }
+
+    function focus_on_hint_notification(hintIndex) {
+        el.find('.notification-hint .notification-message > ol > li.hint-index-' + hintIndex).focus();
+    }
+
+    function focus_on_save_notification() {
+        focus_on_notification('save');
+    }
+
+    // --- State & Progress Management ---
+
+    function renderProgressState() {
+        var graded, progress, progressTemplate, curScore, totalScore, attemptsUsed;
+        curScore = el.data('problem-score');
+        totalScore = el.data('problem-total-possible');
+        attemptsUsed = el.data('attempts-used');
+        graded = el.data('graded');
+
+        if (graded === 'True' && totalScore !== 0) {
+            graded = true;
+        } else {
+            graded = false;
         }
 
-        el.find('.choicegroup').each((i, choicegroupBlock) => {
-            let isChecked = false;
-            $(choicegroupBlock).find('input[type=checkbox], input[type=radio]').each((j, checkboxOrRadio) => {
-                if ($(checkboxOrRadio).is(':checked')) {
-                    isChecked = true;
-                }
-                if (isInitialBind) {
-                    $(checkboxOrRadio).on('click', () => {
-                        saveNotification.hide();
-                        $('.show').removeAttr('disabled');
-                        showAnswerNotification.hide();
-                        submitAnswersAndSubmitButton();
-                    });
-                }
-            });
-            if (!isChecked) {
-                isAnswered = false;
+        if (curScore === undefined || totalScore === undefined) {
+            progressTemplate = '';
+        } else if (curScore === null || curScore === 'None') {
+            if (graded) {
+                progressTemplate = ngettext('{num_points} point possible (graded, results hidden)', '{num_points} points possible (graded, results hidden)', totalScore);
+            } else {
+                progressTemplate = ngettext('{num_points} point possible (ungraded, results hidden)', '{num_points} points possible (ungraded, results hidden)', totalScore);
             }
-        });
-
-        el.find('select').each((i, selectField) => {
-            if ($(selectField).find('option:selected').text().trim() === 'Select an option') {
-                isAnswered = false;
+        } else if ((attemptsUsed === 0 || totalScore === 0) && curScore === 0) {
+            if (graded) {
+                progressTemplate = ngettext('{num_points} point possible (graded)', '{num_points} points possible (graded)', totalScore);
+            } else {
+                progressTemplate = ngettext('{num_points} point possible (ungraded)', '{num_points} points possible (ungraded)', totalScore);
             }
-            if (isInitialBind) {
-                $(selectField).on('change', () => {
-                    saveNotification.hide();
-                    showAnswerNotification.hide();
-                    submitAnswersAndSubmitButton();
-                });
+        } else {
+            if (graded) {
+                progressTemplate = ngettext('{earned}/{possible} point (graded)', '{earned}/{possible} points (graded)', totalScore);
+            } else {
+                progressTemplate = ngettext('{earned}/{possible} point (ungraded)', '{earned}/{possible} points (ungraded)', totalScore);
             }
-        });
-
-        enableSubmitButton(isAnswered, false);
+        }
+        progress = edx.StringUtils.interpolate(
+            progressTemplate, {
+                earned: curScore,
+                num_points: totalScore,
+                possible: totalScore
+            }
+        );
+        return el.find('.problem-progress').text(progress);
     }
 
-    function bindResetCorrectness() {
-        const $inputtypes = el.find('.capa_inputtype, .inputtype');
-        $inputtypes.each((index, inputtype) => {
-            const classes = $(inputtype).attr('class').split(' ');
-            classes.forEach((cls) => {
-                const bindMethod = bindResetCorrectnessByInputtype[cls];
-                if (bindMethod) {
-                    bindMethod(inputtype);
+    function updateProgress(response) {
+        if (response.progress_changed) {
+            el.data('problem-score', response.current_score);
+            el.data('problem-total-possible', response.total_possible);
+            el.data('attempts-used', response.attempts_used);
+            el.trigger('progressChanged');
+        }
+        return renderProgressState();
+    }
+
+    function forceUpdate(response) {
+        el.data('problem-score', response.current_score);
+        el.data('problem-total-possible', response.total_possible);
+        el.data('attempts-used', response.attempts_used);
+        el.trigger('progressChanged');
+        return renderProgressState();
+    }
+
+    function queueing(focusCallback) {
+        queued_items = el.find('.xqueue');
+        num_queued_items = queued_items.length;
+        if (num_queued_items > 0) {
+            if (window.queuePollerID) {
+                window.clearTimeout(window.queuePollerID);
+            }
+            window.queuePollerID = window.setTimeout(function() {
+                return poll(1000, focusCallback);
+            }, 1000);
+        }
+    }
+
+    function poll(previousTimeout, focusCallback) {
+        return $.postWithPrefix('' + url + '/problem_get', function(response) {
+            var newTimeout;
+            new_queued_items = $(response.html).find('.xqueue');
+            if (new_queued_items.length !== num_queued_items) {
+                edx.HtmlUtils.setHtml(el, edx.HtmlUtils.HTML(response.html)).promise().done(function() {
+                    // eslint-disable-next-line no-void
+                    return typeof focusCallback === 'function' ? focusCallback() : void 0;
+                });
+                JavascriptLoader.executeModuleScripts(el, function() {
+                    setupInputTypes();
+                    bind();
+                });
+            }
+            num_queued_items = new_queued_items.length;
+            if (num_queued_items === 0) {
+                forceUpdate(response);
+                delete window.queuePollerID;
+            } else {
+                newTimeout = previousTimeout * 2;
+                if (newTimeout >= 60000) {
+                    delete window.queuePollerID;
+                    gentle_alert(
+                        gettext('The grading process is still running. Refresh the page to see updates.')
+                    );
+                } else {
+                    window.queuePollerID = window.setTimeout(function() {
+                        return poll(newTimeout, focusCallback);
+                    }, newTimeout);
                 }
-            });
+            }
+        });
+    }
+
+    // --- Button & Input Controls ---
+
+    function disableAllButtonsWhileRunning(operationCallback, isFromCheckOperation) {
+        var allButtons = [resetButton, saveButton, showButton, hintButton, submitButton];
+        var initiallyEnabledButtons = allButtons.filter(function(button) {
+            return !button.attr('disabled');
+        });
+        enableButtons(initiallyEnabledButtons, false, isFromCheckOperation);
+        return operationCallback().always(function() {
+            return enableButtons(initiallyEnabledButtons, true, isFromCheckOperation);
         });
     }
 
     function enableButtons(buttons, enable, changeSubmitButtonText) {
-        buttons.forEach((button) => {
-            if (!button) return;
+        buttons.forEach(function(button) {
             if (button.hasClass('submit')) {
                 enableSubmitButton(enable, changeSubmitButtonText);
             } else if (enable) {
                 button.removeAttr('disabled');
             } else {
-                button.attr({ disabled: 'disabled' });
+                button.attr({disabled: 'disabled'});
             }
         });
     }
 
-    function disableAllButtonsWhileRunning(operationCallback, isFromCheckOperation) {
-        const allButtons = [resetButton, saveButton, showButton, hintButton, submitButton];
-        const initiallyEnabledButtons = allButtons.filter(button => button && !button.attr('disabled'));
-        enableButtons(initiallyEnabledButtons, false, isFromCheckOperation);
-        return operationCallback().always(() => enableButtons(initiallyEnabledButtons, true, isFromCheckOperation));
-    }
-
-    function enableSubmitButton(enable, changeText = true) {
+    function enableSubmitButton(enable, changeText) {
+        var submitCanBeEnabled;
+        if (changeText === null || changeText === undefined) {
+            changeText = true; // eslint-disable-line no-param-reassign
+        }
         if (enable) {
-            const submitCanBeEnabled = submitButton.data('should-enable-submit-button') === 'True';
+            submitCanBeEnabled = submitButton.data('should-enable-submit-button') === 'True';
             if (submitCanBeEnabled) {
                 submitButton.removeAttr('disabled');
             }
@@ -638,7 +708,7 @@ function Problem(runtime, element) {
                 submitButtonLabel.text(submitButtonSubmitText);
             }
         } else {
-            submitButton.attr({ disabled: 'disabled' });
+            submitButton.attr({disabled: 'disabled'});
             if (changeText) {
                 submitButtonLabel.text(submitButtonSubmittingText);
             }
@@ -648,154 +718,396 @@ function Problem(runtime, element) {
     function enableSubmitButtonAfterResponse() {
         has_response = true;
         if (!has_timed_out) {
-            enableSubmitButton(false);
+            return enableSubmitButton(false);
         } else {
-            enableSubmitButton(true);
+            return enableSubmitButton(true);
         }
     }
 
     function enableSubmitButtonAfterTimeout() {
+        var enableSubmitBtn;
         has_timed_out = false;
         has_response = false;
-        const enable = () => {
+        enableSubmitBtn = function() {
             has_timed_out = true;
             if (has_response) {
                 enableSubmitButton(true);
             }
         };
-        return window.setTimeout(enable, 750);
+        return window.setTimeout(enableSubmitBtn, 750);
     }
 
-    function hint_button() {
-        const hintContainer = $('.problem-hint');
-        const hintIndex = hintContainer.attr('hint_index');
-        const nextIndex = hintIndex === undefined ? 0 : parseInt(hintIndex, 10) + 1;
-
-        return $.postWithPrefix(`${url}/hint_button`, { hint_index: nextIndex, input_id: id }, (response) => {
-            if (response.success) {
-                const hintMsgContainer = $('.problem-hint .notification-message');
-                hintContainer.attr('hint_index', response.hint_index);
-                edx.HtmlUtils.setHtml(hintMsgContainer, edx.HtmlUtils.HTML(response.msg));
-                MathJax.Hub.Queue(['Typeset', MathJax.Hub, hintContainer[0]]);
-                if (response.should_enable_next_hint) {
-                    hintButton.removeAttr('disabled');
-                } else {
-                    hintButton.attr({ disabled: 'disabled' });
+    function submitAnswersAndSubmitButton(isBind) {
+        var answered, atLeastOneTextInputFound, oneTextInputFilled;
+        if (isBind === null || isBind === undefined) {
+            isBind = false; // eslint-disable-line no-param-reassign
+        }
+        answered = true;
+        atLeastOneTextInputFound = false;
+        oneTextInputFilled = false;
+        el.find('input:text').each(function(i, textField) {
+            if ($(textField).is(':visible')) {
+                atLeastOneTextInputFound = true;
+                if ($(textField).val() !== '') {
+                    oneTextInputFilled = true;
                 }
-                el.find('.notification-hint').show();
-                focus_on_hint_notification(nextIndex);
-            } else {
-                gentle_alert(response.msg);
+                if (isBind) {
+                    $(textField).on('input', function() {
+                        saveNotification.hide();
+                        showAnswerNotification.hide();
+                        submitAnswersAndSubmitButton();
+                    });
+                }
             }
+        });
+        if (atLeastOneTextInputFound && !oneTextInputFilled) {
+            answered = false;
+        }
+        el.find('.choicegroup').each(function(i, choicegroupBlock) {
+            var checked = false;
+            $(choicegroupBlock).find('input[type=checkbox], input[type=radio]')
+                .each(function(j, checkboxOrRadio) {
+                    if ($(checkboxOrRadio).is(':checked')) {
+                        checked = true;
+                    }
+                    if (isBind) {
+                        $(checkboxOrRadio).on('click', function() {
+                            saveNotification.hide();
+                            el.find('.show').removeAttr('disabled');
+                            showAnswerNotification.hide();
+                            submitAnswersAndSubmitButton();
+                        });
+                    }
+                });
+            if (!checked) {
+                answered = false;
+            }
+        });
+        el.find('select').each(function(i, selectField) {
+            var selectedOption = $(selectField).find('option:selected').text()
+                .trim();
+            if (selectedOption === 'Select an option') {
+                answered = false;
+            }
+            if (isBind) {
+                $(selectField).on('change', function() {
+                    saveNotification.hide();
+                    showAnswerNotification.hide();
+                    submitAnswersAndSubmitButton();
+                });
+            }
+        });
+        if (answered) {
+            return enableSubmitButton(true);
+        } else {
+            return enableSubmitButton(false, false);
+        }
+    }
+
+    function submit_save_waitfor(callback) {
+        var flag, inp, i, len, ref;
+        flag = false;
+        ref = inputs;
+        for (i = 0, len = ref.length; i < len; i++) {
+            inp = ref[i];
+            if ($(inp).is('input[waitfor]')) {
+                try {
+                    $(inp).data('waitfor')(function() {
+                        refreshAnswers();
+                        return callback();
+                    });
+                } catch (e) {
+                    if (e.name === 'Waitfor Exception') {
+                        alert(e.message); // eslint-disable-line no-alert
+                    } else {
+                        alert( // eslint-disable-line no-alert
+                            gettext('Could not grade your answer. The submission was aborted.')
+                        );
+                    }
+                    throw e;
+                }
+                flag = true;
+            } else {
+                flag = false;
+            }
+        }
+        return flag;
+    }
+
+    // --- InputType Specific Logic ---
+
+    function setupInputTypes() {
+        inputtypeDisplays = {};
+        return el.find('.capa_inputtype').each(function(index, inputtype) {
+            var classes, cls, id, setupMethod, i, len, results;
+            classes = $(inputtype).attr('class').split(' ');
+            id = $(inputtype).attr('id');
+            results = [];
+            for (i = 0, len = classes.length; i < len; i++) {
+                cls = classes[i];
+                setupMethod = inputtypeSetupMethods[cls];
+                if (setupMethod != null) {
+                    results.push(inputtypeDisplays[id] = setupMethod(inputtype));
+                } else {
+                    // eslint-disable-next-line no-void
+                    results.push(void 0);
+                }
+            }
+            return results;
         });
     }
 
-    // --- Helper Objects for Input Types ---
+    function bindResetCorrectness() {
+        var $inputtypes;
+        $inputtypes = el.find('.capa_inputtype').add(el.find('.inputtype'));
+        return $inputtypes.each(function(index, inputtype) {
+            var bindMethod, classes, cls, i, len, results;
+            classes = $(inputtype).attr('class').split(' ');
+            results = [];
+            for (i = 0, len = classes.length; i < len; i++) {
+                cls = classes[i];
+                bindMethod = bindResetCorrectnessByInputtype[cls];
+                if (bindMethod != null) {
+                    results.push(bindMethod(inputtype));
+                } else {
+                    // eslint-disable-next-line no-void
+                    results.push(void 0);
+                }
+            }
+            return results;
+        });
+    }
 
-    const bindResetCorrectnessByInputtype = {
-        formulaequationinput: (element) => {
-            $(element).find('input').on('input', () => {
-                const $p = $(element).find('span.status');
+    var bindResetCorrectnessByInputtype = {
+        formulaequationinput: function(resetElement) {
+            return $(resetElement).find('input').on('input', function() {
+                var $p;
+                $p = $(resetElement).find('span.status');
                 $p.removeClass('correct incorrect submitted');
-                $p.parent().removeAttr('class').addClass('unsubmitted');
+                return $p.parent().removeAttr('class').addClass('unsubmitted');
             });
         },
-        choicegroup: (element) => {
-            const $element = $(element);
-            const choiceId = ($element.attr('id').match(/^inputtype_(.*)$/))[1];
-            $element.find('input').on('change', () => {
-                const $status = $(`#status_${choiceId}`);
-                if ($status.length) {
+        choicegroup: function(resetElement) {
+            var $element, id;
+            $element = $(resetElement);
+            id = ($element.attr('id').match(/^inputtype_(.*)$/))[1];
+            return $element.find('input').on('change', function() {
+                var $status;
+                $status = $('#status_' + id);
+                if ($status[0]) {
                     $status.removeAttr('class').addClass('status unanswered');
+                } else {
+                    $('<span>', {
+                        class: 'status unanswered',
+                        style: 'display: inline-block;',
+                        id: 'status_' + id
+                    });
                 }
                 $element.find('label').find('span.status.correct').remove();
-                $element.find('label').removeAttr('class');
+                return $element.find('label').removeAttr('class');
             });
         },
-        'option-input': (element) => {
-            const $select = $(element).find('select');
-            const selectId = ($select.attr('id').match(/^input_(.*)$/))[1];
-            $select.on('change', () => $(`#status_${selectId}`).removeAttr('class').addClass('unanswered').find('.sr').text(gettext('unsubmitted')));
+        'option-input': function(resetElement) {
+            var $select, id;
+            $select = $(resetElement).find('select');
+            id = ($select.attr('id').match(/^input_(.*)$/))[1];
+            return $select.on('change', function() {
+                return $('#status_' + id).removeAttr('class').addClass('unanswered')
+                    .find('.sr')
+                    .text(gettext('unsubmitted'));
+            });
         },
-        textline: (element) => {
-            $(element).find('input').on('input', () => {
-                const $p = $(element).find('span.status');
+        textline: function(resetElement) {
+            return $(resetElement).find('input').on('input', function() {
+                var $p;
+                $p = $(resetElement).find('span.status');
                 $p.removeClass('correct incorrect submitted');
-                $p.parent().removeClass('correct incorrect').addClass('unsubmitted');
+                return $p.parent().removeClass('correct incorrect').addClass('unsubmitted');
             });
-        },
+        }
     };
 
-    const inputtypeSetupMethods = {
-        'text-input-dynamath': (element) => {
-            const data = $(element).find('.text-input-dynamath_data');
-            const preprocessorClassName = data.data('preprocessor');
-            const preprocessorClass = window[preprocessorClassName];
-            if (!preprocessorClass) {
+    var inputtypeSetupMethods = {
+        'text-input-dynamath': function(setupElement) {
+            var data, preprocessor, preprocessorClass, preprocessorClassName;
+            data = $(setupElement).find('.text-input-dynamath_data');
+            preprocessorClassName = data.data('preprocessor');
+            preprocessorClass = window[preprocessorClassName];
+            if (preprocessorClass == null) {
                 return false;
+            } else {
+                preprocessor = new preprocessorClass();
+                return preprocessor.fn;
             }
-            const preprocessor = new preprocessorClass();
-            return preprocessor.fn;
         },
-        cminput: (container) => {
-            const element = $(container).find('textarea');
-            const tabsize = element.data('tabsize');
-            const mode = element.data('mode');
-            const linenumbers = element.data('linenums');
-            const spaces = ' '.repeat(parseInt(tabsize, 10));
-
-            const editor = CodeMirror.fromTextArea(element[0], {
+        cminput: function(container) {
+            var CodeMirrorEditor, CodeMirrorTextArea, cmElement, id, linenumbers, mode, spaces, tabsize;
+            cmElement = $(container).find('textarea');
+            tabsize = cmElement.data('tabsize');
+            mode = cmElement.data('mode');
+            linenumbers = cmElement.data('linenums');
+            spaces = Array(parseInt(tabsize, 10) + 1).join(' ');
+            CodeMirrorEditor = CodeMirror.fromTextArea(cmElement[0], {
                 lineNumbers: linenumbers,
                 indentUnit: tabsize,
                 tabSize: tabsize,
-                mode,
+                mode: mode,
                 matchBrackets: true,
                 lineWrapping: true,
                 indentWithTabs: false,
                 smartIndent: false,
                 extraKeys: {
-                    Esc: () => {
+                    Esc: function() {
                         $('.grader-status').focus();
                         return false;
                     },
-                    Tab: (cm) => {
+                    Tab: function(cm) {
                         cm.replaceSelection(spaces, 'end');
                         return false;
-                    },
-                },
+                    }
+                }
             });
-            const editorId = element.attr('id').replace(/^input_/, '');
-            const textArea = editor.getInputField();
-            textArea.setAttribute('id', `cm-textarea-${editorId}`);
-            textArea.setAttribute('aria-describedby', `cm-editor-exit-message-${editorId} status_${editorId}`);
-            return editor;
-        },
+            id = cmElement.attr('id').replace(/^input_/, '');
+            CodeMirrorTextArea = CodeMirrorEditor.getInputField();
+            CodeMirrorTextArea.setAttribute('id', 'cm-textarea-' + id);
+            CodeMirrorTextArea.setAttribute('aria-describedby', 'cm-editor-exit-message-' + id + ' status_' + id);
+            return CodeMirrorEditor;
+        }
     };
 
-    const inputtypeShowAnswerMethods = {
-        choicegroup: (element, display, responseAnswers, correctStatusHtml) => {
-            const $element = $(element);
-            let inputId = $element.attr('id').replace(/inputtype_/, '');
-            inputId = inputId.replace(/:/g, '\\:');
-            const safeId = inputId.replace(/\./g, '\\.');
-            const answer = responseAnswers[inputId];
-            if (answer) {
-                answer.forEach((choice) => {
-                    const $inputLabel = $element.find(`#input_${safeId}_${choice} + label`);
-                    const $inputStatus = $element.find(`#status_${safeId}`);
-                    if ($inputStatus.hasClass('unanswered') || !$inputLabel.hasClass('choicegroup_correct')) {
-                        edx.HtmlUtils.append($inputLabel, edx.HtmlUtils.HTML(correctStatusHtml));
-                        $inputLabel.removeClass('choicegroup_incorrect').addClass('choicegroup_correct');
+    var inputtypeShowAnswerMethods = {
+        choicegroup: function(showElement, display, showAnswers, correctStatusHtml) {
+            var answer, choice, inputId, i, len, results, $element, $inputLabel, $inputStatus;
+            $element = $(showElement);
+            inputId = $element.attr('id').replace(/inputtype_/, '');
+            inputId = inputId.replace(':', '\\:');
+            var safeId = inputId.replace(/\./g, '\\.');
+            answer = showAnswers[inputId];
+            results = [];
+            for (i = 0, len = answer.length; i < len; i++) {
+                choice = answer[i];
+                $inputLabel = $element.find('#input_' + safeId + '_' + choice + ' + label');
+                $inputStatus = $element.find('#status_' + safeId);
+                if ($inputStatus.hasClass('unanswered')) {
+                    edx.HtmlUtils.append($inputLabel, edx.HtmlUtils.HTML(correctStatusHtml));
+                    $inputLabel.addClass('choicegroup_correct');
+                } else if (!$inputLabel.hasClass('choicegroup_correct')) {
+                    edx.HtmlUtils.append($inputLabel, edx.HtmlUtils.HTML(correctStatusHtml));
+                    $inputLabel.removeClass('choicegroup_incorrect');
+                    results.push($inputLabel.addClass('choicegroup_correct'));
+                }
+            }
+            return results;
+        },
+        choicetextgroup: function(showElement, display, showAnswers) {
+            var answer, choice, inputId, i, len, results, $element;
+            $element = $(showElement);
+            inputId = $element.attr('id').replace(/inputtype_/, '');
+            answer = showAnswers[inputId];
+            results = [];
+            for (i = 0, len = answer.length; i < len; i++) {
+                choice = answer[i];
+                results.push($element.find('section#forinput' + choice).addClass('choicetextgroup_show_correct'));
+            }
+            return results;
+        },
+        imageinput: function(showElement, display, showAnswers) {
+            var canvas, container, id, types, context, $element;
+            types = {
+                rectangle: function(ctx, coords) {
+                    var rects, reg;
+                    reg = /^\(([0-9]+),([0-9]+)\)-\(([0-9]+),([0-9]+)\)$/;
+                    rects = coords.replace(/\s*/g, '').split(/;/);
+                    $.each(rects, function(index, rect) {
+                        var abs, height, points, width;
+                        abs = Math.abs;
+                        points = reg.exec(rect);
+                        if (points) {
+                            width = abs(points[3] - points[1]);
+                            height = abs(points[4] - points[2]);
+                            ctx.rect(points[1], points[2], width, height);
+                        }
+                    });
+                    ctx.stroke();
+                    return ctx.fill();
+                },
+                regions: function(ctx, coords) {
+                    var parseCoords;
+                    parseCoords = function(coordinates) {
+                        var reg;
+                        reg = JSON.parse(coordinates);
+                        if (typeof reg[0][0][0] === 'undefined') {
+                            reg = [reg];
+                        }
+                        return reg;
+                    };
+                    return $.each(parseCoords(coords), function(index, region) {
+                        ctx.beginPath();
+                        $.each(region, function(idx, point) {
+                            if (idx === 0) {
+                                return ctx.moveTo(point[0], point[1]);
+                            } else {
+                                return ctx.lineTo(point[0], point[1]);
+                            }
+                        });
+                        ctx.closePath();
+                        ctx.stroke();
+                        return ctx.fill();
+                    });
+                }
+            };
+            $element = $(showElement);
+            id = $element.attr('id').replace(/inputtype_/, '');
+            container = $element.find('#answer_' + id);
+            canvas = document.createElement('canvas');
+            canvas.width = container.data('width');
+            canvas.height = container.data('height');
+            if (canvas.getContext) {
+                context = canvas.getContext('2d');
+            } else {
+                console.log('Canvas is not supported.'); // eslint-disable-line no-console
+            }
+            context.fillStyle = 'rgba(255,255,255,.3)';
+            context.strokeStyle = '#FF0000';
+            context.lineWidth = '2';
+            if (showAnswers[id]) {
+                $.each(showAnswers[id], function(key, value) {
+                    if ((types[key] !== null && types[key] !== undefined) && value) {
+                        types[key](context, value);
                     }
                 });
+                edx.HtmlUtils.setHtml(container, edx.HtmlUtils.HTML(canvas));
+            } else {
+                console.log('Answer is absent for image input with id=' + id); // eslint-disable-line no-console
             }
-        },
-        // Other show answer methods would go here...
+        }
     };
 
-
-    // --- Initial Execution ---
-    (function initialize() {
-        render(content);
-    })();
+    // --- Kick things off ---
+    init();
 }
+
+/**
+ * The original code defined `Problem.inputAjax` as a static method.
+ * The requested refactoring pattern does not have a natural place for static methods
+ * inside the main function body. To preserve this functionality without altering its
+ * static nature, it is attached directly to the `Problem` function object here.
+ *
+ * Use this if you want to make an ajax call on the input type object
+ *
+ * Input:
+ * url: the AJAX url of the problem
+ * inputId: the inputId of the input you would like to make the call on
+ * NOTE: the id is the ${id} part of "input_${id}" during rendering
+ * If this function is passed the entire prefixed id, the backend may have trouble
+ * finding the correct input
+ * dispatch: string that indicates how this data should be handled by the inputtype
+ * data: dictionary of data to send to the server
+ * callback: the function that will be called once the AJAX call has been completed.
+ * It will be passed a response object
+ */
+Problem.inputAjax = function(url, inputId, dispatch, data, callback) {
+    data.dispatch = dispatch; // eslint-disable-line no-param-reassign
+    data.input_id = inputId; // eslint-disable-line no-param-reassign
+    return $.postWithPrefix('' + url + '/input_ajax', data, callback);
+};

@@ -19,7 +19,7 @@
 
   <div class="grader-status" tabindex="-1">
 
-    <%include file="status_span.html" args="status=status, status_id=id"/>
+    <%include file="capa/templates/status_span.html" args="status=status, status_id=id"/>
 
     % if status == 'queued':
       <span style="display:none;" class="xqueue" id="${id}">${queue_len}</span>

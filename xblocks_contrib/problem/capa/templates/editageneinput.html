@@ -12,7 +12,7 @@
     <input type="hidden" name="input_${id}" aria-describedby="answer_${id}" id="input_${id}" value="${value|h}"/>
 
     <p class="indicator-container" aria-describedby="input_${id}">
-        <%include file="status_span.html" args="status=status, status_id=id"/>
+        <%include file="capa/templates/status_span.html" args="status=status, status_id=id"/>
     </p>
 
     <p id="answer_${id}" class="answer"></p>

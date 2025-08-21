@@ -50,9 +50,9 @@ from xblocks_contrib.problem.markup import HTML
     </fieldset>
     <div class="indicator-container">
         % if show_correctness != 'never':
-          <%include file="status_span.html" args="status=status, status_id=id"/>
+          <%include file="capa/templates/status_span.html" args="status=status, status_id=id"/>
         % else:
-          <%include file="status_span.html" args="status=status, status_id=id, hide_correctness=True"/>
+          <%include file="capa/templates/status_span.html" args="status=status, status_id=id, hide_correctness=True"/>
         % endif
     </div>
     % if show_correctness == "never" and (value or status not in ['unsubmitted']):

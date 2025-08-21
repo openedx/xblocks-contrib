@@ -24,7 +24,7 @@
             % if has_options_value:
                 % if all(c == status.classname for c in (option['choice'], status)):
                 <span class="tag-status ${status.classname}" aria-describedby="input_${id}_comment">
-                    <%include file="status_span.html" args="status=status"/>
+                    <%include file="capa/templates/status_span.html" args="status=status"/>
                 </span>
                 % endif
             % endif
@@ -51,7 +51,7 @@
         <input type="hidden" class="value" name="input_${id}" id="input_${id}" value="${value|h}" />
     % endif
 
-    <%include file="status_span.html" args="status=status, status_id=id"/>
+    <%include file="capa/templates/status_span.html" args="status=status, status_id=id"/>
 
     <p id="answer_${id}" class="answer answer-annotation"></p>
 </div>

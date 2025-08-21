@@ -441,10 +441,10 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         """
         fragment = Fragment()
         fragment.add_content(
-            resource_loader.render_django_template(
+            resource_loader.render_mako_template(
                 "templates/problem.html",
                 self.get_context(),
-                i18n_service=self.runtime.service(self, "i18n"),
+                # i18n_service=self.runtime.service(self, "i18n"),
             )
         )
         fragment.add_css(resource_loader.load_unicode("static/css/problem_editor.css"))
@@ -956,7 +956,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             get_python_lib_zip=sandbox_service.get_python_lib_zip,
             DEBUG=self.debug,
             i18n=self.runtime.service(self, "i18n"),
-            render_template=resource_loader.render_django_template,
+            render_template=resource_loader.render_mako_template,
             resources_fs=self.runtime.resources_fs,
             seed=seed,  # Why do we do this if we have self.seed?
             xqueue=None if is_studio else XQueueService(self),
@@ -1052,7 +1052,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         """
         curr_score, total_possible = self.get_display_progress()
 
-        return resource_loader.render_django_template(
+        return resource_loader.render_mako_template(
             "templates/problem_ajax.html",
             {
                 "element_id": self.location.html_id(),
@@ -1404,11 +1404,11 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             "submit_disabled_cta": submit_disabled_ctas[0] if submit_disabled_ctas else None,
         }
 
-        renderer = getattr(self.runtime, "render_template", None)
-        if renderer:
-            html = renderer("templates/problem.html", context)
-        else:
-            html = resource_loader.render_django_template("templates/problem.html", context)
+        # renderer = getattr(self.runtime, "render_template", None)
+        # if renderer:
+        #     html = renderer("templates/problem.html", context)
+        # else:
+        html = resource_loader.render_mako_template("templates/problem.html", context)
 
         if encapsulate:
             html = markupsafe.Markup(
@@ -1716,7 +1716,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
 
         return {
             "answers": new_answers,
-            "correct_status_html": resource_loader.render_django_template(
+            "correct_status_html": resource_loader.render_mako_template(
                 "capa/templates/status_span.html",
                 {"status": Status("correct", self.runtime.service(self, "i18n").gettext)},
             ),
