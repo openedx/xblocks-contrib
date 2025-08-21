@@ -42,6 +42,7 @@ from xblocks_contrib.problem.problem import (
     RANDOMIZATION,
     SHOWANSWER,
     ComplexEncoder,
+    NotFoundError,
     ProblemBlock,
 )
 from xblocks_contrib.problem.sandboxing import SandboxService
@@ -241,10 +242,6 @@ def get_test_system(
     }
 
     return TestRuntimeWithRender(services=services, render_template=render_template)
-
-
-class NotFoundError(Exception):
-    pass
 
 
 class use_unsafe_codejail(TestContextDecorator):
@@ -4357,7 +4354,7 @@ class ProblemBlockReportGenerationTest(unittest.TestCase):
     def test_generate_report_data_report_loncapa_error(self):
         # Test to make sure reports continue despite loncappa errors, and write them into the report.
         block = self._get_block()
-        with patch("xblocks_contrib.problem.capa.capa_problem.LoncapaProblem") as mock_LoncapaProblem:
+        with patch("xblocks_contrib.problem.problem.LoncapaProblem") as mock_LoncapaProblem:
             mock_LoncapaProblem.side_effect = LoncapaProblemError
             report_data = list(
                 block.generate_report_data(
