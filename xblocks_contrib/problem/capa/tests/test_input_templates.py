@@ -585,7 +585,7 @@ class TextlineTemplateTest(TemplateTestCase):
 
 
 class FormulaEquationInputTemplateTest(TemplateTestCase):
-    """Tests for ``FormulaEquationInput`` template."""
+    """Test django template for `<formulaequationinput>` input."""
 
     TEMPLATE_NAME = "formulaequationinput.html"
 

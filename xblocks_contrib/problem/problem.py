@@ -486,7 +486,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             "We're sorry, there was an error with processing your request. "
             "Please try reloading your page and trying again."
         )
-        # pylint: disable=implicit-str-concat
+
         not_found_error_message = _(
             "The state of this problem has changed since you loaded this page. Please refresh your page."
         )
@@ -597,7 +597,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         """
         Return the context to render the django template with
         """
-        # pylint: disable=no-member
+
         return {
             "module": self,
             "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
@@ -1404,7 +1404,11 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             "submit_disabled_cta": submit_disabled_ctas[0] if submit_disabled_ctas else None,
         }
 
-        html = resource_loader.render_django_template("templates/problem.html", context)
+        renderer = getattr(self.runtime, "render_template", None)
+        if renderer:
+            html = renderer("templates/problem.html", context)
+        else:
+            html = resource_loader.render_django_template("templates/problem.html", context)
 
         if encapsulate:
             html = markupsafe.Markup(
@@ -2318,7 +2322,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         event_info["orig_total"] = orig_score.raw_possible
         try:
             calculated_score = self.calculate_score()
-         # pylint: disable=unused-variable
+
         except (
             StudentInputError,
             ResponseError,

@@ -1,4 +1,4 @@
-"""Tools for helping with testing capa."""
+"""Tools for helping with testing capa, rewritten to use Django templates."""
 
 import gettext
 import io
@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock
 from xml.sax import saxutils
 
 import fs.osfs
-from django.template import engines
+from mako.lookup import TemplateLookup
 from path import Path
 
 from xblocks_contrib.problem.capa.capa_problem import LoncapaProblem, LoncapaSystem
@@ -19,17 +19,11 @@ TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def get_template(template_name):
     """
-    Return template for a capa inputtype using Django templates.
+    Return template for a capa inputtype.
     """
-    django_engine = engines["django"]
-    template_dirs = [Path(__file__).dirname().dirname() / "capa/templates"]
-    # Dynamically load template from given directory
-    for directory in template_dirs:
-        template_path = os.path.join(directory, template_name)
-        if os.path.exists(template_path):
-            with open(template_path, encoding="utf-8") as f:
-                return django_engine.from_string(f.read())
-    raise FileNotFoundError(f"Template '{template_name}' not found in {template_dirs}")
+    return TemplateLookup(
+        directories=[Path(__file__).dirname().dirname() / "templates"], default_filters=["decode.utf8"]
+    ).get_template(template_name.split("/")[-1])
 
 
 def capa_render_template(template, context):
@@ -41,10 +35,8 @@ def capa_render_template(template, context):
 
 def tst_render_template(template, context):  # pylint: disable=unused-argument
     """
-    Render a test version of the template.
-
-    Render the repr of the context, completely ignore the template name, escape the
-    content for XML, and wrap it in a <div>.
+    A test version of render to template.  Renders to the repr of the context, completely ignoring
+    the template name.  To make the output valid xml, quotes the content, and wraps it in a <div>
     """
     return "<div>{0}</div>".format(saxutils.escape(repr(context)))
 
@@ -91,7 +83,7 @@ def mock_capa_system(render_template=None):
 
 def mock_capa_block():
     """
-    Capa response types need just two things from the capa_block: location and publish.
+    capa response types needs just two things from the capa_block: location and publish.
     """
 
     def mock_location_text(self):  # pylint: disable=unused-argument
@@ -121,11 +113,9 @@ def new_loncapa_problem(xml, problem_id="1", capa_system=None, seed=723, use_cap
 
 def load_fixture(relpath):
     """
-    Return the contents of a fixture file as text.
-
-    Read and return a `unicode` string representing the contents of the fixture
-    file at the given path within a `test_files` directory located alongside
-    the test file.
+    Return a `unicode` object representing the contents
+    of the fixture file at the given path within a test_files directory
+    in the same directory as the test file.
     """
     abspath = os.path.join(os.path.dirname(__file__), "test_files", relpath)
     with io.open(abspath, encoding="utf-8") as fixture_file:

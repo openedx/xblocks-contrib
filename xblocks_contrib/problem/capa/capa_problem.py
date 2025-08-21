@@ -258,32 +258,37 @@ class LoncapaProblem:
 
     def make_xml_compatible(self, tree):
         """
-        Adjust tree XML in-place for compatibility before creating a problem from it.
+        Adjust tree xml in-place for compatibility before creating
+        a problem from it.
+
         The idea here is to provide a central point for XML translation,
         for example, supporting an old XML format. At present, there are just two translations.
 
-        1. <additional_answer> compatibility translation::
+        1. <additional_answer> compatibility translation:
 
-            old:
-                <additional_answer>ANSWER</additional_answer>
+           old::
 
-            convert to
+               <additional_answer>ANSWER</additional_answer>
 
-            new:
-                <additional_answer answer="ANSWER">OPTIONAL-HINT</additional_answer>
+           convert to
 
-        2. <optioninput> compatibility translation::
+           new::
 
-            optioninput works like this internally:
+               <additional_answer answer="ANSWER">OPTIONAL-HINT</additional_answer>
 
-                <optioninput options="('yellow','blue','green')" correct="blue" />
+        2. <optioninput> compatibility translation:
 
-            With extended hints there is a new <option> tag, like this:
+           optioninput works like this internally::
 
-                <option correct="True">blue <optionhint>sky color</optionhint> </option>
+               <optioninput options="('yellow','blue','green')" correct="blue" />
 
-            This translation takes in the new format and synthesizes the old option= attribute
-            so all downstream logic works unchanged with the new <option> tag format.
+           With extended hints there is a new <option> tag, like this::
+
+               <option correct="True">blue <optionhint>sky color</optionhint></option>
+
+           This translation takes in the new format and synthesizes the old
+           ``option=`` attribute so all downstream logic works unchanged with
+           the new <option> tag format.
         """
 
         def is_optioninput_valid(optioninput):
@@ -379,15 +384,10 @@ class LoncapaProblem:
 
     def calculate_score(self, correct_map=None):
         """
-        Compute score for this problem. The score is the number of points awarded.
-
-        Returns a dictionary::
-
-            {'score': integer, from 0 to get_max_score(),
-            'total': get_max_score()}
+        Compute score for this problem.  The score is the number of points awarded.
+        Returns a dictionary {'score': integer, from 0 to get_max_score(), 'total': get_max_score()}.
 
         Takes an optional correctness map for use in the rescore workflow.
-
         """
         if correct_map is None:
             correct_map = self.correct_map
@@ -579,7 +579,7 @@ class LoncapaProblem:
             answer_ids.append(list(results.keys()))
         return answer_ids
 
-    def find_correct_answer_text(self, answer_id):  # pylint: disable=inconsistent-return-statements
+    def find_correct_answer_text(self, answer_id):
         """
         Returns the correct answer(s) for the provided answer_id as a single string.
 
@@ -1065,7 +1065,6 @@ class LoncapaProblem:
             # save the input type so that we can make ajax calls on it if we need to
             self.inputs[input_id] = input_type_cls(self.capa_system, problemtree, state)
             html_result = self.inputs[input_id].get_html()
-
             # Ensure we return an Element, not a string
             if isinstance(html_result, str):
                 try:
@@ -1154,20 +1153,20 @@ class LoncapaProblem:
             # get responder answers (do this only once, since there may be a performance cost,
             # eg with externalresponse)
             self.responder_answers = {}
-        for response, responder in self.responders.items():
-            try:
-                self.responder_answers[response] = responder.get_answers()
-            except Exception:  # avoid bare except
-                log.debug("responder %s failed to properly return get_answers()", responder)  # FIXME
-                raise
+            for response, responder in self.responders.items():
+                try:
+                    self.responder_answers[response] = responder.get_answers()
+                except Exception:  # avoid bare except
+                    log.debug("responder %s failed to properly return get_answers()", responder)  # FIXME
+                    raise
 
-            # <solution>...</solution> may not be associated with any specific response; give
-            # IDs for those separately
-            # TODO: We should make the namespaces consistent and unique (e.g. %s_problem_%i).
-            solution_id = 1
-            for solution in tree.findall(".//solution"):
-                solution.attrib["id"] = "%s_solution_%i" % (self.problem_id, solution_id)
-                solution_id += 1
+        # <solution>...</solution> may not be associated with any specific response; give
+        # IDs for those separately
+        # TODO: We should make the namespaces consistent and unique (e.g. %s_problem_%i).
+        solution_id = 1
+        for solution in tree.findall(".//solution"):
+            solution.attrib["id"] = "%s_solution_%i" % (self.problem_id, solution_id)
+            solution_id += 1
 
         return problem_data
 

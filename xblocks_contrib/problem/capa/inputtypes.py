@@ -359,7 +359,7 @@ class InputTypeBase:
 
         context = self._get_render_context()
 
-        html = self.capa_system.render_template(self.template, context).strip()
+        html = self.capa_system.render_template(f"capa/templates/{self.template}", context).strip()
 
         try:
             output = etree.XML(html)
@@ -1286,17 +1286,17 @@ class FormulaEquationInput(InputTypeBase):
         return {}
 
     def preview_formcalc(self, get):
-        """Render a preview of a formula or equation.
+        """
+        Render a preview of a formula or equation. `get` should
+        contain a key 'formula' with a math expression.
 
-        The ``get`` request should contain a key 'formula' with a
-        math expression.
+        Returns a JSON dictionary::
 
-        Returns a JSON dictionary with the following keys:
-
-        - ``preview`` (str): A LaTeX representation of the formula, or an empty string.
-        - ``error`` (str): An error message, or an empty string.
-        - ``request_start``: The timestamp sent with the original request.
-
+            {
+               'preview' : '<some latex>' or '',
+               'error' : 'the-error' or '',
+               'request_start' : <time sent with request>
+            }
         """
         _ = self.capa_system.i18n.gettext
         result = {"preview": "", "error": ""}

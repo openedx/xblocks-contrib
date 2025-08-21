@@ -301,7 +301,6 @@ class CapaShuffleTest(unittest.TestCase):
         orig_html = problem.get_html()
         assert orig_html == problem.get_html(), "should be able to call get_html() twice"
         html = orig_html.replace("\n", " ")  # avoid headaches with .* matching
-        print(html)
         self.assertRegex(
             html,
             r"<div>.*\[.*'Banana'.*'Apple'.*'Chocolate'.*'Donut'.*\].*</div>.*"

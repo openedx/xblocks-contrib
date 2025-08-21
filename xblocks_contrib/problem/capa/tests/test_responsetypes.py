@@ -740,24 +740,20 @@ class StringResponseTest(ResponseTest):
         self.assert_grade(problem, "o", "incorrect")
 
     def test_backslash_and_unicode_regexps(self):
-        r"""Test some special cases of unicode regexps.
+        r"""
+        Test some special cases of [unicode] regexps.
 
-        One needs to use either ``r''`` strings or write the real ``repr()`` of
-        unicode strings, because of the following (from the Python docs):
+        One needs to use either r'' strings or write real `repr` of unicode strings, because of the following
+        (from python docs, http://docs.python.org/2/library/re.html):
 
-            'for example, to match a literal backslash, one might have to
-            write '\\\\' as the pattern string, because the regular
-            expression must be \\, and each backslash must be expressed as
-            \\ inside a regular Python string literal.'
+        'for example, to match a literal backslash, one might have to write '\\\\' as the pattern string,
+        because the regular expression must be \\,
+        and each backslash must be expressed as \\ inside a regular Python string literal.'
 
-        Example of a real use case in Studio:
-
-        a) A user inputs a regexp in the usual language.
-        b) The regexp is saved to XML and is read in Python as the ``repr()``
-           of that string. So, ``a\d`` in a front-end editor will become
-           ``a\\\\d`` in XML and will correctly match "a1" as a student
-           answer.
-
+        Example of real use case in Studio:
+            a) user inputs regexp in usual regexp language,
+            b) regexp is saved to xml and is read in python as repr of that string
+               So  a\d in front-end editor will become a\\\\d in xml,  so it will match a1 as student answer.
         """
         problem = self.build_problem(answer="5\\\\æ", case_sensitive=False, regexp=True)
         self.assert_grade(problem, "5\\æ", "correct")
@@ -1158,16 +1154,24 @@ class CodeResponseTest(ResponseTest):
         valid_grader_msgs = [
             "<span>MESSAGE</span>",  # Valid XML
             textwrap.dedent(
-                (
-                    "<div class='matlabResponse'><div id='mwAudioPlaceHolder'>"
-                    "<audio controls autobuffer autoplay src='data:audio/wav;base64='>"
-                    "Audio is not supported on this browser.</audio>"
-                    "<div>Right click "
-                    "<a href=https://endpoint.mss-mathworks.com/media/filename.wav>here</a> "
-                    'and click "Save As" to download the file</div></div>'
-                    "<div style='white-space:pre' class='commandWindowOutput'></div>"
-                    "<ul></ul></div>"
-                )
+                """
+        <div class='matlabResponse'>
+          <div id='mwAudioPlaceHolder'>
+            <audio controls autobuffer autoplay src='data:audio/wav;base64='>
+              Audio is not supported on this browser.
+            </audio>
+            <div>
+              Right click
+              <a href=https://endpoint.mss-mathworks.com/media/filename.wav>
+                here
+              </a>
+              and click \"Save As\" to download the file
+            </div>
+          </div>
+          <div style='white-space:pre' class='commandWindowOutput'></div>
+          <ul></ul>
+        </div>
+        """
             ).replace(
                 "\n", ""
             ),  # Valid HTML5 real case Matlab response, invalid XML

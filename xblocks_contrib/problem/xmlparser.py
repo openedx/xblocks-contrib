@@ -31,35 +31,31 @@ class RestrictedElement(_etree.ElementBase):
             yield child
 
     def __iter__(self):
-        iterator = super(RestrictedElement, self).__iter__()  # pylint: disable=super-with-arguments
+        iterator = super().__iter__()
         return self._filter(iterator)
 
     def iterchildren(self, tag=None, reverse=False):
-        iterator = super(RestrictedElement, self).iterchildren(  # pylint: disable=super-with-arguments
-            tag=tag, reversed=reverse
-        )
+        iterator = super().iterchildren(tag=tag, reversed=reverse)
         return self._filter(iterator)
 
     def iter(self, tag=None, *tags):  # pylint: disable=keyword-arg-before-vararg
-        iterator = super(RestrictedElement, self).iter(tag, *tags)  # pylint: disable=super-with-arguments
+        iterator = super().iter(tag=tag, *tags)
         return self._filter(iterator)
 
     def iterdescendants(self, tag=None, *tags):  # pylint: disable=keyword-arg-before-vararg
-        iterator = super(RestrictedElement, self).iterdescendants(tag, *tags)  # pylint: disable=super-with-arguments
+        iterator = super().iterdescendants(tag=tag, *tags)
         return self._filter(iterator)
 
     def itersiblings(self, tag=None, preceding=False):
-        iterator = super(RestrictedElement, self).itersiblings(  # pylint: disable=super-with-arguments
-            tag=tag, preceding=preceding
-        )
+        iterator = super().itersiblings(tag=tag, preceding=preceding)
         return self._filter(iterator)
 
     def getchildren(self):
-        iterator = super(RestrictedElement, self).__iter__()  # pylint: disable=super-with-arguments
+        iterator = super().__iter__()
         return list(self._filter(iterator))
 
     def getiterator(self, tag=None):
-        iterator = super(RestrictedElement, self).getiterator(tag)  # pylint: disable=super-with-arguments
+        iterator = super().getiterator(tag)
         return self._filter(iterator)
 
 

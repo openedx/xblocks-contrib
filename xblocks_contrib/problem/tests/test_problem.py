@@ -37,7 +37,13 @@ from xblocks_contrib.problem.capa import responsetypes
 from xblocks_contrib.problem.capa.correctmap import CorrectMap
 from xblocks_contrib.problem.capa.responsetypes import LoncapaProblemError, ResponseError, StudentInputError
 from xblocks_contrib.problem.capa.xqueue_interface import XQueueInterface
-from xblocks_contrib.problem.problem import RANDOMIZATION, SHOWANSWER, ComplexEncoder, ProblemBlock
+from xblocks_contrib.problem.problem import (
+    ATTR_KEY_USER_IS_STAFF,
+    RANDOMIZATION,
+    SHOWANSWER,
+    ComplexEncoder,
+    ProblemBlock,
+)
 from xblocks_contrib.problem.sandboxing import SandboxService
 
 MODULE_DIR = path(__file__).dirname()
@@ -159,7 +165,7 @@ def get_test_system(
     """
 
     if not user:
-        user = Mock(name="get_test_system.user", is_staff=False)
+        user = Mock(name="get_test_system.user", is_staff=user_is_staff)
     if not user_location:
         user_location = Mock(name="get_test_system.user_location")
 
@@ -182,7 +188,7 @@ def get_test_system(
             if self.user and self.user.is_authenticated:
                 user.opt_attrs["edx-platform.anonymous_user_id"] = self.anonymous_user_id
                 user.opt_attrs["edx-platform.deprecated_anonymous_user_id"] = self.deprecated_anonymous_user_id
-
+                user.opt_attrs[ATTR_KEY_USER_IS_STAFF] = self.user.is_staff
             return user
 
     class StubReplaceURLService:
@@ -199,9 +205,14 @@ def get_test_system(
     class TestRuntimeWithRender(TestRuntime):
         """Custom runtime that includes a basic render method."""
 
-        def __init__(self, services, anonymous_student_id="test-user-id"):
+        def __init__(self, services, anonymous_student_id="test-user-id", render_template=None):
             super().__init__(services=services)
             self.anonymous_student_id = anonymous_student_id
+            # Use the provided render_template or fallback
+            self._render_template_func = render_template or (lambda t, c: "<div>Test Template HTML</div>")
+
+        def render_template(self, template_name, context):
+            return self._render_template_func(template_name, context)
 
         def render(self, block, view, context):
             return Mock(content=block.get_html())
@@ -213,13 +224,10 @@ def get_test_system(
         def resources_fs(self):
             return Mock(name="TestRuntime.resources_fs", root_path=".")
 
-        def publish(self, block, event_type, event_data):  # 👈 added
+        def publish(self, block, event_type, event_data):
             # Just store or print for debugging
             print(f"Publish called: {event_type} -> {event_data}")
             return None
-
-        def render_template(self, template_name, context):
-            return self._render_template_func(template_name, context)
 
     services = {
         "user": StubUserService(
@@ -232,7 +240,7 @@ def get_test_system(
         "sandbox": SandboxService(contentstore, course_id),
     }
 
-    return TestRuntimeWithRender(services=services)
+    return TestRuntimeWithRender(services=services, render_template=render_template)
 
 
 class NotFoundError(Exception):
@@ -2556,7 +2564,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert len(render_args) == 2
 
         template_name = render_args[0]
-        assert template_name == "problem.html"
+        assert template_name == "templates/problem.html"
 
         context = render_args[1]
         assert context["problem"]["html"] == "<div>Test Problem HTML</div>"
@@ -2655,11 +2663,8 @@ class ProblemBlockTest(unittest.TestCase):
             </multiplechoiceresponse>
             <demandhint>
                 <hint>
-                <img src=(
-                    "/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-"
-                    "clipart-high-quality-free-_1200-1386.jpeg"
-                )>
-                </img>
+                <img src="/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-\
+                    clipart-high-quality-free-_1200-1386.jpeg" />
                 You can add an optional hint like this. Problems that have a hint include a hint button,
                 and this text appears the first time learners select the button.
                 </hint>
@@ -2921,7 +2926,7 @@ class ProblemBlockTest(unittest.TestCase):
             i -= 1
 
     @patch("xblocks_contrib.problem.problem.log")
-    @patch("xblocks_contrib.problem.progress.Progress")
+    @patch("xblocks_contrib.problem.problem.Progress")
     def test_get_progress_error(self, mock_progress, mock_log):
         """
         Check that an exception given in `Progress` produces a `log.exception` call.
@@ -2934,7 +2939,7 @@ class ProblemBlockTest(unittest.TestCase):
             mock_log.exception.assert_called_once_with("Got bad progress")
             mock_log.reset_mock()
 
-    @patch("xblocks_contrib.problem.progress.Progress")
+    @patch("xblocks_contrib.problem.problem.Progress")
     def test_get_progress_no_error_if_weight_zero(self, mock_progress):
         """
         Check that if the weight is 0 get_progress does not try to create a Progress object.
@@ -2946,7 +2951,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert progress is None
         assert not mock_progress.called
 
-    @patch("xblocks_contrib.problem.progress.Progress")
+    @patch("xblocks_contrib.problem.problem.Progress")
     def test_get_progress_calculate_progress_fraction(self, mock_progress):
         """
         Check that score and total are calculated correctly for the progress fraction.
@@ -4262,11 +4267,15 @@ class ProblemCheckTrackingTest(unittest.TestCase):
         )
 
         data = {}
-        problem = CapaFactory.create(showanswer="always", xml=problem_xml)
-        problem.runtime.service(problem, "replace_urls").replace_urls = Mock()
+        with patch(
+            "xblocks_contrib.problem.capa.customrender.SolutionRenderer.get_html",
+            lambda self: (lambda e=etree.Element("div"): setattr(e, "text", "Test Template HTML") or e)(),
+        ):
+            problem = CapaFactory.create(showanswer="always", xml=problem_xml)
+            problem.runtime.service(problem, "replace_urls").replace_urls = Mock()
 
-        problem.get_answer(data)
-        assert problem.runtime.service(problem, "replace_urls").replace_urls.called
+            problem.get_answer(data)
+            assert problem.runtime.service(problem, "replace_urls").replace_urls.called
 
 
 class ProblemBlockReportGenerationTest(unittest.TestCase):

@@ -107,7 +107,7 @@ def update_hash(hasher, obj):
 
 
 @function_trace("safe_exec")
-def safe_exec(  # pylint: disable=too-many-positional-arguments, too-many-statements
+def safe_exec(  # pylint: disable=too-many-statements, too-many-positional-arguments
     code,
     globals_dict,
     random_seed=None,

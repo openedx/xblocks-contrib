@@ -5,7 +5,6 @@ of a variety of types.
 Used by capa_problem.py
 """
 
-
 # standard library imports
 import abc
 import inspect
@@ -61,7 +60,9 @@ CORRECTMAP_PY = None
 
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
+def _(text):
+    return text
+
 
 QUESTION_HINT_CORRECT_STYLE = "feedback-hint-correct"
 QUESTION_HINT_INCORRECT_STYLE = "feedback-hint-incorrect"
@@ -99,7 +100,6 @@ class LoncapaProblemError(Exception):
     """
     Error in specification of a problem
     """
-    pass  # lint-amnesty, pylint: disable=unnecessary-pass
 
 
 class ResponseError(Exception):
@@ -107,7 +107,6 @@ class ResponseError(Exception):
     Error for failure in processing a response, including
     exceptions that occur when executing a custom script.
     """
-    pass  # lint-amnesty, pylint: disable=unnecessary-pass
 
 
 class StudentInputError(Exception):
@@ -115,7 +114,6 @@ class StudentInputError(Exception):
     Error for an invalid student input.
     For example, submitting a string when the problem expects a number
     """
-    pass  # lint-amnesty, pylint: disable=unnecessary-pass
 
 
 # -----------------------------------------------------------------------------
@@ -323,8 +321,17 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta, object)):
         self.get_hints(convert_files_to_filenames(student_answers), new_cmap, old_cmap)
         return new_cmap
 
-    def make_hint_div(self, hint_node, correct, student_answer, question_tag,
-                      label=None, hint_log=None, multiline_mode=False, log_extra=None):
+    def make_hint_div(  # pylint: disable=too-many-positional-arguments
+        self,
+        hint_node,
+        correct,
+        student_answer,
+        question_tag,
+        label=None,
+        hint_log=None,
+        multiline_mode=False,
+        log_extra=None,
+    ):
         """
         Returns the extended hint div based on the student_answer,
         or an empty string if, after processing all the arguments, there is no hint.
@@ -348,14 +355,14 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta, object)):
 
         label : str, optional
             If None (the default), extracts the label from the node.
-            If set, uses this value.  
+            If set, uses this value.
             The value ``''`` inhibits labeling of the hint.
 
         hint_log : list of dict, optional
             Hints to be used, in list-of-dict format (see below).
 
         multiline_mode : bool, optional
-            Default ``False``.  
+            Default ``False``.
             If True, hints are shown one per line.
 
         log_extra : dict, optional
@@ -364,7 +371,7 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta, object)):
         Notes
         -----
         There are many parameters because a variety of extended hint contexts
-        all bottleneck through here.  
+        all bottleneck through here.
         The caller must also provide background information for tracking logs.
 
         hint_log format
@@ -561,8 +568,9 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta, object)):
         ):
 
             rephints = hintgroup.findall(self.hint_tag)
-            hints_to_show = self.check_hint_condition(  # lint-amnesty, pylint: disable=assignment-from-no-return
-                rephints, student_answers)
+            hints_to_show = self.check_hint_condition(  # pylint: disable=assignment-from-no-return
+                rephints, student_answers
+            )
             # can be 'on_request' or 'always' (default)
 
             hintmode = hintgroup.get("mode", "always")
@@ -626,8 +634,8 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta, object)):
 
         # If we can't do that, create the <div> and set the message
         # as the text of the <div>
-        except Exception:  # pylint: disable=broad-except
-            response_msg_div = etree.Element('div')
+        except Exception:  # pylint: disable=broad-exception-caught
+            response_msg_div = etree.Element("div")
             response_msg_div.text = str(response_msg)
 
         # Set the css class of the message <div>
@@ -888,15 +896,20 @@ class ChoiceResponse(LoncapaResponse):
 
     def get_extended_hints(self, student_answers, new_cmap):
         """
-        Extract compound and extended hint information from the xml based on the student_answers.
-        The hint information goes into the msg= in new_cmap for display.
-        Each choice in the checkboxgroup can have 2 extended hints, matching the
-        case that the student has or has not selected that choice:
-          <checkboxgroup label="Select the best snack">
-             <choice correct="true">Donut
-               <choicehint selected="tRuE">A Hint!</choicehint>
-               <choicehint selected="false">Another hint!</choicehint>
-             </choice>
+        Extract compound and extended hint information from the XML
+        based on the student_answers.
+
+        The hint information goes into the `msg=` in `new_cmap` for display.
+
+        Each choice in the checkboxgroup can have two extended hints, matching the
+        case that the student has or has not selected that choice::
+
+            <checkboxgroup label="Select the best snack">
+                <choice correct="true">Donut
+                    <choicehint selected="tRuE">A Hint!</choicehint>
+                    <choicehint selected="false">Another hint!</choicehint>
+                </choice>
+            </checkboxgroup>
         """
         # Tricky: student_answers may be *empty* here. That is the representation that
         # no checkboxes were selected. For typical responsetypes, you look at
@@ -1031,12 +1044,14 @@ class MultipleChoiceResponse(LoncapaResponse):
     multi_device_support = True
 
     def setup_response(self):
-        """Collects information from the XML for later use.
+        """
+        Collects information from the XML for later use.
 
-        correct_choices is a list of the correct choices.
-        partial_choices is a list of the partially-correct choices.
-        partial_values is a list of the scores that go with those
-          choices, defaulting to 0.5 if no value is specified.
+        Attributes:
+            partial_choices (list): The partially-correct choices.
+            partial_values (list): The scores that go with those choices,
+                defaulting to 0.5 if no value is specified.
+
         """
         # call secondary setup for MultipleChoice questions, to set name
         # attributes
@@ -1066,15 +1081,20 @@ class MultipleChoiceResponse(LoncapaResponse):
                 if contextualize_text(choice.get("correct"), self.context).lower() == "partial"
             ]
 
-    def get_extended_hints(self, student_answer_dict, new_cmap):  # lint-amnesty, pylint: disable=arguments-differ
+    def get_extended_hints(self, student_answers, new_cmap):
         """
-        Extract any hints in a <choicegroup> matching the student's answers
-        <choicegroup label="What is your favorite color?" type="MultipleChoice">
-          <choice correct="false">Red
-            <choicehint>No, Blue!</choicehint>
-          </choice>
-          ...
-        Any hint text is installed in the new_cmap.
+        Extract any hints in a ``<choicegroup>`` matching the student's answers.
+
+        Example::
+
+            <choicegroup label="What is your favorite color?" type="MultipleChoice">
+            <choice correct="false">Red
+                <choicehint>No, Blue!</choicehint>
+            </choice>
+            ...
+            </choicegroup>
+
+        Any hint text is installed in the ``new_cmap``.
         """
         if self.answer_id in student_answers:
             student_answer = student_answers[self.answer_id]
@@ -1295,10 +1315,10 @@ class MultipleChoiceResponse(LoncapaResponse):
         # defined at the problem level, so the multiple rng's would be seeded the same.
         # The name _shared_rng begins with an _ to suggest that it is not a facility
         # for general use.
-        # pylint: disable=protected-access
-        if not hasattr(problem, '_shared_rng'):
-            problem._shared_rng = random.Random(self.context['seed'])
-        return problem._shared_rng
+
+        if not hasattr(problem, "_shared_rng"):
+            problem._shared_rng = random.Random(self.context["seed"])  # pylint: disable=protected-access
+        return problem._shared_rng  # pylint: disable=protected-access
 
     def do_answer_pool(self, tree, problem):
         """
@@ -1413,10 +1433,11 @@ class MultipleChoiceResponse(LoncapaResponse):
 
 
 @registry.register
-class TrueFalseResponse(MultipleChoiceResponse):  # lint-amnesty, pylint: disable=abstract-method, missing-class-docstring
+class TrueFalseResponse(MultipleChoiceResponse):
+    """Response type for True/False multiple choice questions."""
 
-    human_name = _('True/False Choice')
-    tags = ['truefalseresponse']
+    human_name = _("True/False Choice")
+    tags = ["truefalseresponse"]
 
     def mc_setup_response(self):
         """
@@ -1448,9 +1469,14 @@ class TrueFalseResponse(MultipleChoiceResponse):  # lint-amnesty, pylint: disabl
         if correct == set(answers):
             return CorrectMap(self.answer_id, "correct")
 
-        return CorrectMap(self.answer_id, 'incorrect')
+        return CorrectMap(self.answer_id, "incorrect")
 
-#-----------------------------------------------------------------------------
+    def unmask_name(self, name):
+        """Return the original choice name (no masking needed for True/False)."""
+        return name
+
+
+# -----------------------------------------------------------------------------
 
 
 @registry.register
@@ -1483,8 +1509,14 @@ class OptionResponse(LoncapaResponse):
         return cmap
 
     def get_answers(self):
-        amap = dict([(af.get('id'), contextualize_text(af.get(  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
-            'correct'), self.context)) for af in self.answer_fields])
+        amap = {
+            af.get("id"): contextualize_text(
+                af.get("correct"),
+                self.context,
+            )
+            for af in self.answer_fields
+        }
+
         return amap
 
     def get_student_answer_variable_name(self, student_answers, aid):
@@ -1501,9 +1533,14 @@ class OptionResponse(LoncapaResponse):
 
     def get_extended_hints(self, student_answers, new_cmap):
         """
-        Extract optioninput extended hint, e.g.
-        <optioninput>
-          <option correct="True">Donut <optionhint>Of course</optionhint> </option>
+        Extract optioninput extended hint.
+
+        Example::
+
+            <optioninput>
+            <option correct="True">Donut <optionhint>Of course</optionhint></option>
+            </optioninput>
+
         """
         answer_id = self.answer_ids[0]  # Note *not* self.answer_id
         if answer_id in student_answers:
@@ -1558,12 +1595,13 @@ class NumericalResponse(LoncapaResponse):
         if answer.startswith(("[", "(")) and answer.endswith(("]", ")")):  # range tolerance case
             self.range_tolerance = True
             self.inclusion = (
-                True if answer.startswith('[') else False, True if answer.endswith(']') else False  # lint-amnesty, pylint: disable=simplifiable-if-expression
+                answer.startswith("["),
+                answer.endswith("]"),
             )
             try:
-                self.answer_range = [contextualize_text(x, context) for x in answer[1:-1].split(',')]
-                self.correct_answer = answer[0] + self.answer_range[0] + ', ' + self.answer_range[1] + answer[-1]
-            except Exception:
+                self.answer_range = [contextualize_text(x, context) for x in answer[1:-1].split(",")]
+                self.correct_answer = answer[0] + self.answer_range[0] + ", " + self.answer_range[1] + answer[-1]
+            except Exception as exc:
                 log.debug("Content error--answer '%s' is not a valid range tolerance answer", answer)
                 _ = self.capa_system.i18n.gettext
                 raise StudentInputError(_("There was a problem with the staff answer to this problem.")) from exc
@@ -1624,27 +1662,23 @@ class NumericalResponse(LoncapaResponse):
         try:
             student_float = evaluator({}, {}, student_answer)
         except UndefinedVariable as err:
-            raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                err.args[0]
-            )
+            raise StudentInputError(err.args[0]) from err
         except UnmatchedParenthesis as err:
-            raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                err.args[0]
-            )
+            raise StudentInputError(err.args[0]) from err
         except ValueError as val_err:
-            if 'factorial' in str(val_err):  # lint-amnesty, pylint: disable=no-else-raise
+            if "factorial" in str(val_err):
                 # This is thrown when fact() or factorial() is used in an answer
                 #   that evaluates on negative and/or non-integer inputs
                 # str(ve) will be: `factorial() only accepts integral values` or
                 # `factorial() not defined for negative values`
-                raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                    _("Factorial function evaluated outside its domain:"
-                      "'{student_answer}'").format(student_answer=html.escape(student_answer))
-                )
-            else:
-                raise general_exception  # lint-amnesty, pylint: disable=raise-missing-from
-        except ParseException:
-            raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
+                raise StudentInputError(
+                    _("Factorial function evaluated outside its domain:'{student_answer}'").format(
+                        student_answer=html.escape(student_answer)
+                    )
+                ) from val_err
+            raise general_exception from val_err
+        except ParseException as exc:
+            raise StudentInputError(
                 _("Invalid math syntax: '{student_answer}'").format(student_answer=html.escape(student_answer))
             ) from exc
         except Exception as exc:
@@ -1749,11 +1783,11 @@ class NumericalResponse(LoncapaResponse):
                         if compare_with_tolerance(student_float, correct_float, expanded_tolerance):
                             is_correct = "partially-correct"
                             break
-                        elif compare_with_tolerance(student_float, value, expanded_tolerance):
-                            is_correct = 'partially-correct'
+                        if compare_with_tolerance(student_float, value, expanded_tolerance):
+                            is_correct = "partially-correct"
                             partial_score = partial_score * partial_score
                             break
-            elif 'close' in self.credit_type:
+            elif "close" in self.credit_type:
                 if compare_with_tolerance(student_float, correct_float, expanded_tolerance):
                     is_correct = "partially-correct"
 
@@ -1843,11 +1877,15 @@ class NumericalResponse(LoncapaResponse):
 
 @registry.register
 class StringResponse(LoncapaResponse):
-    r"""This response type allows one or more answers.
+    r"""
+    This response type allows one or more answers.
 
     Additional answers are added by the ``<additional_answer>`` tag.
 
-    Examples:
+    If ``regexp`` is in the ``type`` attribute, then answers and hints are treated as regular expressions.
+
+    Examples::
+
         <stringresponse answer="Michigan">
             <textline size="20" />
         </stringresponse>
@@ -1925,17 +1963,22 @@ class StringResponse(LoncapaResponse):
 
     def get_extended_hints(self, student_answers, new_cmap):
         """
-        Find and install extended hints in new_cmap depending on the student answers.
-        StringResponse is probably the most complicated form we have.
-        The forms show below match in the order given, and the first matching one stops the matching.
-        <stringresponse answer="A" type="ci">
-          <correcthint>hint1</correcthint>                         <!-- hint for correct answer -->
-          <additional_answer answer="B">hint2</additional_answer>  <!-- additional_answer with its own hint -->
-          <stringequalhint answer="C">hint3</stringequalhint>      <!-- string matcher/hint for an incorrect answer -->
-          <regexphint answer="FG+">hint4</regexphint>              <!-- regex matcher/hint for an incorrect answer -->
-          <textline size="20"/>
-        </stringresponse>
-        The "ci" and "regexp" options are inherited from the parent stringresponse as appropriate.
+        Find and install extended hints in ``new_cmap`` depending on the student answers.
+
+        ``StringResponse`` is probably the most complicated form we have.
+
+        The forms shown below match in the order given, and the first matching one stops the matching::
+
+            <stringresponse answer="A" type="ci">
+            <correcthint>hint1</correcthint>                         <!-- hint for correct answer -->
+            <additional_answer answer="B">hint2</additional_answer>  <!-- additional_answer with its own hint -->
+            <stringequalhint answer="C">hint3</stringequalhint>      <!-- string matcher/hint for incorrect answer -->
+            <regexphint answer="FG+">hint4</regexphint>              <!-- regex matcher/hint for incorrect answer -->
+            <textline size="20"/>
+            </stringresponse>
+
+        The ``ci`` and ``regexp`` options are inherited from the parent ``stringresponse`` as appropriate.
+
         """
         if self.answer_id in student_answers:
             student_answer = student_answers[self.answer_id]
@@ -2163,9 +2206,8 @@ class CustomResponse(LoncapaResponse):
 
         if not self.code:
             if answer is None:
-                log.error("[courseware.capa.responsetypes.customresponse] missing"
-                          " code checking script! id=%s", self.id)
-                self.code = ''
+                log.error("[courseware.capa.responsetypes.customresponse] missing code checking script! id=%s", self.id)
+                self.code = ""
             else:
                 answer_src = answer.get("src")
                 if answer_src is not None:
@@ -2287,13 +2329,15 @@ class CustomResponse(LoncapaResponse):
                     npoints = max_points * self.default_pc
                 else:
                     npoints = 0
-            correct_map.set(idset[k], correct[k], msg=messages[k],
-                            npoints=npoints)
+            correct_map.set(idset[k], correct[k], msg=messages[k], npoints=npoints)
         return correct_map
 
-    def execute_check_function(self, idset, submission):  # lint-amnesty, pylint: disable=missing-function-docstring, too-many-statements
+    def execute_check_function(self, idset, submission):  # pylint: disable=too-many-statements
+        """Execute the custom check function for a submission, updating correctness,
+        messages, and grades in the context."""
+
         # exec the check function
-        if isinstance(self.code, str):  # lint-amnesty, pylint: disable=too-many-nested-blocks
+        if isinstance(self.code, str):  # pylint: disable=too-many-nested-blocks
             try:
                 safe_exec.safe_exec(
                     self.code,
@@ -2306,9 +2350,8 @@ class CustomResponse(LoncapaResponse):
                     random_seed=self.context["seed"],
                     unsafely=self.capa_system.can_execute_unsafe_code(),
                 )
-            except Exception as err:  # pylint: disable=broad-exception-caught
+            except Exception as err:  # pylint: disable=broad-except
                 self._handle_exec_exception(err)
-            return
 
         else:
             # self.code is not a string; it's a function we created earlier.
@@ -2323,10 +2366,7 @@ class CustomResponse(LoncapaResponse):
                 ret = tutor_cfn(self.expect, answer_given, **kwargs)
             except Exception as err:  # pylint: disable=broad-except
                 self._handle_exec_exception(err)
-            log.debug(
-                "[courseware.capa.responsetypes.customresponse.get_score] ret = %s",
-                ret
-            )
+            log.debug("[courseware.capa.responsetypes.customresponse.get_score] ret = %s", ret)
             if isinstance(ret, dict):
                 # One kind of dictionary the check function can return has the
                 # form {'ok': BOOLEAN or STRING, 'msg': STRING, 'grade_decimal' (optional): FLOAT (between 0.0 and 1.0)}
@@ -2334,46 +2374,46 @@ class CustomResponse(LoncapaResponse):
                 # the score the student receives on the response.
                 # If there are multiple inputs, they all get marked
                 # to the same correct/incorrect value
-                if 'ok' in ret:
+                if "ok" in ret:
 
                     # Returning any falsy value or the "false" string for "ok" gives incorrect.
                     # Returning any string that includes "partial" for "ok" gives partial credit.
                     # Returning any other truthy value for "ok" gives correct
 
-                    ok_val = str(ret['ok']).lower().strip() if bool(ret['ok']) else 'false'
+                    ok_val = str(ret["ok"]).lower().strip() if bool(ret["ok"]) else "false"
 
-                    if ok_val == 'false':
-                        correct = 'incorrect'
-                    elif 'partial' in ok_val:
-                        correct = 'partially-correct'
+                    if ok_val == "false":
+                        correct = "incorrect"
+                    elif "partial" in ok_val:
+                        correct = "partially-correct"
                     else:
-                        correct = 'correct'
-                    correct = [correct] * len(idset)   # All inputs share the same mark.
+                        correct = "correct"
+                    correct = [correct] * len(idset)  # All inputs share the same mark.
 
                     # old version, no partial credit:
                     # correct = ['correct' if ret['ok'] else 'incorrect'] * len(idset)
 
-                    msg = ret.get('msg', None)
+                    msg = ret.get("msg", None)
                     msg = self.clean_message_html(msg)
 
                     # If there is only one input, apply the message to that input
                     # Otherwise, apply the message to the whole problem
                     if len(idset) > 1:
-                        self.context['overall_message'] = msg
+                        self.context["overall_message"] = msg
                     else:
-                        self.context['messages'][0] = msg
+                        self.context["messages"][0] = msg
 
-                    if 'grade_decimal' in ret:
-                        decimal = float(ret['grade_decimal'])
+                    if "grade_decimal" in ret:
+                        decimal = float(ret["grade_decimal"])
                     else:
-                        if correct[0] == 'correct':
+                        if correct[0] == "correct":
                             decimal = 1.0
-                        elif correct[0] == 'partially-correct':
+                        elif correct[0] == "partially-correct":
                             decimal = self.default_pc
                         else:
                             decimal = 0.0
                     grade_decimals = [decimal] * len(idset)
-                    self.context['grade_decimals'] = grade_decimals
+                    self.context["grade_decimals"] = grade_decimals
 
                 # Another kind of dictionary the check function can return has
                 # the form:
@@ -2393,9 +2433,9 @@ class CustomResponse(LoncapaResponse):
                 # This allows the function to return an 'overall message'
                 # that applies to the entire problem, as well as correct/incorrect
                 # status, scaled grades, and messages for individual inputs
-                elif 'input_list' in ret:
-                    overall_message = ret.get('overall_message', '')
-                    input_list = ret['input_list']
+                elif "input_list" in ret:
+                    overall_message = ret.get("overall_message", "")
+                    input_list = ret["input_list"]
 
                     correct = []
                     messages = []
@@ -2406,43 +2446,40 @@ class CustomResponse(LoncapaResponse):
                     # Returning any other truthy value for "ok" gives correct
 
                     for input_dict in input_list:
-                        if str(input_dict['ok']).lower().strip() == "false" or not input_dict['ok']:
-                            correct.append('incorrect')
-                        elif 'partial' in str(input_dict['ok']).lower().strip():
-                            correct.append('partially-correct')
+                        if str(input_dict["ok"]).lower().strip() == "false" or not input_dict["ok"]:
+                            correct.append("incorrect")
+                        elif "partial" in str(input_dict["ok"]).lower().strip():
+                            correct.append("partially-correct")
                         else:
-                            correct.append('correct')
+                            correct.append("correct")
 
                         # old version, no partial credit
                         # correct.append('correct'
                         #                if input_dict['ok'] else 'incorrect')
 
-                        msg = (self.clean_message_html(input_dict['msg'])
-                               if 'msg' in input_dict else None)
+                        msg = self.clean_message_html(input_dict["msg"]) if "msg" in input_dict else None
                         messages.append(msg)
-                        if 'grade_decimal' in input_dict:
-                            decimal = input_dict['grade_decimal']
+                        if "grade_decimal" in input_dict:
+                            decimal = input_dict["grade_decimal"]
                         else:
-                            if str(input_dict['ok']).lower().strip() == 'true':
+                            if str(input_dict["ok"]).lower().strip() == "true":
                                 decimal = 1.0
-                            elif 'partial' in str(input_dict['ok']).lower().strip():
+                            elif "partial" in str(input_dict["ok"]).lower().strip():
                                 decimal = self.default_pc
                             else:
                                 decimal = 0.0
                         grade_decimals.append(decimal)
 
-                    self.context['messages'] = messages
-                    self.context['overall_message'] = overall_message
-                    self.context['grade_decimals'] = grade_decimals
+                    self.context["messages"] = messages
+                    self.context["overall_message"] = overall_message
+                    self.context["grade_decimals"] = grade_decimals
 
                 # Otherwise, we do not recognize the dictionary
                 # Raise an exception
                 else:
                     log.error(traceback.format_exc())
                     _ = self.capa_system.i18n.gettext
-                    raise ResponseError(
-                        _("CustomResponse: check function returned an invalid dictionary!")
-                    )
+                    raise ResponseError(_("CustomResponse: check function returned an invalid dictionary!"))
 
             else:
 
@@ -2451,17 +2488,17 @@ class CustomResponse(LoncapaResponse):
                 # Returning any other truthy value for "ok" gives correct
 
                 if str(ret).lower().strip() == "false" or not bool(ret):
-                    correct = 'incorrect'
-                elif 'partial' in str(ret).lower().strip():
-                    correct = 'partially-correct'
+                    correct = "incorrect"
+                elif "partial" in str(ret).lower().strip():
+                    correct = "partially-correct"
                 else:
-                    correct = 'correct'
+                    correct = "correct"
                 correct = [correct] * len(idset)
 
                 # old version, no partial credit:
                 # correct = ['correct' if ret else 'incorrect'] * len(idset)
 
-            self.context['correct'] = correct
+            self.context["correct"] = correct
 
     def clean_message_html(self, msg):
         """Clean and prettify HTML in the given message string,
@@ -2551,7 +2588,6 @@ class SymbolicResponse(CustomResponse):
         super().setup_response()
 
     def execute_check_function(self, idset, submission):
-        from symmath import symmath_check
         try:
             # Since we have limited max_inputfields to 1,
             # we can assume that there is only one submission
@@ -2572,9 +2608,9 @@ class SymbolicResponse(CustomResponse):
             msg = _("An error occurred with SymbolicResponse. The error was: {error_msg}").format(
                 error_msg=err,
             )
-            raise Exception(msg)  # lint-amnesty, pylint: disable=raise-missing-from
-        self.context['messages'][0] = self.clean_message_html(ret['msg'])
-        self.context['correct'] = ['correct' if ret['ok'] else 'incorrect'] * len(idset)
+            raise Exception(msg) from err
+        self.context["messages"][0] = self.clean_message_html(ret["msg"])
+        self.context["correct"] = ["correct" if ret["ok"] else "incorrect"] * len(idset)
 
 
 # -----------------------------------------------------------------------------
@@ -2673,9 +2709,10 @@ class CodeResponse(LoncapaResponse):
             submission = student_answers[self.answer_id]
         except Exception as err:
             log.error(
-                'Error in CodeResponse %s: cannot get student answer for %s;'
-                ' student_answers=%s',
-                err, self.answer_id, convert_files_to_filenames(student_answers)
+                "Error in CodeResponse %s: cannot get student answer for %s; student_answers=%s",
+                err,
+                self.answer_id,
+                convert_files_to_filenames(student_answers),
             )
             raise Exception(err) from err
 
@@ -2742,8 +2779,9 @@ class CodeResponse(LoncapaResponse):
         cmap = CorrectMap()
         if error:
             _ = self.capa_system.i18n.gettext
-            error_msg = _('Unable to deliver your submission to grader (Reason: {error_msg}).'
-                          ' Please try again later.').format(error_msg=msg)
+            error_msg = _(
+                "Unable to deliver your submission to grader (Reason: {error_msg}). Please try again later."
+            ).format(error_msg=msg)
             cmap.set(self.answer_id, queuestate=None, msg=error_msg)
         else:
             # Queueing mechanism flags:
@@ -2820,17 +2858,16 @@ class CodeResponse(LoncapaResponse):
         try:
             score_result = json.loads(score_msg)
         except (TypeError, ValueError):
-            log.error("External grader message should be a JSON-serialized dict."
-                      " Received score_msg = %s", score_msg)
+            log.error("External grader message should be a JSON-serialized dict. Received score_msg = %s", score_msg)
             return fail
         if not isinstance(score_result, dict):
-            log.error("External grader message should be a JSON-serialized dict."
-                      " Received score_result = %s", score_result)
+            log.error(
+                "External grader message should be a JSON-serialized dict. Received score_result = %s", score_result
+            )
             return fail
         for tag in ["correct", "score", "msg"]:
             if tag not in score_result:
-                log.error("External grader message is missing one or more required"
-                          " tags: 'correct', 'score', 'msg'")
+                log.error("External grader message is missing one or more required tags: 'correct', 'score', 'msg'")
                 return fail
 
         # Next, we need to check that the contents of the external grader message is safe for the LMS.
@@ -2855,8 +2892,7 @@ class CodeResponse(LoncapaResponse):
 
             if not parsed:
                 log.error(
-                    "Unable to parse external grader message as valid"
-                    " XML: score_msg['msg']=%s",
+                    "Unable to parse external grader message as valid XML: score_msg['msg']=%s",
                     msg,
                 )
                 return fail
@@ -2887,8 +2923,8 @@ class ExternalResponse(LoncapaResponse):
     def __init__(self, *args, **kwargs):
         self.url = ""
         self.tests = []
-        self.code = ''
-        super(ExternalResponse, self).__init__(*args, **kwargs)  # lint-amnesty, pylint: disable=super-with-arguments
+        self.code = ""
+        super().__init__(*args, **kwargs)
 
     def setup_response(self):
         xml = self.xml
@@ -2934,7 +2970,7 @@ class ExternalResponse(LoncapaResponse):
         try:
             # call external server. TODO: synchronous call, can block for a
             # long time
-            req = requests.post(self.url, data=payload)
+            req = requests.post(self.url, data=payload, timeout=10)
         except Exception as err:
             msg = "Error {0} - cannot connect to external server url={1}".format(err, self.url)
             log.error(msg)
@@ -2972,9 +3008,9 @@ class ExternalResponse(LoncapaResponse):
         extra_payload = {"edX_student_response": json.dumps(submission)}
 
         try:
-            rxml = self.do_external_request('get_score', extra_payload)
-        except Exception as err:  # pylint: disable=broad-except
-            log.error('Error %s', err)
+            rxml = self.do_external_request("get_score", extra_payload)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            log.error("Error %s", err)
             if self.capa_system.DEBUG:
                 cmap.set_dict(dict(list(zip(sorted(self.answer_ids), ["incorrect"] * len(idset)))))
                 cmap.set_property(
@@ -3001,10 +3037,10 @@ class ExternalResponse(LoncapaResponse):
         Use external server to get expected answers
         """
         try:
-            rxml = self.do_external_request('get_answers', {})
-            exans = json.loads(rxml.find('expected').text)
-        except Exception as err:  # pylint: disable=broad-except
-            log.error('Error %s', err)
+            rxml = self.do_external_request("get_answers", {})
+            exans = json.loads(rxml.find("expected").text)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            log.error("Error %s", err)
             if self.capa_system.DEBUG:
                 msg = HTML('<span class="inline-error">{}</span>').format(err)
                 exans = [""] * len(self.answer_ids)
@@ -3090,14 +3126,12 @@ class FormulaResponse(LoncapaResponse):
                         case_sensitive=self.case_sensitive,
                     )
                 )
+            except UndefinedVariable as err:
+                log.debug("formularesponse: undefined variable in formula=%s", html.escape(answer))
+                raise StudentInputError(err.args[0]) from err
             except UnmatchedParenthesis as err:
-                log.debug(
-                    'formularesponse: unmatched parenthesis in formula=%s',
-                    html.escape(answer)
-                )
-                raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                    err.args[0]
-                )
+                log.debug("formularesponse: unmatched parenthesis in formula=%s", html.escape(answer))
+                raise StudentInputError(err.args[0]) from err
             except ValueError as err:
                 if "factorial" in str(err):
                     # This is thrown when fact() or factorial() is used in a formularesponse answer
@@ -3112,26 +3146,26 @@ class FormulaResponse(LoncapaResponse):
                         ),
                         html.escape(answer),
                     )
-                    raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                        _("Factorial function not permitted in answer "
-                          "for this problem. Provided answer was: "
-                          "{bad_input}").format(bad_input=html.escape(answer))
-                    )
+                    raise StudentInputError(
+                        _(
+                            "Factorial function not permitted in answer "
+                            "for this problem. Provided answer was: "
+                            "{bad_input}"
+                        ).format(bad_input=html.escape(answer))
+                    ) from err
                 # If non-factorial related ValueError thrown, handle it the same as any other Exception
-                log.debug('formularesponse: error %s in formula', err)
-                raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
+                log.debug("formularesponse: error %s in formula", err)
+                raise StudentInputError(
                     _("Invalid input: Could not parse '{bad_input}' as a formula.").format(
                         bad_input=html.escape(answer)
                     )
                 ) from err
             except Exception as err:
                 # traceback.print_exc()
-                log.debug('formularesponse: error %s in formula', err)
-                raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                    _("Invalid input: Could not parse '{bad_input}' as a formula").format(
-                        bad_input=html.escape(answer)
-                    )
-                )
+                log.debug("formularesponse: error %s in formula", err)
+                raise StudentInputError(
+                    _("Invalid input: Could not parse '{bad_input}' as a formula").format(bad_input=html.escape(answer))
+                ) from err
         return out
 
     def randomize_variables(self, samples):
@@ -3198,30 +3232,27 @@ class FormulaResponse(LoncapaResponse):
         keys and all non-numeric values stripped out. All values also
         converted to float. Used so we can safely use Python contexts.
         """
-        inp_d = dict([(k, numpy.complex(inp_d[k]))  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
-                      for k in inp_d if isinstance(k, str) and
-                      k.isalnum() and
-                      isinstance(inp_d[k], numbers.Number)])
+        inp_d = {
+            k: numpy.complex(inp_d[k])
+            for k in inp_d
+            if isinstance(k, str) and k.isalnum() and isinstance(inp_d[k], numbers.Number)
+        }
+
         return inp_d
 
     def check_hint_condition(self, hxml_set, student_answers):
         given = student_answers[self.answer_id]
         hints_to_show = []
         for hxml in hxml_set:
-            samples = hxml.get('samples')
-            name = hxml.get('name')
-            correct_answer = contextualize_text(
-                hxml.get('answer'), self.context)
-            # pylint: disable=broad-except
+            samples = hxml.get("samples")
+            name = hxml.get("name")
+            correct_answer = contextualize_text(hxml.get("answer"), self.context)
+
             try:
-                correctness = self.check_formula(
-                    correct_answer,
-                    given,
-                    samples
-                )
-            except Exception:
-                correctness = 'incorrect'
-            if correctness == 'correct':
+                correctness = self.check_formula(correct_answer, given, samples)
+            except Exception:  # pylint: disable=broad-exception-caught
+                correctness = "incorrect"
+            if correctness == "correct":
                 hints_to_show.append(name)
         log.debug("hints_to_show = %s", hints_to_show)
         return hints_to_show
@@ -3244,8 +3275,8 @@ class SchematicResponse(LoncapaResponse):
     allowed_inputfields = ["schematic"]
 
     def __init__(self, *args, **kwargs):
-        self.code = ''
-        super(SchematicResponse, self).__init__(*args, **kwargs)  # lint-amnesty, pylint: disable=super-with-arguments
+        self.code = ""
+        super().__init__(*args, **kwargs)
 
     def setup_response(self):
         xml = self.xml
@@ -3275,8 +3306,8 @@ class SchematicResponse(LoncapaResponse):
         except Exception as err:
             _ = self.capa_system.i18n.gettext
             # Translators: 'SchematicResponse' is a problem type and should not be translated.
-            msg = _('Error in evaluating SchematicResponse. The error was: {error_msg}').format(error_msg=err)
-            raise ResponseError(msg)  # lint-amnesty, pylint: disable=raise-missing-from
+            msg = _("Error in evaluating SchematicResponse. The error was: {error_msg}").format(error_msg=err)
+            raise ResponseError(msg) from err
         cmap = CorrectMap()
         cmap.set_dict(dict(list(zip(sorted(self.answer_ids), self.context["correct"]))))
         return cmap
@@ -3293,28 +3324,33 @@ class SchematicResponse(LoncapaResponse):
 class ImageResponse(LoncapaResponse):
     """
     Handle student response for image input: the input is a click on an image,
-    which produces an [x,y] coordinate pair.  The click is correct if it falls
-    within a region specified.  This region is a union of rectangles.
+    which produces an [x,y] coordinate pair. The click is correct if it falls
+    within a region specified. This region is a union of rectangles.
 
     Lon-CAPA requires that each <imageresponse> has a <foilgroup> inside it.
-    That doesn't make sense to me (Ike).  Instead, let's have it such that
-    <imageresponse> should contain one or more <imageinput> stanzas.
-    Each <imageinput> should specify a rectangle(s) or region(s), given as an
-    attribute, defining the correct answer.
+    That doesn't make sense to me (Ike). Instead, <imageresponse> should contain
+    one or more <imageinput> stanzas. Each <imageinput> specifies rectangle(s)
+    or region(s), given as an attribute, defining the correct answer.
 
+    Example
+    -------
     <imageinput src="/static/images/Lecture2/S2_p04.png" width="811" height="610"
-    rectangle="(10,10)-(20,30);(12,12)-(40,60)"
-    regions="[[[10,10], [20,30], [40, 10]], [[100,100], [120,130], [110,150]]]"/>
+        rectangle="(10,10)-(20,30);(12,12)-(40,60)"
+        regions="[[[10,10], [20,30], [40, 10]], [[100,100], [120,130], [110,150]]]"/>
 
-    Regions is list of lists [region1, region2, region3, ...] where regionN
-    is disordered list of points: [[1,1], [100,100], [50,50], [20, 70]].
+    Regions
+    -------
+    Regions is a list of lists [region1, region2, region3, ...] where each regionN
+    is a disordered list of points: [[1,1], [100,100], [50,50], [20,70]].
 
-    If there is only one region in the list, simpler notation can be used:
-    regions="[[10,10], [30,30], [10, 30], [30, 10]]" (without explicitly
-        setting outer list)
+    If there is only one region in the list, a simpler notation can be used:
+    regions="[[10,10], [30,30], [10,30], [30,10]]" (without explicitly setting
+    an outer list).
 
-    Returns:
-        True, if click is inside any region or rectangle. Otherwise False.
+    Returns
+    -------
+    bool
+        True if the click is inside any region or rectangle. Otherwise False.
     """
 
     human_name = _("Image Mapped Input")
@@ -3392,29 +3428,34 @@ class ImageResponse(LoncapaResponse):
 
     def get_mapped_answers(self):
         """
-        Returns the internal representation of the answers
+        Returns the internal representation of the answers.
 
-        Input:
-            None
-        Returns:
-            tuple (dict, dict) -
-                rectangles (dict) - a map of inputs to the defined rectangle for that input
-                regions (dict) - a map of inputs to the defined region for that input
+        Returns
+        -------
+        tuple of dict
+            A tuple ``(rectangles, regions)``:
+
+            - **rectangles (dict)** – A map of inputs to the defined rectangle for that input.
+            - **regions (dict)** – A map of inputs to the defined region for that input.
         """
         answers = (
-            dict([(ie.get('id'), ie.get(  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
-                'rectangle')) for ie in self.ielements]),
-            dict([(ie.get('id'), ie.get('regions')) for ie in self.ielements]))  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
+            {ie.get("id"): ie.get("rectangle") for ie in self.ielements},
+            {ie.get("id"): ie.get("regions") for ie in self.ielements},
+        )
+
         return answers
 
     def get_answers(self):
-        """Returns the external representation of the answers.
+        """
+        Returns the external representation of the answers
 
         Input:
             None
+
         Returns:
             dict (str, (str, str)) - a map of inputs to a tuple of their rectangle
                 and their regions
+
         """
         answers = {}
         for ielt in self.ielements:
@@ -3476,19 +3517,19 @@ class AnnotationResponse(LoncapaResponse):
     def _get_scoring_map(self):
         """Returns a dict of option->scoring for each input."""
         scoring = self.default_scoring
-        choices = dict([(choice, choice) for choice in scoring])  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
+        choices = {choice: choice for choice in scoring}
         scoring_map = {}
 
         for inputfield in self.inputfields:
-            option_scoring = dict([(  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
-                option['id'],
-                {
-                    'correctness': choices.get(option['choice']),
-                    'points': scoring.get(option['choice'])
+            option_scoring = {
+                option["id"]: {
+                    "correctness": choices.get(option["choice"]),
+                    "points": scoring.get(option["choice"]),
                 }
-            ) for option in self._find_options(inputfield)])
+                for option in self._find_options(inputfield)
+            }
 
-            scoring_map[inputfield.get('id')] = option_scoring
+            scoring_map[inputfield.get("id")] = option_scoring
 
         return scoring_map
 
@@ -3505,8 +3546,8 @@ class AnnotationResponse(LoncapaResponse):
     def _get_max_points(self):
         """Returns a dict of the max points for each input: input id -> maxpoints."""
         scoring = self.default_scoring
-        correct_points = scoring.get('correct')
-        return dict([(inputfield.get('id'), correct_points) for inputfield in self.inputfields])  # lint-amnesty, pylint: disable=consider-using-dict-comprehension
+        correct_points = scoring.get("correct")
+        return {inputfield.get("id"): correct_points for inputfield in self.inputfields}
 
     def _find_options(self, inputfield):
         """Returns an array of dicts where each dict represents an option."""
@@ -3521,6 +3562,7 @@ class AnnotationResponse(LoncapaResponse):
         for option in self._find_options(inputfield):
             if option["choice"] == choice:
                 return option
+            return None
 
     def _unpack(self, json_value):
         """Unpacks a student response value submitted as JSON."""
@@ -3573,16 +3615,22 @@ class ChoiceTextResponse(LoncapaResponse):
     def setup_response(self):
         """
         Sets up three dictionaries for use later:
-        `correct_choices`: These are the correct binary choices(radio/checkbox)
-        `correct_inputs`: These are the numerical/string answers for required
-        inputs.
-        `answer_values`: This is a dict, keyed by the name of the binary choice
-            which contains the correct answers for the text inputs separated by
-            commas e.g. "1, 0.5"
 
-        `correct_choices` and `correct_inputs` are used for grading the problem
-        and `answer_values` is used for displaying correct answers.
+        Attributes
+        ----------
+        correct_choices : list
+            The correct binary choices (radio/checkbox).
+        correct_inputs : list
+            The numerical/string answers for required inputs.
+        answer_values : dict
+            A dictionary keyed by the name of the binary choice which contains
+            the correct answers for the text inputs, separated by commas
+            (e.g., "1, 0.5").
 
+        Notes
+        -----
+        `correct_choices` and `correct_inputs` are used for grading the problem,
+        while `answer_values` is used for displaying correct answers.
         """
         _ = self.capa_system.i18n.gettext
         context = self.context
@@ -3625,37 +3673,41 @@ class ChoiceTextResponse(LoncapaResponse):
         self.correct_choices = set(self.correct_choices.keys())
 
     def assign_choice_names(self):
-        """Initialize name attributes in <choice> and <numtolerance_input> tags for this response.
+        """
+        Initialize name attributes in <choice> and <numtolerance_input> tags
+        for this response.
 
-        Example:
-        Assuming for simplicity that `self.answer_id` = '1_2_1'
+        Example
+        -------
+        Assuming for simplicity that `self.answer_id` = '1_2_1'.
 
-        Before the function is called `self.xml` =
-        <radiotextgroup>
-            <choice correct = "true">
-                The number
-                    <numtolerance_input answer="5"/>
-                Is the mean of the list.
-            </choice>
-            <choice correct = "false">
-                False demonstration choice
-            </choice>
-        </radiotextgroup>
+        Before the function is called `self.xml`::
 
-        After this is called the choices and numtolerance_inputs will have a name
-        attribute initialized and self.xml will be:
+            <radiotextgroup>
+                <choice correct="true">
+                    The number
+                        <numtolerance_input answer="5"/>
+                    Is the mean of the list.
+                </choice>
+                <choice correct="false">
+                    False demonstration choice
+                </choice>
+            </radiotextgroup>
 
-        <radiotextgroup>
-        <choice correct = "true" name ="1_2_1_choiceinput_0bc">
-            The number
-                <numtolerance_input name = "1_2_1_choiceinput0_numtolerance_input_0"
-                 answer="5"/>
-            Is the mean of the list.
-        </choice>
-        <choice correct = "false" name = "1_2_1_choiceinput_1bc>
-            False demonstration choice
-        </choice>
-        </radiotextgroup>
+        After this is called, the choices and numtolerance_inputs will have a
+        name attribute initialized and `self.xml` will be::
+
+            <radiotextgroup>
+                <choice correct="true" name="1_2_1_choiceinput_0bc">
+                    The number
+                        <numtolerance_input name="1_2_1_choiceinput0_numtolerance_input_0"
+                        answer="5"/>
+                    Is the mean of the list.
+                </choice>
+                <choice correct="false" name="1_2_1_choiceinput_1bc">
+                    False demonstration choice
+                </choice>
+            </radiotextgroup>
         """
 
         choices = self.xml.xpath("//*[@id=$id]//choice", id=self.xml.get("id"))
@@ -3828,23 +3880,14 @@ class ChoiceTextResponse(LoncapaResponse):
             # Make sure that the staff answer is a valid number
             try:
                 correct_ans = complex(correct_ans)
-            except ValueError:
-                log.debug(
-                    "Content error--answer '%s' is not a valid complex number",
-                    correct_ans
-                )
-                raise StudentInputError(  # lint-amnesty, pylint: disable=raise-missing-from
-                    _("The Staff answer could not be interpreted as a number.")
-                )
+            except ValueError as exc:
+                log.debug("Content error--answer '%s' is not a valid complex number", correct_ans)
+                raise StudentInputError(_("The Staff answer could not be interpreted as a number.")) from exc
             # Compare the student answer to the staff answer/ or to 0
             # if all that is important is verifying numericality
             try:
-                partial_correct = compare_with_tolerance(
-                    evaluator({}, {}, answer_value),
-                    correct_ans,
-                    tolerance
-                )
-            except:
+                partial_correct = compare_with_tolerance(evaluator({}, {}, answer_value), correct_ans, tolerance)
+            except Exception as exc:
                 # Use the traceback-preserving version of re-raising with a
                 # different type
                 __, __, trace = sys.exc_info()

@@ -4,6 +4,7 @@ Factories to build CAPA response XML.
 This module provides utility classes that construct XML elements for
 different CAPA response types.
 """
+
 from abc import ABCMeta, abstractmethod
 
 import six
@@ -12,21 +13,18 @@ from six.moves import range, zip
 
 
 class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
-    """
-    Abstract base class for CAPA response XML factories.
-
-    Subclasses should override `create_response_element` and
-    `create_input_element` to produce XML for particular response types.
-    """
+    """Abstract base class for capa response XML factories.
+    Subclasses override create_response_element and
+    create_input_element to produce XML of particular response types"""
 
     @abstractmethod
     def create_response_element(self, **kwargs):
-        """
-        Create and return an etree element representing the CAPA response XML.
+        """Subclasses override to return an etree element
+        representing the capa response XML
+        (e.g. <numericalresponse>).
 
-        The element represents the response node (for example,
-        <numericalresponse>).
-        """
+        The tree should NOT contain any input elements
+        (such as <textline />) as these will be added later."""
         return None
 
     @abstractmethod
@@ -36,7 +34,8 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
         return None
 
     def build_xml(self, **kwargs):
-        """Construct an XML string for a capa response based on ``**kwargs``.
+        """Construct an XML string for a capa response
+        based on ``**kwargs``.
 
         ``**kwargs`` is a dictionary that will be passed
         to create_response_element() and create_input_element().
@@ -45,24 +44,25 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
 
         For all response types, ``**kwargs`` can contain:
 
-        - ``question_text``: The text of the question to display,
-          wrapped in <label> tags.
+        *question_text*: The text of the question to display,
+            wrapped in <label> tags.
 
-        - ``explanation_text``: The detailed explanation that will
-          be shown if the user answers incorrectly.
+        *explanation_text*: The detailed explanation that will
+            be shown if the user answers incorrectly.
 
-        - ``script``: The embedded Python script (a string)
+        *script*: The embedded Python script (a string)
 
-        - ``num_responses``: The number of responses to create [DEFAULT: 1]
+        *num_responses*: The number of responses to create [DEFAULT: 1]
 
-        - ``num_inputs``: The number of input elements
-          to create [DEFAULT: 1]
+        *num_inputs*: The number of input elements
+            to create [DEFAULT: 1]
 
-        - ``credit_type``: String of comma-separated words specifying the
-          partial credit grading scheme.
+        *credit_type*: String of comma-separated words specifying the
+            partial credit grading scheme.
 
         Returns a string representation of the XML tree.
         """
+
         # Retrieve keyward arguments
         question_text = kwargs.get("question_text", "")
         explanation_text = kwargs.get("explanation_text", "")
@@ -111,13 +111,13 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
 
     @staticmethod
     def textline_input_xml(**kwargs):
-        """Create a ``<textline/>`` XML element
+        """Create a <textline/> XML element
 
         Uses ``**kwargs``:
 
-        - ``math_display``: If True, then includes a MathJax display of user input
+        *math_display*: If True, then includes a MathJax display of user input
 
-        - ``size``: An integer representing the width of the text line
+        *size*: An integer representing the width of the text line
         """
         math_display = kwargs.get("math_display", False)
         size = kwargs.get("size", None)
@@ -138,25 +138,25 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
 
     @staticmethod
     def choicegroup_input_xml(**kwargs):
-        """Create a ``<choicegroup>`` XML element
+        """Create a <choicegroup> XML element
 
         Uses ``**kwargs``:
 
-        - ``choice_type``: Can be "checkbox", "radio", or "multiple"
+        *choice_type*: Can be "checkbox", "radio", or "multiple"
 
-        - ``choices``: List of True/False values indicating whether
-          a particular choice is correct or not.
-          Users must choose **all** correct options in order
-          to be marked correct.
-          DEFAULT: [True]
+        *choices*: List of True/False values indicating whether
+                            a particular choice is correct or not.
+                            Users must choose *all* correct options in order
+                            to be marked correct.
+                            DEFAULT: [True]
 
-        - ``choice_names``: List of strings identifying the choices.
-          If specified, you must ensure that
-          len(choice_names) == len(choices)
+        *choice_names*: List of strings identifying the choices.
+                        If specified, you must ensure that
+                        len(choice_names) == len(choices)
 
-        - ``points``: List of strings giving partial credit values (0-1)
-          for each choice. Interpreted as floats in problem.
-          If specified, ensure len(points) == len(choices)
+        *points*: List of strings giving partial credit values (0-1)
+                  for each choice. Interpreted as floats in problem.
+                  If specified, ensure len(points) == len(choices)
         """
         # Names of group elements
         group_element_names = {"checkbox": "checkboxgroup", "radio": "radiogroup", "multiple": "choicegroup"}
@@ -203,30 +203,28 @@ class NumericalResponseXMLFactory(ResponseXMLFactory):
     """Factory for producing <numericalresponse> XML trees"""
 
     def create_response_element(self, **kwargs):
-        """Create a ``<numericalresponse>`` XML element.
-
+        """Create a <numericalresponse> XML element.
         Uses ``**kwarg`` keys:
 
-        - ``answer``: The correct answer (e.g. "5")
+        *answer*: The correct answer (e.g. "5")
 
-        - ``correcthint``: The feedback describing correct answer.
+        *correcthint*: The feedback describing correct answer.
 
-        - ``additional_answers``: A dict of additional answers along with their correcthint.
+        *additional_answers*: A dict of additional answers along with their correcthint.
 
-        - ``tolerance``: The tolerance within which a response
-          is considered correct.  Can be a decimal (e.g. "0.01")
-          or percentage (e.g. "2%")
+        *tolerance*: The tolerance within which a response
+        is considered correct.  Can be a decimal (e.g. "0.01")
+        or percentage (e.g. "2%")
 
-        - ``credit_type``: String of comma-separated words specifying the
-          partial credit grading scheme.
+        *credit_type*: String of comma-separated words specifying the
+        partial credit grading scheme.
 
-        - ``partial_range``: The multiplier for the tolerance that will
-          still provide partial credit in the "close" grading style
+        *partial_range*: The multiplier for the tolerance that will
+        still provide partial credit in the "close" grading style
 
-        - ``partial_answers``: A string of comma-separated alternate
-          answers that will receive partial credit in the "list" style
+        *partial_answers*: A string of comma-separated alternate
+        answers that will receive partial credit in the "list" style
         """
-        Create a ``<numericalresponse>`` XML element.
 
         answer = kwargs.get("answer", None)
         correcthint = kwargs.get("correcthint", "")
@@ -270,7 +268,6 @@ class NumericalResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Create and return the ``<textline>`` input element."""
         return ResponseXMLFactory.textline_input_xml(**kwargs)
 
 
@@ -278,25 +275,25 @@ class CustomResponseXMLFactory(ResponseXMLFactory):
     """Factory for producing <customresponse> XML trees"""
 
     def create_response_element(self, **kwargs):
-        """Create a ``<customresponse>`` XML element.
+        """Create a <customresponse> XML element.
 
         Uses ``**kwargs``:
 
-        - ``cfn``: The Python code to run. Can be inline code,
-          or the name of a function defined in earlier ``<script>`` tags.
+        *cfn*: the Python code to run.  Can be inline code,
+        or the name of a function defined in earlier <script> tags.
 
-          Should have the form: ``cfn(expect, answer_given, student_answers)``
-          where ``expect`` is a value (see below),
-          ``answer_given`` is a single value (for 1 input)
-          or a list of values (for multiple inputs),
-          and ``student_answers`` is a dict of answers by input ID.
+        Should have the form: cfn(expect, answer_given, student_answers)
+        where expect is a value (see below),
+        answer_given is a single value (for 1 input)
+        or a list of values (for multiple inputs),
+        and student_answers is a dict of answers by input ID.
 
-        - ``expect``: The value passed to the function ``cfn``.
+        *expect*: The value passed to the function cfn
 
-        - ``answer``: Inline script that calculates the answer.
+        *answer*: Inline script that calculates the answer
 
-        - ``answer_attr``: The "answer" attribute on the tag itself (treated as an
-          alias to ``expect``, though ``expect`` takes priority if both are given).
+        *answer_attr*: The "answer" attribute on the tag itself (treated as an
+        alias to "expect", though "expect" takes priority if both are given)
         """
 
         # Retrieve **kwargs
@@ -332,7 +329,6 @@ class CustomResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Create and return the ``<textline>`` input element."""
         return ResponseXMLFactory.textline_input_xml(**kwargs)
 
 
@@ -340,11 +336,11 @@ class SchematicResponseXMLFactory(ResponseXMLFactory):
     """Factory for creating <schematicresponse> XML trees"""
 
     def create_response_element(self, **kwargs):
-        """Create the ``<schematicresponse>`` XML element.
+        """Create the <schematicresponse> XML element.
 
-        Uses ``**kwargs``:
+        Uses *kwargs*:
 
-        - ``answer``: The Python script used to evaluate the answer.
+        *answer*: The Python script used to evaluate the answer.
         """
         answer_script = kwargs.get("answer", None)
 
@@ -363,51 +359,40 @@ class SchematicResponseXMLFactory(ResponseXMLFactory):
         """Create the <schematic> XML element.
 
         Although <schematic> can have several attributes,
-        (``height``, ``width``, ``parts``, ``analyses``, ``submit_analysis``, and ``initial_value``),
+        (*height*, *width*, *parts*, *analyses*, *submit_analysis*, and *initial_value*),
         none of them are used in the capa block.
-        For testing, we create a bare-bones version of <schematic>.
-        """
+        For testing, we create a bare-bones version of <schematic>."""
         return etree.Element("schematic")
 
 
 class CodeResponseXMLFactory(ResponseXMLFactory):
-    """Factory for creating ``<coderesponse>`` XML trees"""
+    """Factory for creating <coderesponse> XML trees"""
 
     def build_xml(self, **kwargs):
-        """Build a <coderesponse> XML tree.
-
-        Since we are providing an <answer> tag,
-        we override the default behavior of including a <solution> tag as well.
-        """
+        """Build a <coderesponse> XML tree."""
+        # Since we are providing an <answer> tag,
+        # we should override the default behavior
+        # of including a <solution> tag as well
         kwargs["explanation_text"] = None
         return super().build_xml(**kwargs)
 
     def create_response_element(self, **kwargs):
-        """Create a ``<coderesponse>`` XML element.
+        """
+        Create a <coderesponse> XML element.
 
         Uses ``**kwargs``:
 
-        - ``initial_display``: The code that initially appears in the textbox.
-          Defaults to "Enter code here".
-        - ``answer_display``: The answer to display to the student.
-          Defaults to "This is the correct answer!".
-        - ``grader_payload``: A JSON-encoded string sent to the grader.
-          Defaults to "{}".
-        - ``allowed_files``: A space-separated string of file names.
-          Defaults to ``None``.
-        - ``required_files``: A space-separated string of file names.
-          Defaults to ``None``.
+        *initial_display*: The code that initially appears in the textbox
+                            [DEFAULT: "Enter code here"]
+        *answer_display*: The answer to display to the student
+                            [DEFAULT: "This is the correct answer!"]
+        *grader_payload*: A JSON-encoded string sent to the grader
+                            [DEFAULT: empty dict string]
+        *allowed_files*: A space-separated string of file names.
+                            [DEFAULT: None]
+        *required_files*: A space-separated string of file names.
+                            [DEFAULT: None]
 
-        - ``initial_display``: The code that initially appears in the textbox
-          [DEFAULT: "Enter code here"].
-        - ``answer_display``: The answer to display to the student
-          [DEFAULT: "This is the correct answer!"].
-        - ``grader_payload``: A JSON-encoded string sent to the grader
-          [DEFAULT: empty dict string].
-        - ``allowed_files``: A space-separated string of file names
-          [DEFAULT: None].
-        - ``required_files``: A space-separated string of file names
-          [DEFAULT: None].
         """
         # Get **kwargs
         initial_display = kwargs.get("initial_display", "Enter code here")
@@ -451,7 +436,8 @@ class CodeResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Return None because input is created in `create_response_element`."""
+        # Since we create this in create_response_element(),
+        # return None here
         return None
 
 
@@ -471,34 +457,32 @@ class FormulaResponseXMLFactory(ResponseXMLFactory):
     """Factory for creating <formularesponse> XML trees"""
 
     def create_response_element(self, **kwargs):
-        """Create a ``<formularesponse>`` element.
+        """Create a <formularesponse> element.
 
-        Uses ``**kwargs``:
+        *sample_dict*: A dictionary of the form:
+                        { VARIABLE_NAME: (MIN, MAX), ....}
 
-        - ``sample_dict``: A dictionary of the form:
-          { VARIABLE_NAME: (MIN, MAX), ....}
+                        This specifies the range within which
+                        to numerically sample each variable to check
+                        student answers.
+                        [REQUIRED]
 
-          This specifies the range within which
-          to numerically sample each variable to check
-          student answers.
-          [REQUIRED]
+        *num_samples*: The number of times to sample the student's answer
+                        to numerically compare it to the correct answer.
 
-        - ``num_samples``: The number of times to sample the student's answer
-          to numerically compare it to the correct answer.
+        *tolerance*: The tolerance within which answers will be accepted
+                        [DEFAULT: 0.01]
 
-        - ``tolerance``: The tolerance within which answers will be accepted
-          [DEFAULT: 0.01]
+        *answer*: The answer to the problem.  Can be a formula string
+                    or a Python variable defined in a script
+                    (e.g. "$calculated_answer" for a Python variable
+                    called calculated_answer)
+                    [REQUIRED]
 
-        - ``answer``: The answer to the problem.  Can be a formula string
-          or a Python variable defined in a script
-          (e.g. "$calculated_answer" for a Python variable
-          called calculated_answer)
-          [REQUIRED]
-
-        - ``hints``: List of (hint_prompt, hint_name, hint_text) tuples
-          Where ``hint_prompt`` is the formula for which we show the hint,
-          ``hint_name`` is an internal identifier for the hint,
-          and ``hint_text`` is the text we show for the hint.
+        *hints*: List of (hint_prompt, hint_name, hint_text) tuples
+                Where *hint_prompt* is the formula for which we show the hint,
+                *hint_name* is an internal identifier for the hint,
+                and *hint_text* is the text we show for the hint.
         """
         # Retrieve kwargs
         sample_dict = kwargs.get("sample_dict", None)
@@ -552,7 +536,6 @@ class FormulaResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Create and return the ``<textline>`` input element."""
         return ResponseXMLFactory.textline_input_xml(**kwargs)
 
     def _sample_str(self, sample_dict, num_samples, tolerance):  # pylint: disable=unused-argument
@@ -584,33 +567,30 @@ class ImageResponseXMLFactory(ResponseXMLFactory):
         return etree.Element("imageresponse")
 
     def create_input_element(self, **kwargs):
-        """Create the ``<imageinput>`` element.
+        """Create the <imageinput> element.
 
         Uses ``**kwargs``:
 
-        - ``src``: URL for the image file [DEFAULT: "/static/image.jpg"]
+        *src*: URL for the image file [DEFAULT: "/static/image.jpg"]
 
-        - ``width``: Width of the image [DEFAULT: 100]
+        *width*: Width of the image [DEFAULT: 100]
 
-        - ``height``: Height of the image [DEFAULT: 100]
+        *height*: Height of the image [DEFAULT: 100]
 
-        - ``rectangle``: String representing the rectangles the user should select.
+        *rectangle*: String representing the rectangles the user should select.
 
-          Takes the form "(x1,y1)-(x2,y2)", where the two (x,y)
-          tuples define the corners of the rectangle.
+                    Take the form "(x1,y1)-(x2,y2)", where the two (x,y)
+                    tuples define the corners of the rectangle.
 
-          Can include multiple rectangles separated by a semicolon, e.g.
-          "(490,11)-(556,98);(242,202)-(296,276)"
+                    Can include multiple rectangles separated by a semicolon, e.g.
+                    "(490,11)-(556,98);(242,202)-(296,276)"
 
-        - ``regions``: String representing the regions a user can select
+        *regions*: String representing the regions a user can select
 
-          Takes the form "[ [[x1,y1], [x2,y2], [x3,y3]], [[x1,y1], [x2,y2], [x3,y3]] ]"
+                    Take the form "[ [[x1,y1], [x2,y2], [x3,y3]], [[x1,y1], [x2,y2], [x3,y3]] ]"
+                    (Defines two regions, each with 3 points)
 
-          (Defines two regions, each with 3 points)
-
-        .. note::
-            Either ``rectangle`` or ``region`` (or both) are required.
-
+        REQUIRED: Either *rectangle* or *region* (or both)
         """
 
         # Get the **kwargs
@@ -639,8 +619,7 @@ class ImageResponseXMLFactory(ResponseXMLFactory):
 
 class JSInputXMLFactory(CustomResponseXMLFactory):
     """
-    Factory for producing ``<jsinput>`` XML.
-
+    Factory for producing <jsinput> XML.
     Note that this factory currently does not create a functioning problem.
     It will only create an empty iframe.
     """
@@ -684,19 +663,16 @@ class OptionResponseXMLFactory(ResponseXMLFactory):
         return etree.Element("optionresponse")
 
     def create_input_element(self, **kwargs):
-        """Create the ``<optioninput>`` element.
+        """Create the <optioninput> element.
 
         Uses ``**kwargs``:
 
-        - ``options``: a list of possible options the user can choose from.
-          You must specify at least 2 options.
-        - ``correct_option``: the correct choice from the list of options.
+        *options*: a list of possible options the user can choose from [REQUIRED]
+                    You must specify at least 2 options.
 
-        .. note::
-            Both ``options`` and ``correct_option`` are required.
+        *correct_option*: the correct choice from the list of options [REQUIRED]
 
         """
-        Create the ``<optioninput>`` element.
 
         options_list = kwargs.get("options", None)
         correct_option = kwargs.get("correct_option", None)
@@ -724,41 +700,29 @@ class StringResponseXMLFactory(ResponseXMLFactory):
     """Factory for producing <stringresponse> XML"""
 
     def create_response_element(self, **kwargs):
-        """Create a ``<stringresponse>`` XML element.
+        """Create a <stringresponse> XML element.
 
         Uses ``**kwargs``:
 
-        - ``answer``: The correct answer (a string) [REQUIRED]
+        *answer*: The correct answer (a string) [REQUIRED]
 
-        - ``case_sensitive``: Whether the response is case-sensitive (True/False)
-          [DEFAULT: True]
+        *case_sensitive*: Whether the response is case-sensitive (True/False)
+                        [DEFAULT: True]
 
-        - ``hints``: List of (hint_prompt, hint_name, hint_text) tuples
-          Where ``hint_prompt`` is the string for which we show the hint,
-          ``hint_name`` is an internal identifier for the hint,
-          and ``hint_text`` is the text we show for the hint.
+        *hints*: List of (hint_prompt, hint_name, hint_text) tuples
+            Where *hint_prompt* is the string for which we show the hint,
+            *hint_name* is an internal identifier for the hint,
+            and *hint_text* is the text we show for the hint.
 
-        - ``hintfn``: The name of a function in the script to use for hints.
+        *hintfn*: The name of a function in the script to use for hints.
 
-        - ``regexp``: Whether the response is regexp
+        *regexp*: Whether the response is regexp
 
-        - ``additional_answers``: list of additional answers.
+        *additional_answers*: list of additional answers.
 
-        - ``non_attribute_answers``: list of additional answers to be coded in the
-          non-attribute format
+        *non_attribute_answers*: list of additional answers to be coded in the
+            non-attribute format
 
-        - ``answer``: The correct answer (a string). [REQUIRED]
-        - ``case_sensitive``: Whether the response is case-sensitive
-          (True/False). [DEFAULT: True]
-        - ``hints``: List of ``(hint_prompt, hint_name, hint_text)`` tuples
-          where ``hint_prompt`` is the string for which we show the hint,
-          ``hint_name`` is an internal identifier for the hint, and
-          ``hint_text`` is the text we show for the hint.
-        - ``hintfn``: The name of a function in the script to use for hints.
-        - ``regexp``: Whether the response is a regular expression.
-        - ``additional_answers``: List of additional answers.
-        - ``non_attribute_answers``: List of additional answers to be coded in
-          the non-attribute format.
         """
         # Retrieve the **kwargs
         answer = kwargs.get("answer", None)
@@ -815,7 +779,6 @@ class StringResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Create and return the ``<textline>`` input element."""
         return ResponseXMLFactory.textline_input_xml(**kwargs)
 
 
@@ -828,6 +791,7 @@ class AnnotationResponseXMLFactory(ResponseXMLFactory):
 
     def create_input_element(self, **kwargs):
         """Create a <annotationinput> element."""
+
         input_element = etree.Element("annotationinput")
 
         text_children = [
@@ -856,15 +820,14 @@ class SymbolicResponseXMLFactory(ResponseXMLFactory):
     """Factory for producing <symbolicresponse> xml"""
 
     def create_response_element(self, **kwargs):
-        """Build the ``<symbolicresponse>`` XML element.
+        """Build the <symbolicresponse> XML element.
 
         Uses ``**kwargs``:
 
-        - ``expect``: The correct answer (a sympy string)
+        *expect*: The correct answer (a sympy string)
 
-        - ``options``: list of option strings to pass to symmath_check
-          (e.g. 'matrix', 'qbit', 'imaginary', 'numerical')
-        """
+        *options*: list of option strings to pass to symmath_check
+            (e.g. 'matrix', 'qbit', 'imaginary', 'numerical')"""
 
         # Retrieve **kwargs
         expect = kwargs.get("expect", "")
@@ -885,7 +848,6 @@ class SymbolicResponseXMLFactory(ResponseXMLFactory):
         return response_element
 
     def create_input_element(self, **kwargs):
-        """Create and return the ``<textline>`` input element."""
         return ResponseXMLFactory.textline_input_xml(**kwargs)
 
 

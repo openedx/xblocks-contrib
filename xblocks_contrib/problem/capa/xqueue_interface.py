@@ -11,7 +11,6 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 from opaque_keys.edx.keys import CourseKey
-from openedx.core.djangoapps.waffle_utils import CourseWaffleFlag  # pylint: disable=import-error
 from requests.auth import HTTPBasicAuth
 
 from xblocks_contrib.problem.capa.xqueue_submission import XQueueInterfaceSubmission
@@ -39,7 +38,9 @@ READ_TIMEOUT = 10  # seconds
 # .. toggle_will_remain_in_codebase: True
 # .. toggle_tickets: none
 # .. toggle_status: supported
-SEND_TO_SUBMISSION_COURSE_FLAG = CourseWaffleFlag("send_to_submission_course.enable", __name__)
+# from openedx.core.djangoapps.waffle_utils import CourseWaffleFlag
+SEND_TO_SUBMISSION_COURSE_FLAG = False
+# CourseWaffleFlag("send_to_submission_course.enable", __name__)
 
 
 def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:  # pylint: disable=unused-argument

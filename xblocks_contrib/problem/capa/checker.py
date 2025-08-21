@@ -5,12 +5,11 @@ Command-line tool for doing operations on Problems
 
 import argparse
 import logging
-import os
 import sys
 from io import BytesIO
 
 from calc import UndefinedVariable
-from django.template import engines
+from mako.lookup import TemplateLookup
 from path import Path as path
 
 from xblocks_contrib.problem.capa.capa_problem import LoncapaProblem
@@ -23,22 +22,14 @@ class DemoSystem:
     """Render templates using Django's template engine."""
 
     def __init__(self):
-        self.template_dirs = [path(__file__).dirname() / "templates"]
+        self.lookup = TemplateLookup(directories=[path(__file__).dirname() / "templates"])
         self.DEBUG = True
 
     def render_template(self, template_filename, dictionary):
         """
         Render the specified template with the given dictionary of context data.
-        Uses Django templates instead of Mako.
         """
-        django_engine = engines["django"]
-        for directory in self.template_dirs:
-            template_path = os.path.join(directory, template_filename)
-            if os.path.exists(template_path):
-                with open(template_path, encoding="utf-8") as f:
-                    template = django_engine.from_string(f.read())
-                return template.render(dictionary)
-        raise FileNotFoundError(f"Template '{template_filename}' not found in {self.template_dirs}")
+        return self.lookup.get_template(template_filename.split("/")[-1]).render(**dictionary)
 
 
 def main():

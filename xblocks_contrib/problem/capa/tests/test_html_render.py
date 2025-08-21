@@ -204,10 +204,10 @@ class CapaHtmlRenderTest(unittest.TestCase):
         expected_solution_context = {"id": "1_solution_1"}
 
         expected_calls = [
-            mock.call("textline.html", expected_textline_context),
-            mock.call("solutionspan.html", expected_solution_context),
-            mock.call("textline.html", expected_textline_context),
-            mock.call("solutionspan.html", expected_solution_context),
+            mock.call("capa/templates/textline.html", expected_textline_context),
+            mock.call("capa/templates/solutionspan.html", expected_solution_context),
+            mock.call("capa/templates/textline.html", expected_textline_context),
+            mock.call("capa/templates/solutionspan.html", expected_solution_context),
         ]
 
         assert the_system.render_template.call_args_list == expected_calls

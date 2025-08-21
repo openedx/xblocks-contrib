@@ -73,16 +73,16 @@ def get_codejail_rest_service_endpoint():
 
 
 def send_safe_exec_request_v0(data):
-    """Sends a request to a codejail api service forwarding required code and files.
+    """
+    Sends a request to a codejail api service forwarding required code and files.
 
-    Args:
-        data (dict): A dictionary containing code and other parameters
-            required for jailed code execution. It should also include
-            any extra_files (like a python_lib.zip) needed by the
-            jailed code.
+    Arguments:
+        data: Dict containing code and other parameters
+            required for jailed code execution.
+            It also includes extra_files (python_lib.zip) required by the codejail execution.
 
     Returns:
-        The response object received from the codejail API service.
+        Response received from codejail api service
     """
     globals_dict = data["globals_dict"]
     extra_files = data.pop("extra_files")
