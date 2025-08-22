@@ -8,6 +8,40 @@
 function Problem(runtime, element) {
     'use strict';
 
+    var JavascriptLoader = {
+    executeModuleScripts: function(element, callback) {
+        // Find all script tags within the provided jQuery element
+            $(element).find('script').each(function() {
+                var scriptNode = this;
+                var newScript = document.createElement('script');
+
+                // Copy the script type attribute
+                if (scriptNode.type) {
+                    newScript.type = scriptNode.type;
+                }
+
+                // If the script has a 'src', it's an external file.
+                // Otherwise, it's an inline script with text content.
+                if (scriptNode.src) {
+                    newScript.src = scriptNode.src;
+                } else {
+                    newScript.textContent = scriptNode.textContent;
+                }
+
+                // Append the new script to the document's head to execute it,
+                // then remove it immediately to keep the DOM clean.
+                document.head.appendChild(newScript).parentNode.removeChild(newScript);
+            });
+
+            // If a callback function was provided, execute it asynchronously
+            // to ensure the DOM has had a chance to update.
+            if (typeof callback === 'function') {
+                setTimeout(callback, 0);
+            }
+        }
+    };
+
+
     var indexOfHelper = [].indexOf
         || function(item) {
             var i, len;
