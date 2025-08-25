@@ -1,3 +1,4 @@
+{% load i18n %}
 <div id="inputtype_{{ id }}" class="capa_inputtype">
     <div class="drag_and_drop_problem_div"
          id="drag_and_drop_div_{{ id }}"
@@ -17,10 +18,24 @@
                value="{{ value }}"
                style="display:none" />
         <p class="indicator-container drag-and-drop--status"
-           aria-describedby="input_{{ id }}">{% include "status_span.html" with status=status status_id=id %}</p>
-        <p id="answer_{{ id }}" class="answer"></p>
-        {% if msg %}<span class="message" tabindex="-1">{{ msg|safe }}</span>{% endif %}
-        {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
-        </div>
-    {% endif %}
-</div>
+           aria-describedby="input_{{ id }}">
+            {% if id == '' %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% else %}
+                    <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                          id="status_{{ id }}"
+                          data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                    {% endif %}
+                    {% if not hide_correctness %}
+                        <span class="sr">{{ status.display_name }}</span>
+                        <span class="status-icon" aria-hidden="true"></span>
+                    {% endif %}
+                </span>
+            </p>
+            <p id="answer_{{ id }}" class="answer"></p>
+            {% if msg %}<span class="message" tabindex="-1">{{ msg|safe }}</span>{% endif %}
+            {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+            </div>
+        {% endif %}
+    </div>

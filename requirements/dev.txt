@@ -24,7 +24,7 @@ astroid==3.3.11
     #   -r requirements/quality.txt
     #   pylint
     #   pylint-celery
-beautifulsoup4==4.13.4
+beautifulsoup4==4.13.5
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -273,6 +273,16 @@ jmespath==1.0.1
     #   -r requirements/test.txt
     #   boto3
     #   botocore
+joblib==1.5.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   nltk
+jsonfield==3.2.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-submissions
 lxml[html-clean]==6.0.1
     # via
     #   -r requirements/quality.txt
@@ -504,6 +514,15 @@ pyyaml==6.0.2
     #   edx-django-release-util
     #   edx-i18n-tools
     #   xblock
+random2==1.0.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+regex==2025.7.34
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   nltk
 requests==2.32.5
     # via
     #   -r requirements/quality.txt
@@ -585,6 +604,11 @@ tox==4.28.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
+tqdm==4.67.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   nltk
 types-python-dateutil==2.9.0.20250822
     # via
     #   -r requirements/quality.txt

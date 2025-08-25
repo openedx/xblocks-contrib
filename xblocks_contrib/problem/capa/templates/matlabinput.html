@@ -1,3 +1,4 @@
+{% load i18n %}
 <section id="textbox_{{ id }}" class="capa_inputtype cminput">
     <div class="script_placeholder" data-src="{{ matlab_editor_js }}"></div>
     <textarea rows="{{ rows }}"
@@ -10,24 +11,36 @@
               {% if linenumbers %} data-linenums="true" {% endif %}
               {% if hidden %} style="display:none;" {% endif %}>{{ value }}</textarea>
     <div class="grader-status" tabindex="-1">
-        {% include "status_span.html" with status=status status_id=id %}
-        {% if status == 'queued' %}<span style="display:none;" class="xqueue" id="{{ id }}">{{ queue_len }}</span>{% endif %}
-        {% if hidden %}<div style="display:none;" name="{{ hidden }}" inputid="input_{{ id }}" />{% endif %}
-        <p class="debug">{{ status.display_name }}</p>
-    </div>
-    <span id="answer_{{ id }}"></span>
-    <div class="external-grader-message" aria-live="polite">{{ msg|safe }}</div>
-    <div class="ungraded-matlab-result" aria-live="polite">{{ queue_msg|safe }}</div>
-    {% if button_enabled %}
-        <div class="plot-button">
-            <input type="button"
-                   class="save"
-                   name="plot-button"
-                   id="plot_{{ id }}"
-                   value="Run Code" />
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+            {% if status == 'queued' %}<span style="display:none;" class="xqueue" id="{{ id }}">{{ queue_len }}</span>{% endif %}
+            {% if hidden %}<div style="display:none;" name="{{ hidden }}" inputid="input_{{ id }}" />{% endif %}
+            <p class="debug">{{ status.display_name }}</p>
         </div>
-    {% endif %}
-    <script type="text/javascript">
+        <span id="answer_{{ id }}"></span>
+        <div class="external-grader-message" aria-live="polite">{{ msg|safe }}</div>
+        <div class="ungraded-matlab-result" aria-live="polite">{{ queue_msg|safe }}</div>
+        {% if button_enabled %}
+            <div class="plot-button">
+                <input type="button"
+                       class="save"
+                       name="plot-button"
+                       id="plot_{{ id }}"
+                       value="Run Code" />
+            </div>
+        {% endif %}
+        <script type="text/javascript">
     $(function(){
       var gentle_alert = function (parent_elt, msg) {
           if($(parent_elt).find('.capa_alert').length) {
@@ -117,5 +130,5 @@
       $('#plot_{{ id }}').click(plot);
 
     });
-    </script>
-</section>
+        </script>
+    </section>

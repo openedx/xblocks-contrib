@@ -1,3 +1,4 @@
+{% load i18n %}
 <div id="inputtype_{{ id }}"
      {% if do_math and inline %} class="text-input-dynamath capa_inputtype inline textline" {% elif do_math %} class="text-input-dynamath capa_inputtype  textline" {% elif inline %} class=" capa_inputtype inline textline" {% else %} class=" capa_inputtype  textline" {% endif %}>
     {% if preprocessor %}
@@ -24,16 +25,28 @@
                {% if size %}size="{{ size }}"{% endif %}
                {% if hidden %}style="display:none;"{% endif %} />
         <span class="trailing_text" id="trailing_text_{{ id }}">{{ trailing_text }}</span>
-        {% include "status_span.html" with status=status status_id=id %}
-        <p id="answer_{{ id }}" class="answer"></p>
-        {% if do_math %}
-            <div id="display_{{ id }}" class="equation">`{::}`</div>
-            <textarea style="display:none"
-                      id="input_{{ id }}_dynamath"
-                      name="input_{{ id }}_dynamath"></textarea>
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+            <p id="answer_{{ id }}" class="answer"></p>
+            {% if do_math %}
+                <div id="display_{{ id }}" class="equation">`{::}`</div>
+                <textarea style="display:none"
+                          id="input_{{ id }}_dynamath"
+                          name="input_{{ id }}_dynamath"></textarea>
+            {% endif %}
+            {% if status == 'unsubmitted' or status == 'submitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+            </div>
         {% endif %}
-        {% if status == 'unsubmitted' or status == 'submitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
-        </div>
-    {% endif %}
-    {% if msg %}<span class="message" aria-describedby="label_{{ id }}" tabindex="-1">{{ msg|safe }}</span>{% endif %}
-</div>
+        {% if msg %}<span class="message" aria-describedby="label_{{ id }}" tabindex="-1">{{ msg|safe }}</span>{% endif %}
+    </div>

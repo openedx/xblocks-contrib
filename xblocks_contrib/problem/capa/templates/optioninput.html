@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="inputtype option-input {% if inline %}inline{% endif %}">
     {% if response_data.label %}
         <label class="problem-group-label" for="input_{{ id }}" id="label_{{ id }}">{{ response_data.label }}</label>
@@ -14,7 +15,21 @@
             </option>
         {% endfor %}
     </select>
-    <div class="indicator-container">{% include "status_span.html" with status=status status_id=id %}</div>
-    <p class="answer" id="answer_{{ id }}"></p>
-    {% if msg %}<span class="message" aria-describedby="label_{{ id }}" tabindex="-1">{{ msg|safe }}</span>{% endif %}
-</div>
+    <div class="indicator-container">
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+        </div>
+        <p class="answer" id="answer_{{ id }}"></p>
+        {% if msg %}<span class="message" aria-describedby="label_{{ id }}" tabindex="-1">{{ msg|safe }}</span>{% endif %}
+    </div>

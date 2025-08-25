@@ -27,13 +27,29 @@
     </fieldset>
     <div class="indicator-container">
         {% if show_correctness != 'never' %}
-            {% include "status_span.html" with status=status status_id=id %}
-        {% else %}
-            {% include "status_span.html" with status=status status_id=id hide_correctness=True %}
+            {% if id == '' %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% else %}
+                    <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                          id="status_{{ id }}"
+                          data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                    {% endif %}
+                    {% if not hide_correctness %}
+                        <span class="sr">{{ status.display_name }}</span>
+                        <span class="status-icon" aria-hidden="true"></span>
+                    {% endif %}
+                </span>
+            {% else %}
+                {% if id == '' %}
+                    <span class="status" data-tooltip=""></span>
+                {% else %}
+                    <span class="status" id="status_{{ id }}" data-tooltip=""></span>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% if show_correctness == "never" and value or status != "unsubmitted" %}
+            <div class="capa_alert">{{ submitted_message }}</div>
         {% endif %}
+        {% if msg %}<span class="message" aria-describedby="{{ id }}-legend" tabindex="-1">{{ msg|safe }}</span>{% endif %}
     </div>
-    {% if show_correctness == "never" and value or status != "unsubmitted" %}
-        <div class="capa_alert">{{ submitted_message }}</div>
-    {% endif %}
-    {% if msg %}<span class="message" aria-describedby="{{ id }}-legend" tabindex="-1">{{ msg|safe }}</span>{% endif %}
-</div>

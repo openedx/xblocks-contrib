@@ -27,7 +27,7 @@ class DemoSystem:
         """
         Render the specified template with the given dictionary of context data.
         """
-        template = get_template(template_filename)
+        template = get_template(template_filename.split("capa/templates/")[-1])
         return template.render(dictionary)
 
 
