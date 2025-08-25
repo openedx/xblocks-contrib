@@ -1,45 +1,12 @@
-<%page expression_filter="h"/>
-<div class="imageinput capa_inputtype" id="inputtype_${id}">
-  <input
-    type="hidden"
-    class="imageinput"
-    src="${src}"
-    name="input_${id}"
-    id="input_${id}"
-    value="${value}"
-  />
-  <div style="position:relative;">
-    <div
-      id="imageinput_${id}"
-      style="
-        background-image: url('${src}');
-        width: ${width}px;
-        height: ${height}px;
-        position: relative;
-        left: 0;
-        top: 0;"
-    >
-      <img
-        src="${STATIC_URL}images/green-pointer.png"
-        id="cross_${id}"
-        style="position: absolute; top: ${gy}px; left: ${gx}px;"
-        alt="Selection indicator"
-      />
-    </div>
-    <div
-      data-width="${width}"
-      data-height="${height}"
-      id="answer_${id}"
-      style="
-        position: absolute;
-        left: 0;
-        top: 0;"
-    ></div>
-  </div>
-
-  <script type="text/javascript" charset="utf-8">
-    (new ImageInput('${id | n, decode.utf8}'));
-  </script>
-
-  <%include file="capa/templates/status_span.html" args="status=status, status_id=id"/>
+<div class="option-input">
+    <input type="hidden"
+           class="option-input"
+           id="option_input_{{ id }}"
+           name="input_{{ id }}"
+           value="{{ value }}" />
+    <div class="message-aside" id="status_{{ id }}">{% include "status_span.html" with status=status status_id=id %}</div>
+    <span id="answer_{{ id }}"></span>
+    {% if (status == 'unsubmitted' or status == 'correct' or status == 'incorrect') and msg %}
+        <span class="message" tabindex="-1">{{ msg|safe }}</span>
+    {% endif %}
 </div>

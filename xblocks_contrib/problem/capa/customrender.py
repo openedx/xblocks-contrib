@@ -107,7 +107,7 @@ class SolutionRenderer:
 
     def get_html(self):
         context = {"id": self.id}
-        html = self.system.render_template("capa/templates/solutionspan.html", context)
+        html = self.system.render_template("solutionspan.html", context)
         return etree.XML(html)
 
 

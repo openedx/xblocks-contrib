@@ -9,8 +9,7 @@ import sys
 from io import BytesIO
 
 from calc import UndefinedVariable
-from mako.lookup import TemplateLookup
-from path import Path as path
+from django.template.loader import get_template
 
 from xblocks_contrib.problem.capa.capa_problem import LoncapaProblem
 
@@ -22,14 +21,14 @@ class DemoSystem:
     """Render templates using Django's template engine."""
 
     def __init__(self):
-        self.lookup = TemplateLookup(directories=[path(__file__).dirname() / "templates"])
         self.DEBUG = True
 
     def render_template(self, template_filename, dictionary):
         """
         Render the specified template with the given dictionary of context data.
         """
-        return self.lookup.get_template(template_filename.split("/")[-1]).render(**dictionary)
+        template = get_template(template_filename)
+        return template.render(dictionary)
 
 
 def main():
