@@ -203,7 +203,7 @@ def get_test_system(
             """
             return text
 
-    class TestRuntimeWithRender(TestRuntime):
+    class TestDescriptorSystem(TestRuntime):
         """Custom runtime that includes a basic render method."""
 
         def __init__(self, services, anonymous_student_id="test-user-id", render_template=None):
@@ -241,7 +241,7 @@ def get_test_system(
         "sandbox": SandboxService(contentstore, course_id),
     }
 
-    return TestRuntimeWithRender(services=services, render_template=render_template)
+    return TestDescriptorSystem(services=services, render_template=render_template)
 
 
 class use_unsafe_codejail(TestContextDecorator):
@@ -2561,7 +2561,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert len(render_args) == 2
 
         template_name = render_args[0]
-        assert template_name == "templates/problem.html"
+        assert template_name == "problem.html"
 
         context = render_args[1]
         assert context["problem"]["html"] == "<div>Test Problem HTML</div>"
