@@ -19,15 +19,17 @@ import markupsafe
 import nh3
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.encoding import smart_str
 from django.utils.functional import cached_property
 from lxml import etree
-from opaque_keys.edx.keys import UsageKey
+from lxml.etree import ElementTree, XMLParser
+from opaque_keys.edx.keys import CourseKey, UsageKey
 from pytz import utc
 from web_fragments.fragment import Fragment
 from webob import Response
 from webob.multidict import MultiDict
-from xblock.core import XBlock
+from xblock.core import XML_NAMESPACES, XBlock
 from xblock.fields import Boolean, Dict, Float, Integer, List, Scope, ScopeIds, String, UserScope, XMLString
 from xblock.scorable import ScorableXBlockMixin, Score
 from xblock.utils.resources import ResourceLoader
@@ -52,6 +54,9 @@ def _(text):
     return text
 
 
+# assume all XML files are persisted as utf-8.
+EDX_XML_PARSER = XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding="utf-8")
+
 resource_loader = ResourceLoader(__name__)
 
 # The global (course-agnostic) anonymous user ID for the user.
@@ -65,6 +70,52 @@ ATTR_KEY_USER_IS_STAFF = "edx-platform.user_is_staff"
 NUM_RANDOMIZATION_BINS = 20
 # Never produce more than this many different seeds, no matter what.
 MAX_RANDOMIZATION_BINS = 1000
+
+
+class EdxJSONEncoder(DjangoJSONEncoder):
+    """
+    Custom JSONEncoder that handles ``Location`` and ``datetime.datetime`` objects.
+    Encodes ``Location`` as its URL string form, and ``datetime.datetime`` as an ISO 8601 string.
+    """
+
+    def default(self, o):
+        if isinstance(o, (CourseKey, UsageKey)):
+            return str(o)
+        elif isinstance(o, datetime.datetime):
+            if o.tzinfo is not None:
+                if o.utcoffset() is None:
+                    return o.isoformat() + "Z"
+                else:
+                    return o.isoformat()
+            else:
+                return o.isoformat()
+        else:
+            return super().default(o)
+
+
+def own_metadata(block):
+    """
+    Return a JSON-friendly dictionary that contains only non-inherited field
+    keys, mapped to their serialized values
+    """
+    return block.get_explicitly_set_fields_by_scope(Scope.settings)
+
+
+def serialize_field(value):
+    """
+    Return a string version of the value (where value is the JSON-formatted, internally stored value).
+
+    If the value is a string, then we simply return what was passed in.
+    Otherwise, we return json.dumps on the input value.
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, datetime.datetime):
+        if value.tzinfo is not None and value.utcoffset() is None:
+            return value.isoformat() + "Z"
+        return value.isoformat()
+
+    return json.dumps(value, cls=EdxJSONEncoder)
 
 
 def deserialize_field(field, value):
@@ -97,6 +148,14 @@ def deserialize_field(field, value):
     except (ValueError, TypeError):
         # Support older serialized version.
         return value
+
+
+def name_to_pathname(name):
+    """
+    Convert a location name for use in a path: replace ':' with '/'.
+    This allows users of the xml format to organize content into directories
+    """
+    return name.replace(":", "/")
 
 
 def is_pointer_tag(xml_obj):
@@ -724,8 +783,8 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
     @property
     def non_editable_metadata_fields(self):
         """Return metadata fields that cannot be edited in Studio."""
-
-        non_editable_fields = super().non_editable_metadata_fields  # pylint: disable=no-member
+        non_editable_fields = super().non_editable_metadata_fields  # pylint:disable=no-member
+        non_editable_fields.append(self.xml_attributes)
         non_editable_fields.extend(
             [
                 ProblemBlock.due,
@@ -2610,11 +2669,47 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         self.save()
         return self._field_data._kvs  # pylint: disable=protected-access
 
+    @XBlock.handler
+    def xmodule_handler(self, request, suffix=None):
+        """XBlock handler that wraps `handle_ajax`"""
+
+        class FileObjForWebobFiles:
+            """
+            Turn Webob cgi.FieldStorage uploaded files into pure file objects.
+
+            Webob represents uploaded files as cgi.FieldStorage objects, which
+            have a .file attribute.  We wrap the FieldStorage object, delegating
+            attribute access to the .file attribute.  But the files have no
+            name, so we carry the FieldStorage .filename attribute as the .name.
+
+            """
+
+            def __init__(self, webob_file):
+                self.file = webob_file.file
+                self.name = webob_file.filename
+
+            def __getattr__(self, name):
+                return getattr(self.file, name)
+
+        # WebOb requests have multiple entries for uploaded files.  handle_ajax
+        # expects a single entry as a list.
+        request_post = MultiDict(request.POST)
+        for key in set(request.POST.keys()):
+            if hasattr(request.POST[key], "file"):
+                request_post[key] = list(map(FileObjForWebobFiles, request.POST.getall(key)))
+
+        response_data = self.handle_ajax(suffix, request_post)
+        return Response(response_data, content_type="application/json", charset="UTF-8")
+
+    # Extension to append to filename paths
+    filename_extension = "xml"
+
     xml_attributes = Dict(
         help="Map of unhandled xml attributes, used only for storage between import and export",
         default={},
         scope=Scope.settings,
     )
+
     metadata_to_strip = (
         "data_dir",
         "tabs",
@@ -2637,57 +2732,15 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         "x-is-pointer-node",
     )
 
-    @classmethod
-    def definition_from_xml(cls, xml_object, system):  # pylint: disable=unused-argument
-        return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
+    # This is a categories to fields map that contains the block category specific fields which should not be
+    # cleaned and/or override while adding xml to node.
+    metadata_to_not_to_clean = {
+        # A category `video` having `sub` and `transcripts` fields
+        # which should not be cleaned/override in an xml object.
+        "video": ("sub", "transcripts")
+    }
 
-    @classmethod
-    def load_metadata(cls, xml_object):
-        """
-        Read the metadata attributes from this xml_object.
-
-        Returns a dictionary {key: value}.
-        """
-        metadata = {"xml_attributes": {}}
-        for attr, val in xml_object.attrib.items():
-
-            if attr in cls.metadata_to_strip:
-                # don't load these
-                continue
-
-            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
-                metadata["xml_attributes"][attr] = val
-            else:
-                metadata[attr] = deserialize_field(cls.fields[attr], val)  # pylint: disable=unsubscriptable-object
-        return metadata
-
-    @classmethod
-    def apply_policy(cls, metadata, policy):
-        """
-        Add the keys in policy to metadata, after processing them
-        through the attrmap.  Updates the metadata dict in place.
-        """
-        for attr, value in policy.items():
-            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
-                # Store unknown attributes coming from policy.json
-                # in such a way that they will export to xml unchanged
-                metadata["xml_attributes"][attr] = value
-            else:
-                metadata[attr] = value
-
-    @classmethod
-    def clean_metadata_from_xml(cls, xml_object, excluded_fields=()):
-        """
-        Remove any attribute named for a field with scope Scope.settings from the supplied
-        xml_object
-        """
-        for field_name, field in cls.fields.items():  # pylint: disable=no-member
-            if (
-                field.scope == Scope.settings
-                and field_name not in excluded_fields
-                and xml_object.get(field_name) is not None
-            ):
-                del xml_object.attrib[field_name]
+    metadata_to_export_to_policy = ("discussion_topics",)
 
     @staticmethod
     def _get_metadata_from_xml(xml_object, remove=True):
@@ -2703,6 +2756,49 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         return dmdata
 
     @classmethod
+    def definition_from_xml(cls, xml_object, system):  # pylint: disable=unused-argument
+        return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
+
+    @classmethod
+    def clean_metadata_from_xml(cls, xml_object, excluded_fields=()):
+        """
+        Remove any attribute named for a field with scope Scope.settings from the supplied
+        xml_object
+        """
+        for field_name, field in cls.fields.items():  # pylint:disable=no-member
+            if (
+                field.scope == Scope.settings
+                and field_name not in excluded_fields
+                and xml_object.get(field_name) is not None
+            ):
+                del xml_object.attrib[field_name]
+
+    @classmethod
+    def file_to_xml(cls, file_object):
+        """
+        Used when this module wants to parse a file object to xml
+        that will be converted to the definition.
+
+        Returns an lxml Element
+        """
+        return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()
+
+    @classmethod
+    def load_file(cls, filepath, fs, def_id):  # pylint: disable=invalid-name
+        """
+        Open the specified file in fs, and call cls.file_to_xml on it,
+        returning the lxml object.
+
+        Add details and reraise on error.
+        """
+        try:
+            with fs.open(filepath) as xml_file:
+                return cls.file_to_xml(xml_file)
+        except Exception as err:
+            # Add info about where we are, but keep the traceback
+            raise Exception(f"Unable to load file contents at path {filepath} for item {def_id}: {err}") from err
+
+    @classmethod
     def load_definition(cls, xml_object, system, def_id, id_generator):
         """
         Load a block from the specified xml_object.
@@ -2715,7 +2811,6 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             def_id: the definition id for the block--used to compute the usage id and asides ids
             id_generator: used to generate the usage_id
         """
-
         # VS[compat]
         # The filename attr should have been removed once all 2012-fall courses imported into the CMS and "inline" OLX
         # format deprecated. This never happened, and `filename` is still used, so we have too keep both formats.
@@ -2725,7 +2820,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             filepath = ""
             aside_children = []
         else:
-            filepath = cls._format_filepath(xml_object.tag, filename)  # pylint: disable=no-member
+            filepath = cls._format_filepath(xml_object.tag, filename)
 
             # VS[compat]
             # If the file doesn't exist at the right path, give the class a chance to fix it up. The file will be
@@ -2738,7 +2833,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
                         filepath = candidate
                         break
 
-            definition_xml = cls.load_file(filepath, system.resources_fs, def_id)  # pylint: disable=no-member
+            definition_xml = cls.load_file(filepath, system.resources_fs, def_id)
             usage_id = id_generator.create_usage(def_id)
             aside_children = system.parse_asides(definition_xml, def_id, usage_id, id_generator)
 
@@ -2756,6 +2851,40 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
             definition["aside_children"] = aside_children
 
         return definition, children
+
+    @classmethod
+    def load_metadata(cls, xml_object):
+        """
+        Read the metadata attributes from this xml_object.
+
+        Returns a dictionary {key: value}.
+        """
+        metadata = {"xml_attributes": {}}
+        for attr, val in xml_object.attrib.items():
+
+            if attr in cls.metadata_to_strip:
+                # don't load these
+                continue
+
+            if attr not in cls.fields:  # pylint:disable=unsupported-membership-test
+                metadata["xml_attributes"][attr] = val
+            else:
+                metadata[attr] = deserialize_field(cls.fields[attr], val)  # pylint:disable=unsubscriptable-object
+        return metadata
+
+    @classmethod
+    def apply_policy(cls, metadata, policy):
+        """
+        Add the keys in policy to metadata, after processing them
+        through the attrmap.  Updates the metadata dict in place.
+        """
+        for attr, value in policy.items():
+            if attr not in cls.fields:  # pylint:disable=unsupported-membership-test
+                # Store unknown attributes coming from policy.json
+                # in such a way that they will export to xml unchanged
+                metadata["xml_attributes"][attr] = value
+            else:
+                metadata[attr] = value
 
     @classmethod
     def parse_xml(cls, node, runtime, keys):
@@ -2793,7 +2922,7 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         if is_pointer_tag(node):
             # new style:
             # read the actual definition file--named using url_name.replace(':','/')
-            definition_xml, filepath = cls.load_definition_xml(node, runtime, keys.def_id)  # pylint: disable=no-member
+            definition_xml, filepath = cls.load_definition_xml(node, runtime, keys.def_id)
             aside_children = runtime.parse_asides(definition_xml, keys.def_id, keys.usage_id, runtime.id_generator)
         else:
             filepath = None
@@ -2842,41 +2971,180 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         block.children = children
 
         if aside_children:
-            cls.add_applicable_asides_to_block(block, runtime, aside_children)  # pylint: disable=no-member
+            cls.add_applicable_asides_to_block(block, runtime, aside_children)
 
         return block
 
-    @XBlock.handler
-    def xmodule_handler(self, request, suffix=None):
-        """XBlock handler that wraps `handle_ajax`"""
+    @classmethod
+    def add_applicable_asides_to_block(cls, block, runtime, aside_children):
+        """
+        Add asides to the block. Moved this out of the parse_xml method to use it in the VideoBlock.parse_xml
+        """
+        asides_tags = [aside_child.tag for aside_child in aside_children]
+        asides = runtime.get_asides(block)
+        for aside in asides:
+            if aside.scope_ids.block_type in asides_tags:
+                block.add_aside(aside)
 
-        class FileObjForWebobFiles:
-            """
-            Turn Webob cgi.FieldStorage uploaded files into pure file objects.
+    @classmethod
+    def parse_xml_new_runtime(cls, node, runtime, keys):
+        """
+        This XML lives within Learning Core and the new runtime doesn't need this
+        legacy XModule code. Use the "normal" XBlock parsing code.
+        """
+        try:
+            return super().parse_xml_new_runtime(node, runtime, keys)
+        except AttributeError:
+            return super().parse_xml(node, runtime, keys)
 
-            Webob represents uploaded files as cgi.FieldStorage objects, which
-            have a .file attribute.  We wrap the FieldStorage object, delegating
-            attribute access to the .file attribute.  But the files have no
-            name, so we carry the FieldStorage .filename attribute as the .name.
+    @classmethod
+    def load_definition_xml(cls, node, runtime, def_id):
+        """
+        Loads definition_xml stored in a dedicated file
+        """
+        url_name = node.get("url_name")
+        filepath = cls._format_filepath(node.tag, name_to_pathname(url_name))
+        definition_xml = cls.load_file(filepath, runtime.resources_fs, def_id)
+        return definition_xml, filepath
 
-            """
+    @classmethod
+    def _format_filepath(cls, category, name):
+        return f"{category}/{name}.{cls.filename_extension}"
 
-            def __init__(self, webob_file):
-                self.file = webob_file.file
-                self.name = webob_file.filename
+    def export_to_file(self):
+        """If this returns True, write the definition of this block to a separate
+        file.
 
-            def __getattr__(self, name):
-                return getattr(self.file, name)
+        NOTE: Do not override this without a good reason.  It is here
+        specifically for customtag...
+        """
+        return True
 
-        # WebOb requests have multiple entries for uploaded files.  handle_ajax
-        # expects a single entry as a list.
-        request_post = MultiDict(request.POST)
-        for key in set(request.POST.keys()):
-            if hasattr(request.POST[key], "file"):
-                request_post[key] = list(map(FileObjForWebobFiles, request.POST.getall(key)))
+    def add_xml_to_node(self, node):
+        """
+        For exporting, set data on `node` from ourselves.
+        """
+        # Get the definition
+        xml_object = self.definition_to_xml(self.runtime.export_fs)
 
-        response_data = self.handle_ajax(suffix, request_post)
-        return Response(response_data, content_type="application/json", charset="UTF-8")
+        # If xml_object is None, we don't know how to serialize this node, but
+        # we shouldn't crash out the whole export for it.
+        if xml_object is None:
+            return
+
+        for aside in self.runtime.get_asides(self):
+            if aside.needs_serialization():
+                aside_node = etree.Element("unknown_root", nsmap=XML_NAMESPACES)
+                aside.add_xml_to_node(aside_node)
+                xml_object.append(aside_node)
+
+        not_to_clean_fields = self.metadata_to_not_to_clean.get(self.category, ())
+        self.clean_metadata_from_xml(xml_object, excluded_fields=not_to_clean_fields)
+
+        # Set the tag on both nodes so we get the file path right.
+        xml_object.tag = self.category
+        node.tag = self.category
+
+        # Add the non-inherited metadata
+        for attr in sorted(own_metadata(self)):
+            # don't want e.g. data_dir
+            if (
+                attr not in self.metadata_to_strip
+                and attr not in self.metadata_to_export_to_policy
+                and attr not in not_to_clean_fields
+            ):
+                val = serialize_field(
+                    self.fields[attr].to_json(getattr(self, attr))  # pylint:disable=unsubscriptable-object
+                )
+                try:
+                    xml_object.set(attr, val)
+                except Exception:  # pylint: disable=broad-except
+                    logging.exception(
+                        (
+                            "Failed to serialize metadata attribute %s with value %s in module %s. "
+                            "This could mean data loss!!!"
+                        ),
+                        attr,
+                        val,
+                        self.url_name,
+                    )
+
+        for key, value in self.xml_attributes.items():
+            if key not in self.metadata_to_strip:
+                xml_object.set(key, serialize_field(value))
+
+        if self.export_to_file():
+            # Write the definition to a file
+            url_path = name_to_pathname(self.url_name)
+            # if folder is course then create file with name {course_run}.xml
+            filepath = self._format_filepath(
+                self.category,
+                self.location.run if self.category == "course" else url_path,
+            )
+            self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
+            with self.runtime.export_fs.open(filepath, "wb") as fileobj:
+                ElementTree(xml_object).write(fileobj, pretty_print=True, encoding="utf-8")
+        else:
+            # Write all attributes from xml_object onto node
+            node.clear()
+            node.tag = xml_object.tag
+            node.text = xml_object.text
+            node.tail = xml_object.tail
+            node.attrib.update(xml_object.attrib)
+            node.extend(xml_object)
+
+        # Do not override an existing value for the course.
+        if not node.get("url_name"):
+            node.set("url_name", self.url_name)
+
+        # Special case for course pointers:
+        if self.category == "course":
+            # add org and course attributes on the pointer tag
+            node.set("org", self.location.org)
+            node.set("course", self.location.course)
+
+    def definition_to_xml(self, resource_fs):  # pylint: disable=unused-argument
+        """
+        Return an Element if we've kept the import OLX, or None otherwise.
+        """
+        # If there's no self.data, it means that an XBlock/XModule originally
+        # existed for this data at the time of import/editing, but was later
+        # uninstalled. RawDescriptor therefore never got to preserve the
+        # original OLX that came in, and we have no idea how it should be
+        # serialized for export. It's possible that we could do some smarter
+        # fallback here and attempt to extract the data, but it's reasonable
+        # and simpler to just skip this node altogether.
+        if not self.data:
+            log.warning(
+                "Could not serialize %s: No XBlock installed for '%s' tag.",
+                self.location,
+                self.location.block_type,
+            )
+            return None
+
+        # Normal case: Just echo back the original OLX we saved.
+        try:
+            return etree.fromstring(self.data)
+        except etree.XMLSyntaxError as err:
+            # Can't recover here, so just add some info and
+            # re-raise
+            lines = self.data.split("\n")
+            line, offset = err.position  # pylint:disable=unpacking-non-sequence
+            msg = ("Unable to create xml for block {loc}. " "Context: '{context}'").format(
+                context=lines[line - 1][offset - 40 : offset + 40],
+                loc=self.location,
+            )
+            raise SerializationError(self.location, msg)  # pylint: disable=raise-missing-from
+
+
+class SerializationError(Exception):
+    """
+    Thrown when a module cannot be exported to XML
+    """
+
+    def __init__(self, location, msg):
+        super().__init__(msg)
+        self.location = location
 
 
 class GradingMethodHandler:
