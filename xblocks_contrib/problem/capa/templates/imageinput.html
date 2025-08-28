@@ -1,0 +1,27 @@
+{% load i18n %}
+<div class="option-input">
+    <input type="hidden"
+           class="option-input"
+           id="option_input_{{ id }}"
+           name="input_{{ id }}"
+           value="{{ value }}" />
+    <div class="message-aside" id="status_{{ id }}">
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+        </div>
+        <span id="answer_{{ id }}"></span>
+        {% if (status == 'unsubmitted' or status == 'correct' or status == 'incorrect') and msg %}
+            <span class="message" tabindex="-1">{{ msg|safe }}</span>
+        {% endif %}
+    </div>

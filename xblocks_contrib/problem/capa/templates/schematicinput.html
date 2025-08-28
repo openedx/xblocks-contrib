@@ -1,0 +1,33 @@
+{% load i18n capa_filters %}
+<div>
+    <div class="script_placeholder" data-src="{{ setup_script }}"></div>
+    <input type="hidden"
+           class="schematic"
+           height="{{ height }}"
+           width="{{ width }}"
+           parts="{{ parts }}"
+           analyses="{{ analyses }}"
+           name="input_{{ id }}"
+           id="input_{{ id }}"
+           aria-label="{{ response_data.label|remove_markup }}"
+           aria-describedby="answer_{{ id }}"
+           value="{{ value }}"
+           initial_value="{{ initial_value }}"
+           submit_analyses="{{ submit_analyses }}" />
+    <span id="answer_{{ id }}"></span>
+    <div class="indicator-container">
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+        </div>
+    </div>

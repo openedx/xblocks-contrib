@@ -1,0 +1,37 @@
+{% load i18n %}
+<section id="designprotein2dinput_{{ id }}" class="designprotein2dinput">
+    <div class="script_placeholder"
+         data-src="/static/js/capa/protex/protex.nocache.js?raw" />
+    <div class="script_placeholder" data-src="{{ applet_loader }}" />
+    {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+        <div class="{{ status.classname }}" id="status_{{ id }}">
+        {% endif %}
+        <div id="protex_container"></div>
+        <input type="hidden"
+               name="target_shape"
+               id="target_shape"
+               value="{{ target_shape }}">
+    </input>
+    <input type="hidden"
+           name="input_{{ id }}"
+           id="input_{{ id }}"
+           aria-describedby="answer_{{ id }}"
+           value="{{ value }}" />
+    {% if id == '' %}
+        <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+              data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+        {% else %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  id="status_{{ id }}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% endif %}
+            {% if not hide_correctness %}
+                <span class="sr">{{ status.display_name }}</span>
+                <span class="status-icon" aria-hidden="true"></span>
+            {% endif %}
+        </span>
+        <p id="answer_{{ id }}" class="answer"></p>
+        {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+        </div>
+    {% endif %}
+</section>
