@@ -12,10 +12,21 @@ jobs:
     name: Run Tests and Coverage
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version: ['3.11', '3.12']
         toxenv: [quality, docs, django42, django52]
+        mongo-version: ['7']
+    services:
+      mongo:
+        image: mongo:${{ matrix.mongo-version }}
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
 
     steps:
     - name: Check out code
@@ -27,10 +38,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: pip install -r requirements/pip.txt
-
-    - name: Install tox
-      run: pip install tox
+      run: pip install -r requirements/pip.txt tox
 
     - name: Run Tox
       env:
