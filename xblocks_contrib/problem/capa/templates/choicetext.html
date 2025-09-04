@@ -1,0 +1,60 @@
+{% load i18n capa_filters %}
+<section id="choicetextinput_{{ id }}" class="choicetextinput">
+    <div class="choicetextgroup capa_inputtype" id="inputtype_{{ id }}">
+        <div class="script_placeholder"
+             data-src="{{ STATIC_URL }}js/capa/choicetextinput.js"></div>
+        <fieldset aria-label="{{ response_data.label|remove_markup }}">
+            {% for choice_id, choice_description in choices %}
+                <section id="forinput{{ choice_id }}"
+                         {% if input_type == 'radio' and choice_id in value %}class="choicetextgroup_{{ status.classname }}"{% endif %}>
+                    <input class="ctinput"
+                           type="{{ input_type }}"
+                           name="choiceinput_{{ id }}"
+                           id="{{ choice_id }}"
+                           value="{{ choice_id }}"
+                           {% if choice_id in value %}checked="true"{% endif %} />
+                    {% for content_node in choice_description %}
+                        {% if content_node.type == 'text' %}
+                            <span class="mock_label">{{ content_node.contents }}</span>
+                        {% else %}
+                            <input class="ctinput"
+                                   type="text"
+                                   name="{{ content_node.contents }}"
+                                   id="{{ content_node.contents }}"
+                                   value="{{ value|dict_get:content_node.contents }}" />
+                        {% endif %}
+                        <span class="mock_label">{{ content_node.tail_text }}</span>
+                    {% endfor %}
+                    <p id="answer_{{ choice_id }}" class="answer"></p>
+                </section>
+            {% endfor %}
+            <span id="answer_{{ id }}"></span>
+        </fieldset>
+        <input class="choicetextvalue"
+               type="hidden"
+               name="input_{{ id }}{}"
+               id="input_{{ id }}"
+               value="{{ value }}" />
+        <div class="indicator-container">
+            {% if input_type == 'checkbox' or not value or status.classname == 'incomplete' or status.classname == 'unsubmitted' or status.classname == 'unanswered' %}
+                {% if id == '' %}
+                    <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                          data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                    {% else %}
+                        <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                              id="status_{{ id }}"
+                              data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                        {% endif %}
+                        {% if not hide_correctness %}
+                            <span class="sr">{{ status.display_name }}</span>
+                            <span class="status-icon" aria-hidden="true"></span>
+                        {% endif %}
+                    </span>
+                {% endif %}
+            </div>
+            {% if show_correctness == "never" and value or status.classname != "unsubmitted" %}
+                <div class="capa_alert">{% trans submitted_message %}</div>
+            {% endif %}
+            {% if msg %}<span class="message" tabindex="-1">{{ msg|safe }}</span>{% endif %}
+        </div>
+    </section>

@@ -1,0 +1,32 @@
+{% load i18n capa_filters %}
+<div id="chemicalequationinput_{{ id }}" class="chemicalequationinput">
+    <div class="script_placeholder" data-src="{{ previewer }}"></div>
+    <div class="{{ status.classname }}">
+        <input type="text"
+               name="input_{{ id }}"
+               id="input_{{ id }}"
+               aria-label="{{ response_data.label|remove_markup }}"
+               aria-describedby="answer_{{ id }}"
+               data-input-id="{{ id }}"
+               value="{{ value }}"
+               {% if size %}size="{{ size }}"{% endif %} />
+        <p class="indicator-container">
+            {{ value }}
+            {% if id == '' %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% else %}
+                    <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                          id="status_{{ id }}"
+                          data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                    {% endif %}
+                    {% if not hide_correctness %}
+                        <span class="sr">{{ status.display_name }}</span>
+                        <span class="status-icon" aria-hidden="true"></span>
+                    {% endif %}
+                </span>
+            </p>
+            <div id="input_{{ id }}_preview" class="equation"></div>
+            <p id="answer_{{ id }}" class="answer"></p>
+        </div>
+    </div>
