@@ -8,7 +8,7 @@
     "build": "webpack --config webpack.prod.config.js",
     "build-dev": "webpack --config webpack.dev.config.js",
     "test": "npm run karma-testing",
-    "test-karma-conf": "${NODE_WRAPPER:-xvfb-run --auto-servernum} node --max_old_space_size=4096 node_modules/.bin/karma start --single-run=true --capture-timeout=60000 --browsers=FirefoxNoUpdates",
+    "test-karma-conf": "${NODE_WRAPPER:-xvfb-run --auto-servernum} node --max_old_space_size=4096 node_modules/.bin/karma start --single-run=true --capture-timeout=60000 --browsers=Firefox",
     "karma-testing": "npm run test-karma-conf -- karma_xmodule_webpack.conf.js",
     "karma-debug": "karma start karma_xmodule_webpack.conf.js --log-level debug --single-run"
   },
