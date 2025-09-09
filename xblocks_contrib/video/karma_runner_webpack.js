@@ -124,7 +124,7 @@ import './tests/js/video_volume_control_spec.js';
 import './tests/js/video_autoadvance_spec.js';
 
 //-- TODO
-// import './tests/js/html5_video_spec.js';
+import './tests/js/html5_video_spec.js';
 
 // import './tests/js/video_bumper_spec.js';
 // import './tests/js/video_caption_spec.js';
