@@ -18,8 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch master to compare coverage
-        run: git fetch --depth=1 origin master
+      - name: Fetch main to compare coverage
+        run: git fetch --depth=1 origin main
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -39,7 +39,7 @@ jobs:
           sudo ln -s /opt/firefox/firefox /usr/bin/firefox
 
       - name: Install Required System Packages
-        run: sudo apt-get update && sudo apt-get install libxmlsec1-dev ubuntu-restricted-extras xvfb
+        run: sudo apt-get update && sudo apt-get install -y libxmlsec1-dev ubuntu-restricted-extras xvfb
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -64,6 +64,7 @@ jobs:
           make base-requirements
 
       - name: Install npm
+        working-directory: ./xblocks_contrib/video
         run: npm ci  
 
       - name: Run JS Tests
