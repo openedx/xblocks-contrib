@@ -60,7 +60,7 @@ jobs:
 
       - name: Install Required Python Dependencies
         run: |
-          make base-requirements
+          pip install -r requirements/base.txt
 
       - name: Install npm
         working-directory: ./xblocks_contrib/video
