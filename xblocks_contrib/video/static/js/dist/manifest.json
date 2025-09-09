@@ -1,4 +1,4 @@
 {
   "base_url": "/static/js/dist",
-  "video-xblock.js": "/video-xblock.js"
+  "video-xblock.js": "auto/video-xblock.js"
 }
