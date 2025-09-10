@@ -34,6 +34,8 @@ pip-log.txt
 .tox
 coverage.xml
 htmlcov/
+reports/
+coverage/
 
 # Virtual environments
 /venv/
@@ -71,3 +73,23 @@ requirements/private.txt
 *.mo
 *.pot
 *.po
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+*.tgz
+
+# RPM-related
+*.rpm
+*.srpm
+*.spec
+*.build
+*.src.rpm
+*.deb
