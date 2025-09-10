@@ -1,0 +1,35 @@
+{% load i18n %}
+<div class="inputtype option-input {% if inline %}inline{% endif %}">
+    {% if response_data.label %}
+        <label class="problem-group-label" for="input_{{ id }}" id="label_{{ id }}">{{ response_data.label }}</label>
+    {% endif %}
+    {% for description_id, description_text in response_data.descriptions.items %}
+        <p class="question-description" id="{{ description_id }}">{{ description_text }}</p>
+    {% endfor %}
+    <select name="input_{{ id }}" id="input_{{ id }}" {{ describedby_html|safe }}>
+        <option value="option_{{ id }}_dummy_default">{{ default_option_text }}</option>
+        {% for option_id, option_description in options %}
+            <option value="{{ option_id }}"
+                    {% if option_id == value or option_id == answervariable %}selected="true"{% endif %}>
+                {{ option_description }}
+            </option>
+        {% endfor %}
+    </select>
+    <div class="indicator-container">
+        {% if id == '' %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% else %}
+                <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                      id="status_{{ id }}"
+                      data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+                {% endif %}
+                {% if not hide_correctness %}
+                    <span class="sr">{{ status.display_name }}</span>
+                    <span class="status-icon" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+        </div>
+        <p class="answer" id="answer_{{ id }}"></p>
+        {% if msg %}<span class="message" aria-describedby="label_{{ id }}" tabindex="-1">{{ msg|safe }}</span>{% endif %}
+    </div>

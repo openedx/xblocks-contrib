@@ -1,0 +1,65 @@
+.protex-absolute-panel {
+    background-color: #bbb;
+}
+
+.protex-canvas {
+    outline: none;
+}
+
+.protex-caption-panel {
+    padding: 10px;
+    margin: 0;
+    border: 2px solid #4e4e4e;
+    font:
+        normal normal normal 14pt / normal "Open Sans",
+        sans-serif;
+    background-color: #b2b2ff;
+}
+
+.protex-textbox {
+    font:
+        normal normal normal 12pt / normal "Open Sans",
+        sans-serif !important;
+    padding: 2px !important;
+}
+
+.protex-caption-panel-ss-bonds-on {
+    padding: 10px;
+    margin: 0;
+    border: 2px solid #4e4e4e;
+    font:
+        normal normal normal 14pt / normal "Open Sans",
+        sans-serif;
+    background-color: #b2ffff;
+}
+
+.protex-button {
+    margin-right: 15px;
+}
+
+.protex-listbox {
+}
+
+.gwt-ProgressBar-shell {
+    border: 2px solid #faf9f7;
+    border-right: 2px solid #848280;
+    border-bottom: 2px solid #848280;
+    background-color: #aaa;
+    height: 14pt;
+    width: 50%;
+    margin-left: 15px;
+}
+
+.gwt-ProgressBar-shell .gwt-ProgressBar-bar {
+    background-color: #67a7e3;
+}
+
+.gwt-ProgressBar-shell .gwt-ProgressBar-text {
+    padding: 0;
+    margin: 0;
+    color: white;
+}
+
+div#protex-panel[style] {
+    overflow: scroll !important;
+}
