@@ -60,6 +60,7 @@ from xblocks_contrib.video.cache_utils import request_cached
 from xblocks_contrib.video.video_handlers import VideoStudioViewHandlers, VideoStudentViewHandlers
 from xblocks_contrib.video.video_utils import rewrite_video_url, create_youtube_string, get_poster
 from xblocks_contrib.video.video_xfields import VideoFields, RelativeTime
+from xblocks_contrib.video.x_module import XModuleToXBlockMixin
 
 # The following import/except block for edxval is temporary measure until
 # edxval is a proper XBlock Runtime Service.
@@ -107,7 +108,8 @@ LMS_ROOT_URL = "https://localhost:18000"
 @XBlock.needs("i18n", 'user')
 class VideoBlock(
     VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
-    StudioEditableXBlockMixin, XBlock, LicenseMixin):
+    StudioEditableXBlockMixin, XBlock,
+    XModuleToXBlockMixin, LicenseMixin):
     """
     XML source example:
         <video show_captions="true"
@@ -119,17 +121,6 @@ class VideoBlock(
             <source src=".../mit-3091x/M-3091X-FA12-L21-3_100.ogv"/>
         </video>
     """
-
-    @property
-    def ajax_url(self):
-        """
-        Returns the URL for the ajax handler.
-        """
-        # TODO: remove this ajax_url property
-        # TODO: This is a (temporary) fix to save the user state properly `saveStateUrl`
-        return self.runtime.handler_url(self, 'video_handler', '', '').rstrip('/?')
-
-    # -----
 
     is_extracted = True
     has_custom_completion = True
