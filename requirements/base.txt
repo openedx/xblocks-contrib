@@ -6,19 +6,21 @@
 #
 appdirs==1.4.4
     # via fs
-asgiref==3.9.1
+asgiref==3.9.2
     # via django
-boto3==1.40.35
+beautifulsoup4==4.13.5
+    # via -r requirements/base.in
+boto3==1.40.37
     # via fs-s3fs
-botocore==1.40.35
+botocore==1.40.37
     # via
     #   boto3
     #   s3transfer
-cffi==1.17.1
+cffi==2.0.0
     # via pynacl
 chem==2.0.0
     # via -r requirements/base.in
-click==8.2.1
+click==8.3.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -96,7 +98,7 @@ joblib==1.5.2
     # via nltk
 jsonfield==3.2.0
     # via edx-submissions
-lxml[html-clean]==6.0.1
+lxml[html-clean]==6.0.2
     # via
     #   edx-i18n-tools
     #   lxml-html-clean
@@ -119,7 +121,7 @@ nh3==0.3.0
     # via -r requirements/base.in
 nltk==3.9.1
     # via chem
-numpy==2.3.2
+numpy==2.3.3
     # via
     #   -r requirements/base.in
     #   chem
@@ -138,11 +140,15 @@ pillow==11.3.0
     # via -r requirements/base.in
 polib==1.2.0
     # via edx-i18n-tools
+psutil==7.1.0
+    # via edx-django-utils
+pycparser==2.23
+    # via cffi
 pymongo==4.15.1
     # via edx-opaque-keys
-pynacl==1.5.0
+pynacl==1.6.0
     # via edx-django-utils
-pyparsing==3.2.3
+pyparsing==3.2.5
     # via
     #   chem
     #   openedx-calc
@@ -162,9 +168,13 @@ pyyaml==6.0.2
     #   edx-django-release-util
     #   edx-i18n-tools
     #   xblock
+random2==1.0.2
+    # via -r requirements/base.in
+regex==2025.9.18
+    # via nltk
 s3transfer==0.14.0
     # via boto3
-scipy==1.16.1
+scipy==1.16.2
     # via chem
 shapely==2.1.1
     # via -r requirements/base.in
