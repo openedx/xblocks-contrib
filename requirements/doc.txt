@@ -34,11 +34,11 @@ binaryornot==0.4.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.25
+boto3==1.40.35
     # via
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.25
+botocore==1.40.35
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -53,10 +53,8 @@ certifi==2025.8.3
     # via
     #   -r requirements/test.txt
     #   requests
-cffi==1.17.1
-    # via
-    #   -r requirements/test.txt
-    #   pynacl
+cffi==2.0.0
+    # via cryptography
 chardet==5.2.0
     # via
     #   -r requirements/test.txt
@@ -66,9 +64,7 @@ charset-normalizer==3.4.3
     # via
     #   -r requirements/test.txt
     #   requests
-chem==2.0.0
-    # via -r requirements/test.txt
-click==8.2.1
+click==8.3.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -87,10 +83,12 @@ cookiecutter==2.6.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.10.6
+coverage[toml]==7.10.7
     # via
     #   -r requirements/test.txt
     #   pytest-cov
+cryptography==46.0.1
+    # via secretstorage
 ddt==1.7.2
     # via -r requirements/test.txt
 defusedxml==0.7.1
@@ -323,14 +321,8 @@ polib==1.2.0
     # via
     #   -r requirements/test.txt
     #   edx-i18n-tools
-psutil==7.0.0
-    # via
-    #   -r requirements/test.txt
-    #   edx-django-utils
-pycparser==2.22
-    # via
-    #   -r requirements/test.txt
-    #   cffi
+pycparser==2.23
+    # via cffi
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
 pygments==2.19.2
@@ -343,7 +335,7 @@ pygments==2.19.2
     #   readme-renderer
     #   rich
     #   sphinx
-pymongo==4.14.1
+pymongo==4.15.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -371,7 +363,7 @@ pytest==8.4.2
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.3.0
+pytest-cov==7.0.0
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
@@ -429,16 +421,12 @@ rich==14.1.0
     #   twine
 roman-numerals-py==3.1.0
     # via sphinx
-s3transfer==0.13.1
+s3transfer==0.14.0
     # via
     #   -r requirements/test.txt
     #   boto3
-scipy==1.16.1
-    # via
-    #   -r requirements/test.txt
-    #   chem
-shapely==2.1.1
-    # via -r requirements/test.txt
+secretstorage==3.4.0
+    # via keyring
 simplejson==3.20.1
     # via
     #   -r requirements/test.txt
