@@ -11,7 +11,6 @@
     "@babel/preset-env": "^7.24.0",
     "babel-loader": "^10.0.0",
     "backbone": "^1.4.1",
-    "codemirror": "^5.65.20",
     "edx-ui-toolkit": "^1.8.7",
     "jasmine-ajax": "^4.0.0",
     "jasmine-core": "^5.1.2",
@@ -27,7 +26,7 @@
     "karma-spec-reporter": "^0.0.36",
     "karma-webpack": "^5.0.1",
     "process": "^0.11.10",
-    "sinon": "^9.2.4",
+    "sinon": "^21.0.0",
     "underscore": "^1.13.6",
     "webpack": "^5.90.3",
     "webpack-cli": "^6.0.1"

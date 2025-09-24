@@ -604,17 +604,16 @@ class ProblemBlock(ScorableXBlockMixin, XBlock):
         fragment = Fragment(html)
         fragment.add_css(resource_loader.load_unicode("static/css/problem.css"))
 
-        fragment.add_javascript_url("https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js")
+        fragment.add_javascript_url("https://cdn.jsdelivr.net/npm/mathjax@2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML")
         fragment.add_javascript_url("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js")
 
         fragment.add_javascript(resource_loader.load_unicode("static/js/src/xmodule.js"))
-        fragment.add_javascript(resource_loader.load_unicode("static/js/src/html-utils.js"))
         fragment.add_javascript(resource_loader.load_unicode("static/js/src/logger.js"))
         fragment.add_javascript(resource_loader.load_unicode("static/js/src/javascript_loader.js"))
         fragment.add_javascript(resource_loader.load_unicode("static/js/src/collapsible.js"))
-        fragment.add_javascript(resource_loader.load_unicode("static/js/src/imageinput.js"))
-        fragment.add_javascript(resource_loader.load_unicode("static/js/src/schematic.js"))
-        fragment.add_javascript(resource_loader.load_unicode("static/js/src/display.js"))
+        fragment.add_javascript(resource_loader.load_unicode("static/js/src/capa/imageinput.js"))
+        fragment.add_javascript(resource_loader.load_unicode("static/js/src/capa/schematic.js"))
+        fragment.add_javascript(resource_loader.load_unicode("static/js/src/capa/display.js"))
 
         fragment.initialize_js("Problem")
         return fragment

@@ -1037,11 +1037,11 @@ data-url='/problem/quiz/'> \
   describe("refreshAnswers", function () {
     beforeEach(function () {
       this.problem = new Problem($(".xblock-student_view"));
-      this.problem.el.html(`\
-<textarea class="CodeMirror" />
+      this.problem.el.html(`
+<textarea class="CodeMirror"></textarea>
 <input id="input_1_1" name="input_1_1" class="schematic" value="one" />
 <input id="input_1_2" name="input_1_2" value="two" />
-<input id="input_bogus_3" name="input_bogus_3" value="three" />\
+<input id="input_bogus_3" name="input_bogus_3" value="three" />
 `);
       this.stubSchematic = { update_value: jasmine.createSpy("schematic") };
       this.stubCodeMirror = { save: jasmine.createSpy("CodeMirror") };

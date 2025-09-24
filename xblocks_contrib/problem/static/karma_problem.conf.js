@@ -29,10 +29,10 @@ module.exports = function (config) {
     path.join(path.dirname(require.resolve("underscore/package.json")), "underscore.js"),
     require.resolve("backbone"),
     path.join(path.dirname(require.resolve("sinon/package.json")), "pkg/sinon.js"),
-    require.resolve("codemirror"),
   ];
 
   const legacySourceFiles = [
+    "js/vendor/CodeMirror/codemirror.js",
     "js/vendor/ajax_prefix.js",
     "js/vendor/accessibility_tools.js",
     "js/vendor/jasmine-imagediff.js",
