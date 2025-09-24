@@ -1,46 +1,55 @@
-name: Python CI
+name: Python Tests
 
 on:
   push:
     branches: [main]
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
-  run_tests:
-    name: Run Tests and Coverage
+  python-tests:
+    name: Run Python Tests and Coverage
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ["3.11", "3.12"]
         toxenv: [quality, docs, django42, django52]
+        mongo-version: ["7"]
+
+    services:
+      mongo:
+        image: mongo:${{ matrix.mongo-version }}
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v5
+      - name: Check out repository
+        uses: actions/checkout@v5
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: pip install -r requirements/pip.txt
+      - name: Install dependencies
+        run: pip install -r requirements/pip.txt tox
 
-    - name: Install tox
-      run: pip install tox
+      - name: Run tests with Tox (${{ matrix.toxenv }})
+        env:
+          TOXENV: ${{ matrix.toxenv }}
+        run: tox
 
-    - name: Run Tox
-      env:
-        TOXENV: ${{ matrix.toxenv }}
-      run: tox
-
-    - name: Upload coverage to Codecov
-      if: matrix.python-version == '3.12' && matrix.toxenv == 'django42'
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        flags: unittests
-        fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12' && matrix.toxenv == 'django42'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          fail_ci_if_error: true

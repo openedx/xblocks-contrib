@@ -1,0 +1,44 @@
+{% load i18n %}
+<section id="editageneinput_{{ id }}" class="editageneinput">
+    <div class="script_placeholder"
+         data-src="/static/js/capa/genex/genex.nocache.js?raw" />
+    <div class="script_placeholder" data-src="{{ applet_loader }}" />
+    {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+        <div class="{{ status.classname }}">
+        {% endif %}
+        <div id="genex_container"></div>
+        <input type="hidden"
+               name="genex_dna_sequence"
+               id="genex_dna_sequence"
+               value="{{ genex_dna_sequence }}">
+    </input>
+    <input type="hidden"
+           name="genex_problem_number"
+           id="genex_problem_number"
+           value="{{ genex_problem_number }}">
+</input>
+<input type="hidden"
+       name="input_{{ id }}"
+       aria-describedby="answer_{{ id }}"
+       id="input_{{ id }}"
+       value="{{ value }}" />
+<p class="indicator-container" aria-describedby="input_{{ id }}">
+    {% if id == '' %}
+        <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+              data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+        {% else %}
+            <span class="status {% if hide_correctness %}{% else %}{{ status.classname }}{% endif %}"
+                  id="status_{{ id }}"
+                  data-tooltip="{% if hide_correctness %}{% else %}{{ status.display_tooltip }}{% endif %}">
+            {% endif %}
+            {% if not hide_correctness %}
+                <span class="sr">{{ status.display_name }}</span>
+                <span class="status-icon" aria-hidden="true"></span>
+            {% endif %}
+        </span>
+    </p>
+    <p id="answer_{{ id }}" class="answer"></p>
+    {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+    </div>
+{% endif %}
+</section>
