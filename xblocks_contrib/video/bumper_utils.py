@@ -18,6 +18,7 @@ try:
 except ImportError:
     edxval_api = None
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/bumper_utils.py#L22
 log = logging.getLogger(__name__)
 
 

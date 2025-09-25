@@ -14,6 +14,7 @@ from django.core.validators import URLValidator
 log = logging.getLogger(__name__)
 
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_utils.py#L17-L123
 def create_youtube_string(block):
     """
     Create a string of Youtube IDs from `block`'s metadata
@@ -122,6 +123,7 @@ def set_query_parameter(url, param_name, param_value):
 
     return urlunsplit((scheme, netloc, path, new_query_string, fragment))
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/fields.py#L168-L186
 def isotime_to_timedelta(value):
     """
     Validate that value in "HH:MM:SS" format and convert to timedelta.

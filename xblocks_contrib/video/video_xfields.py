@@ -22,7 +22,7 @@ from xblock.fields import (
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
 _ = lambda text: text
 
-
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/fields.py#L145-L257
 class RelativeTime(JSONField):
     """
     Field for start_time and end_time video block properties.
@@ -137,7 +137,7 @@ class RelativeTime(JSONField):
 
         return self.from_json(value)
 
-
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_xfields.py#L17-L222
 class VideoFields:
     """Fields for `VideoBlock`."""
     display_name = String(

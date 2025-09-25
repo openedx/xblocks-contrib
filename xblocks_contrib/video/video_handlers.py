@@ -41,6 +41,7 @@ log = logging.getLogger(__name__)
 # Disable no-member warning:
 # pylint: disable=no-member
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_handlers.py#L46-L432
 def to_boolean(value):
     """
     Convert a value from a GET or POST request parameter to a bool
@@ -432,6 +433,7 @@ class VideoStudentViewHandlers:
         return Response()
 
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_handlers.py#L435-L676
 class VideoStudioViewHandlers:
     """
     Handlers for Studio view.
