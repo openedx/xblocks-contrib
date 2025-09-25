@@ -117,16 +117,8 @@ AutoAdvanceControl.prototype = {
     },
 
     autoAdvance: function() {
-        // We are posting a message to the MFE and then let the eventlistener
-        // in the MFE handle the action taken.
         if (this.state.auto_advance) {
-            if (window !== window.parent) {
-                window.parent.postMessage({
-                  type: 'plugin.autoAdvance',
-                  payload: {}
-                }, document.referrer
-              );
-            }
+            $('.sequence-nav-button.button-next').first().click();
         }
     }
 };

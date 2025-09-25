@@ -1,5 +1,5 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/exceptions.py
+# TODO: We can move it to common utils
+
 # lint-amnesty, pylint: disable=missing-module-docstring
 class InvalidDefinitionError(Exception):
     pass

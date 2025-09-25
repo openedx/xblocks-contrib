@@ -1,11 +1,9 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_utils.py
 """
 Module contains utils specific for video_block but not for transcripts.
 """
-
-
+import datetime
 import logging
+import time
 from collections import OrderedDict
 from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunsplit
 
@@ -16,6 +14,7 @@ from django.core.validators import URLValidator
 log = logging.getLogger(__name__)
 
 
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_utils.py#L17-L123
 def create_youtube_string(block):
     """
     Create a string of Youtube IDs from `block`'s metadata
@@ -123,3 +122,24 @@ def set_query_parameter(url, param_name, param_value):
     new_query_string = urlencode(query_params, doseq=True)
 
     return urlunsplit((scheme, netloc, path, new_query_string, fragment))
+
+# TODO: Code has been refactored from https://github.com/openedx/edx-platform/blob/master/xmodule/fields.py#L168-L186
+def isotime_to_timedelta(value):
+    """
+    Validate that value in "HH:MM:SS" format and convert to timedelta.
+
+    Validate that user, that edits XML, sets proper format, and
+     that max value that can be used by user is "23:59:59".
+    """
+    try:
+        obj_time = time.strptime(value, '%H:%M:%S')
+    except ValueError as e:
+        raise ValueError(  # lint-amnesty, pylint: disable=raise-missing-from
+            "Incorrect RelativeTime value {!r} was set in XML or serialized. "
+            "Original parse message is {}".format(value, str(e))
+        )
+    return datetime.timedelta(
+        hours=obj_time.tm_hour,
+        minutes=obj_time.tm_min,
+        seconds=obj_time.tm_sec
+    )
