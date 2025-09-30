@@ -1,8 +1,3 @@
-# NOTE: This file is copied from the following files: 
-# https://github.com/openedx/edx-platform/blob/farhan/extract-video-xblock/xmodule/xml_block.py#L71-L100
-# https://github.com/openedx/edx-platform/blob/farhan/extract-video-xblock/xmodule/modulestore/inheritance.py#L335-L340
-
-
 import json
 
 from xblock.fields import Scope

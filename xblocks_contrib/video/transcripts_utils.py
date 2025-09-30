@@ -1,5 +1,3 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/transcripts_utils.py
 """
 Utility functions for transcripts.
 ++++++++++++++++++++++++++++++++++
@@ -25,10 +23,11 @@ from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
 from opaque_keys.edx.locator import LibraryLocatorV2
 
-from openedx.core.djangoapps.xblock.api import get_component_from_usage_key
-from xmodule.contentstore.content import StaticContent
-from xmodule.contentstore.django import contentstore
-from xmodule.exceptions import NotFoundError
+from xblocks_contrib.video.content import StaticContent
+from xblocks_contrib.video.django import contentstore
+from xblocks_contrib.video.exceptions import NotFoundError
+from xblocks_contrib.video.video_service_utils import get_component_version
+
 
 from .bumper_utils import get_bumper_settings
 
@@ -1118,16 +1117,7 @@ def get_transcript_from_learning_core(video_block, language, output_format, tran
             f"'{language}' language in its OLX."
         )
 
-    # Grab the underlying Component. There's no version parameter to this call,
-    # so we're just going to grab the file associated with the latest draft
-    # version for now.
-    component = get_component_from_usage_key(usage_key)
-    component_version = component.versioning.draft
-    if not component_version:
-        raise NotFoundError(
-            f"No transcript for {usage_key} because Component {component.uuid} "
-            "was soft-deleted."
-        )
+    component_version = get_component_version(video_block, usage_key)
 
     file_path = pathlib.Path(f"static/{transcripts[language]}")
     if file_path.suffix != '.srt':
