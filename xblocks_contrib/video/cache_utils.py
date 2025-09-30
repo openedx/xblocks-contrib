@@ -1,21 +1,9 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/openedx/core/lib/cache_utils.py
-"""
-Utilities related to caching.
-"""
-
-
-import collections
-import functools
 import itertools
-import zlib
-import pickle
-
 import wrapt
-from django.db.models.signals import post_save, post_delete
+
 from django.utils.encoding import force_str
 
-from edx_django_utils.cache import RequestCache, TieredCache
+from edx_django_utils.cache import RequestCache
 
 
 def request_cached(namespace=None, arg_map_function=None, request_cache_getter=None):
@@ -82,7 +70,6 @@ def request_cached(namespace=None, arg_map_function=None, request_cache_getter=N
 
     return decorator
 
-
 def _func_call_cache_key(func, arg_map_function, *args, **kwargs):
     """
     Returns a cache key based on the function's module,
@@ -96,7 +83,6 @@ def _func_call_cache_key(func, arg_map_function, *args, **kwargs):
 
     cache_keys = [func.__module__, func.__name__] + converted_args + converted_kwargs
     return '.'.join(cache_keys)
-
 
 def _sorted_kwargs_list(kwargs):
     """

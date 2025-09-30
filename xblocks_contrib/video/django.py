@@ -1,7 +1,5 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/contentstore/django.py
+# TODO: Check the placement of this file
 # lint-amnesty, pylint: disable=missing-module-docstring
-
 from importlib import import_module
 
 from django.conf import settings

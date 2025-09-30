@@ -1,5 +1,3 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/transcripts_utils.py
 """
 Utility functions for transcripts.
 ++++++++++++++++++++++++++++++++++
@@ -25,10 +23,10 @@ from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
 from opaque_keys.edx.locator import LibraryLocatorV2
 
-from openedx.core.djangoapps.xblock.api import get_component_from_usage_key
-from xmodule.contentstore.content import StaticContent
-from xmodule.contentstore.django import contentstore
-from xmodule.exceptions import NotFoundError
+from xblocks_contrib.video.content import StaticContent
+from xblocks_contrib.video.django import contentstore
+from xblocks_contrib.video.exceptions import NotFoundError
+
 
 from .bumper_utils import get_bumper_settings
 
@@ -1121,7 +1119,10 @@ def get_transcript_from_learning_core(video_block, language, output_format, tran
     # Grab the underlying Component. There's no version parameter to this call,
     # so we're just going to grab the file associated with the latest draft
     # version for now.
-    component = get_component_from_usage_key(usage_key)
+    # TODO: un comment following code, Study how can we use get_component_from_usage_key exist in edx-platform
+    # from openedx.core.djangoapps.xblock.api import get_component_from_usage_key
+    # component = get_component_from_usage_key(usage_key)
+    component = video_block.component
     component_version = component.versioning.draft
     if not component_version:
         raise NotFoundError(
