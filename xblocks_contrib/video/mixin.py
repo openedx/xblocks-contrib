@@ -1,7 +1,5 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/openedx/core/lib/license/mixin.py
 """
-License mixin for XBlocks and XModules
+License mixin for XBlocks
 """
 
 from xblock.core import XBlockMixin

@@ -1,12 +1,8 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_utils.py
 """
 Module contains utils specific for video_block but not for transcripts.
 """
-
-
-import logging
 from collections import OrderedDict
+import logging
 from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunsplit
 
 from django.conf import settings
