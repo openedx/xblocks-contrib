@@ -1,5 +1,3 @@
-# NOTE: Original code has been copied from the following files: 
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_handlers.py
 """
 Handlers for video block.
 
@@ -20,10 +18,9 @@ from webob import Response
 from xblock.core import XBlock
 from xblock.exceptions import JsonHandlerError
 
-from xmodule.exceptions import NotFoundError
-from xmodule.fields import RelativeTime
-from openedx.core.djangoapps.content_libraries import api as lib_api
+from xblocks_contrib.video.video_service_utils import add_library_static_asset, delete_library_static_asset, get_youtube_metadata
 
+from .exceptions import NotFoundError
 from .transcripts_utils import (
     Transcript,
     TranscriptException,
@@ -38,6 +35,7 @@ from .transcripts_utils import (
     subs_filename,
     youtube_speed_dict
 )
+from xblocks_contrib.video.video_xfields import RelativeTime
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +53,7 @@ def to_boolean(value):
         return value.lower() == 'true'
     else:
         return bool(value)
+
 
 
 class VideoStudentViewHandlers:
@@ -423,15 +422,18 @@ class VideoStudentViewHandlers:
         This handler is only used in the Learning-Core-based runtime. The old
         runtime uses a similar REST API that's not an XBlock handler.
         """
-        from lms.djangoapps.courseware.views.views import load_metadata_from_youtube
+
         if not self.youtube_id_1_0:
             # TODO: more informational response to explain that yt_video_metadata not supported for non-youtube videos.
             return Response('{}', status=400)
-
-        metadata, status_code = load_metadata_from_youtube(video_id=self.youtube_id_1_0, request=request)
-        response = Response(json.dumps(metadata), status=status_code)
-        response.content_type = 'application/json'
-        return response
+        try:
+            metadata, status_code = get_youtube_metadata(self, self.youtube_id_1_0, request)
+            response = Response(json.dumps(metadata), status=status_code)
+            response.content_type = 'application/json'
+            return response
+        except Exception as e:
+            log.exception(f"Error getting YouTube metadata for video ID: {self.youtube_id_1_0}")
+            return Response('{"error": "Failed to retrieve YouTube metadata"}', status=500)
 
 
 class VideoStudioViewHandlers:
@@ -565,11 +567,12 @@ class VideoStudioViewHandlers:
                 if is_library:
                     # Save transcript as static asset in Learning Core if is a library component
                     filename = f"static/{filename}"
-                    lib_api.add_library_block_static_asset_file(
-                        self.usage_key,
-                        filename,
-                        content,
-                    )
+                    try:
+                        success = add_library_static_asset(self, self.usage_key, filename, content)
+                        if not success:
+                            log.error(f"Failed to add library static asset {filename} for usage key: {self.usage_key}")
+                    except Exception as e:
+                        log.exception(f"Error adding library static asset {filename} for usage key: {self.usage_key}")
                 else:
                     sjson_subs = Transcript.convert(
                         content=content.decode('utf-8'),
@@ -624,13 +627,14 @@ class VideoStudioViewHandlers:
         if isinstance(self.usage_key.context_key, LibraryLocatorV2):
             transcript_name = self.transcripts.pop(language, None)
             if transcript_name:
-                # TODO: In the future, we need a proper XBlock API
-                # like `self.static_assets.delete(...)` instead of coding
-                # these runtime-specific/library-specific APIs.
-                lib_api.delete_library_block_static_asset_file(
-                    self.usage_key,
-                    f"static/{transcript_name}",
-                )
+                # Delete transcript as static asset in Learning Core if is a library component
+                filename = f"static/{transcript_name}"
+                try:
+                    success = delete_library_static_asset(self, self.usage_key, filename)
+                    if not success:
+                        log.error(f"Failed to delete library static asset {filename} for usage key: {self.usage_key}")
+                except Exception as e:
+                    log.exception(f"Error deleting library static asset {filename} for usage key: {self.usage_key}")
                 self._save_transcript_field()
         else:
             if language == 'en':
