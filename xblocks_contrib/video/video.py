@@ -48,7 +48,6 @@ from xblock.utils.studio_editable import StudioEditableXBlockMixin
 from xblocks_contrib.video.bumper_utils import bumperize
 from xblocks_contrib.video.content import StaticContent
 from xblocks_contrib.video.exceptions import NotFoundError
-from xblocks_contrib.video.load_static import LoadStatic
 from xblocks_contrib.video.mixin import LicenseMixin
 from xblocks_contrib.video.studio_metadata_mixin import StudioMetadataMixin
 from xblocks_contrib.video.video_service_utils import (
