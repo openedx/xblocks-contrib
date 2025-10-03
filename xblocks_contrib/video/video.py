@@ -262,11 +262,9 @@ class VideoBlock(
             )
         )
         frag.add_css(resource_loader.load_unicode("static/css/video.css"))
-        js_str = resource_loader.load_unicode("static/js/dist/video-xblock.js")
-        frag.add_javascript(js_str)
-        # js_url = LoadStatic.get_url("video-xblock.js")
-        # print(f'Farhan here: javascript_url {js_url}')
-        # frag.add_javascript_url(js_url)
+        frag.add_javascript_url(
+            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+        )
         frag.initialize_js("Video")
         return frag
 
