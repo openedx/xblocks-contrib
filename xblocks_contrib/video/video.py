@@ -213,9 +213,8 @@ class InheritanceLikeKeyValueStore(KeyValueStore):
         return key.field_name in self._fields
 
 
-# TODO: Add request_cache to the wants list
-@XBlock.wants('settings', 'completion', 'video_config')
-@XBlock.needs('i18n', 'user')
+@XBlock.wants('settings', 'completion', 'request_cache')
+@XBlock.needs('i18n', 'user', 'video_config')
 class VideoBlock(
     VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
     StudioEditableXBlockMixin, XBlock,
