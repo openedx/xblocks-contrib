@@ -8,8 +8,10 @@ const config = {
         'video-xblock': path.resolve(process.cwd(), 'static/js/src/10_main.js'),
     },
     output: {
-        path: path.resolve(__dirname, 'static/js/dist'),
-        filename: '[name].js'
+        path: path.resolve(__dirname, 'public/js'),
+        filename: '[name].js',
+        clean: true,
+        publicPath: '/'
     },
     resolve: {
         alias: { 
@@ -30,11 +32,6 @@ const config = {
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new WebpackManifestPlugin({
-            seed: {
-                base_url: '/static/js/dist',
-            },
-        }),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',
