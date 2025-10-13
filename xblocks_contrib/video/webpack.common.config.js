@@ -29,6 +29,8 @@ const config = {
         gettext: 'gettext',
         jquery: 'jQuery',
         logger: 'Logger',
+        fs: 'fs',
+        path: 'path',
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -38,6 +40,10 @@ const config = {
             'window.jQuery': 'jquery',
             _: 'underscore',
             AjaxPrefix: 'ajax_prefix',
+        }),
+        new webpack.DefinePlugin({
+            'CAPTIONS_CONTENT_TO_REPLACE': JSON.stringify(process.env.CAPTIONS_CONTENT_TO_REPLACE || ''),
+            'CAPTIONS_CONTENT_REPLACEMENT': JSON.stringify(process.env.CAPTIONS_CONTENT_REPLACEMENT || '')
         }),
     ],
     module: {

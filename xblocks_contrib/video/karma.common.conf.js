@@ -279,6 +279,11 @@ function getBaseConfig(config, useRequireJs) {
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: '',
 
+        // Proxy configuration to map fixture paths
+        proxies: {
+            '/base/fixtures/': '/base/tests/fixtures/'
+        },
+
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         frameworks: ['custom'],
@@ -331,43 +336,43 @@ function getBaseConfig(config, useRequireJs) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Firefox'],
+        browsers: ['FirefoxNoUpdates'],
 
-        // customLaunchers: {
-        //     // Firefox configuration that doesn't perform auto-updates
-        //     FirefoxNoUpdates: {
-        //         base: 'Firefox',
-        //         prefs: {
-        //             'app.update.auto': false,
-        //             'app.update.enabled': false
-        //         }
-        //     },
-        //     ChromeDocker: {
-        //         base: 'SeleniumWebdriver',
-        //         browserName: 'chrome',
-        //         getDriver: function() {
-        //             return new webdriver.Builder()
-        //                 .forBrowser('chrome')
-        //                 .usingServer('http://edx.devstack.chrome:4444/wd/hub')
-        //                 .build();
-        //         }
-        //     },
-        //     FirefoxDocker: {
-        //         base: 'SeleniumWebdriver',
-        //         browserName: 'firefox',
-        //         getDriver: function() {
-        //             var options = new firefox.Options(),
-        //                 profile = new firefox.Profile();
-        //             profile.setPreference('focusmanager.testmode', true);
-        //             options.setProfile(profile);
-        //             return new webdriver.Builder()
-        //                 .forBrowser('firefox')
-        //                 .usingServer('http://edx.devstack.firefox:4444/wd/hub')
-        //                 .setFirefoxOptions(options)
-        //                 .build();
-        //         }
-        //     }
-        // },
+        customLaunchers: {
+            // Firefox configuration that doesn't perform auto-updates
+            FirefoxNoUpdates: {
+                base: 'Firefox',
+                prefs: {
+                    'app.update.auto': false,
+                    'app.update.enabled': false
+                }
+            },
+            // ChromeDocker: {
+            //     base: 'SeleniumWebdriver',
+            //     browserName: 'chrome',
+            //     getDriver: function() {
+            //         return new webdriver.Builder()
+            //             .forBrowser('chrome')
+            //             .usingServer('http://edx.devstack.chrome:4444/wd/hub')
+            //             .build();
+            //     }
+            // },
+            // FirefoxDocker: {
+            //     base: 'SeleniumWebdriver',
+            //     browserName: 'firefox',
+            //     getDriver: function() {
+            //         var options = new firefox.Options(),
+            //             profile = new firefox.Profile();
+            //         profile.setPreference('focusmanager.testmode', true);
+            //         options.setProfile(profile);
+            //         return new webdriver.Builder()
+            //             .forBrowser('firefox')
+            //             .usingServer('http://edx.devstack.firefox:4444/wd/hub')
+            //             .setFirefoxOptions(options)
+            //             .build();
+            //     }
+            // }
+        },
         
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

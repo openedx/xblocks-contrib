@@ -1,3 +1,4 @@
+
 /* eslint-env node */
 
 // Karma config for xmodule suite.
@@ -32,12 +33,9 @@ var options = {
     // ],
 
     fixtureFiles: [
-    {
-        pattern: path.join(__dirname, 'tests/fixtures/*.html'),
-        included: false,
-        served: true,
-        watched: true
-    }],
+        {pattern: path.join(__dirname, 'tests/fixtures/*.*')},
+        {pattern: path.join(__dirname, 'tests/fixtures/hls/**/*.*')}
+    ],
 
     runFiles: [
         {pattern: 'karma_runner_webpack.js', webpack: true}

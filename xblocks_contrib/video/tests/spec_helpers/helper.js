@@ -1,9 +1,11 @@
+
 /* global _ */
 
 (function() {
     'use strict';
 
     var origAjax = $.ajax;
+
     var stubbedYT = {
         Player: function() {
             var Player = jasmine.createSpyObj(
@@ -76,6 +78,7 @@
     window.WAIT_TIMEOUT = 5000;
 
     jasmine.getFixtures().fixturesPath += 'fixtures';
+
     jasmine.stubbedMetadata = {
         '7tqY6eQzVhE': {
             contentDetails: {
@@ -250,11 +253,11 @@
         if (_.isObject(params)) {
             metadata = _.extend($('#video_id').data('metadata'), params);
             $('#video_id').data('metadata', metadata);
-            
         }
 
         jasmine.stubRequests();
-        state = new window.Video('#example');
+        let runtime = jasmine.createSpyObj('TestRuntime', ['handlerUrl']);
+        state = new window.Video(runtime, '#example');
 
         state.resizer = (function() {
             var methods = [
