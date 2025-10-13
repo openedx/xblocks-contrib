@@ -1,6 +1,7 @@
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import AssetKey
 from opaque_keys.edx.locator import AssetLocator
 
-# TODO: Review this class copied from edx-platform
 class StaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
     def __init__(self, loc, name, content_type, data, last_modified_at=None, thumbnail_location=None, import_path=None,
                  length=None, locked=False, content_digest=None):
@@ -34,7 +35,6 @@ class StaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
             'asset' if not is_thumbnail else 'thumbnail',
             AssetLocator.clean_keeping_underscores(path)
         ).for_branch(None)
-<<<<<<< HEAD
 
     @staticmethod
     def get_location_from_path(path):
@@ -48,5 +48,3 @@ class StaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
             if path.startswith('/') or path.endswith('/'):
                 # try stripping off the leading slash and try again
                 return AssetKey.from_string(path.strip('/'))
-=======
->>>>>>> 123b62b1 (stable 2)

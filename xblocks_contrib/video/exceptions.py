@@ -1,5 +1,3 @@
-# TODO: We can move it to common utils
-
 # lint-amnesty, pylint: disable=missing-module-docstring
 class InvalidDefinitionError(Exception):
     pass
@@ -54,3 +52,9 @@ class HeartbeatFailure(Exception):
         """
         self.service = service
         super().__init__(msg)
+
+
+class ServiceUnavailable(Exception):
+    """
+    This error is raised if the service backing this client is currently unavailable.
+    """

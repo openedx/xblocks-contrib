@@ -1,11 +1,13 @@
-'use strict';
+// VideoCaption module.
 
 import Sjson from './00_sjson.js';
 import AsyncProcess from './00_async_process.js';
 import HtmlUtils from 'edx-ui-toolkit/js/utils/html-utils';
 import Draggabilly from 'draggabilly';
-import { convert, format, formatFull } from './utils/time.js';
+import { convert } from './utils/time.js';
 import _ from 'underscore';
+
+'use strict';
 
 /**
  * @desc VideoCaption module exports a function.
@@ -21,7 +23,7 @@ import _ from 'underscore';
  *
  * @returns {jquery Promise}
  */
-let VideoCaption = function (state) {
+let VideoCaption = function(state) {
     if (!(this instanceof VideoCaption)) {
         return new VideoCaption(state);
     }
@@ -34,7 +36,7 @@ let VideoCaption = function (state) {
         'showClosedCaptions', 'hideClosedCaptions', 'toggleClosedCaptions',
         'updateCaptioningCookie', 'handleCaptioningCookie', 'handleTranscriptToggle',
         'listenForDragDrop', 'setTranscriptVisibility', 'updateTranscriptCookie',
-        'toggleGoogleDisclaimer'
+        'updateGoogleDisclaimer', 'toggleGoogleDisclaimer', 'updateProblematicCaptionsContent'
     );
 
     this.state = state;
@@ -47,10 +49,9 @@ let VideoCaption = function (state) {
     return $.Deferred().resolve().promise();
 };
 
-
 VideoCaption.prototype = {
 
-    destroy: function () {
+    destroy: function() {
         this.state.el
             .off({
                 'caption:fetch': this.fetchCaption,
@@ -74,10 +75,10 @@ VideoCaption.prototype = {
         delete this.state.videoCaption;
     },
     /**
-     * @desc Initiate rendering of elements, and set their initial configuration.
-     *
-     */
-    renderElements: function () {
+    * @desc Initiate rendering of elements, and set their initial configuration.
+    *
+    */
+    renderElements: function() {
         let languages = this.state.config.transcriptLanguages;
 
         let langHtml = HtmlUtils.interpolateHtml(
@@ -137,11 +138,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Bind any necessary function callbacks to DOM events (click,
-     *     mousemove, etc.).
-     *
-     */
-    bindHandlers: function () {
+    * @desc Bind any necessary function callbacks to DOM events (click,
+    *     mousemove, etc.).
+    *
+    */
+    bindHandlers: function() {
         let state = this.state,
             events = [
                 'mouseover', 'mouseout', 'mousedown', 'click', 'focus', 'blur',
@@ -196,95 +197,95 @@ VideoCaption.prototype = {
         }
     },
 
-    onCaptionUpdate: function (event, time) {
+    onCaptionUpdate: function(event, time) {
         this.updatePlayTime(time);
     },
 
-    handleCaptionToggle: function (event) {
+    handleCaptionToggle: function(event) {
         let KEY = $.ui.keyCode,
             keyCode = event.keyCode;
 
         switch (keyCode) {
-            case KEY.SPACE:
-            case KEY.ENTER:
-                event.preventDefault();
-                this.toggleClosedCaptions(event);
-            // no default
+        case KEY.SPACE:
+        case KEY.ENTER:
+            event.preventDefault();
+            this.toggleClosedCaptions(event);
+        // no default
         }
     },
 
-    handleTranscriptToggle: function (event) {
+    handleTranscriptToggle: function(event) {
         let KEY = $.ui.keyCode,
             keyCode = event.keyCode;
 
         switch (keyCode) {
-            case KEY.SPACE:
-            case KEY.ENTER:
-                event.preventDefault();
-                this.toggleTranscript(event);
-            // no default
+        case KEY.SPACE:
+        case KEY.ENTER:
+            event.preventDefault();
+            this.toggleTranscript(event);
+        // no default
         }
     },
 
-    handleKeypressLink: function (event) {
+    handleKeypressLink: function(event) {
         let KEY = $.ui.keyCode,
             keyCode = event.keyCode,
             focused, index, total;
 
         switch (keyCode) {
-            case KEY.UP:
-                event.preventDefault();
-                focused = $(':focus').parent();
-                index = this.languageChooserEl.find('li').index(focused);
-                total = this.languageChooserEl.find('li').size() - 1;
+        case KEY.UP:
+            event.preventDefault();
+            focused = $(':focus').parent();
+            index = this.languageChooserEl.find('li').index(focused);
+            total = this.languageChooserEl.find('li').size() - 1;
 
-                this.previousLanguageMenuItem(event, index);
-                break;
+            this.previousLanguageMenuItem(event, index);
+            break;
 
-            case KEY.DOWN:
-                event.preventDefault();
-                focused = $(':focus').parent();
-                index = this.languageChooserEl.find('li').index(focused);
-                total = this.languageChooserEl.find('li').size() - 1;
+        case KEY.DOWN:
+            event.preventDefault();
+            focused = $(':focus').parent();
+            index = this.languageChooserEl.find('li').index(focused);
+            total = this.languageChooserEl.find('li').size() - 1;
 
-                this.nextLanguageMenuItem(event, index, total);
-                break;
+            this.nextLanguageMenuItem(event, index, total);
+            break;
 
-            case KEY.ESCAPE:
-                this.closeLanguageMenu(event);
-                break;
+        case KEY.ESCAPE:
+            this.closeLanguageMenu(event);
+            break;
 
-            case KEY.ENTER:
-            case KEY.SPACE:
-                return true;
-            // no default
+        case KEY.ENTER:
+        case KEY.SPACE:
+            return true;
+        // no default
         }
         return true;
     },
 
-    handleKeypress: function (event) {
+    handleKeypress: function(event) {
         let KEY = $.ui.keyCode,
             keyCode = event.keyCode;
 
         switch (keyCode) {
-            // Handle keypresses
-            case KEY.ENTER:
-            case KEY.SPACE:
-            case KEY.UP:
-                event.preventDefault();
-                this.openLanguageMenu(event);
-                break;
+        // Handle keypresses
+        case KEY.ENTER:
+        case KEY.SPACE:
+        case KEY.UP:
+            event.preventDefault();
+            this.openLanguageMenu(event);
+            break;
 
-            case KEY.ESCAPE:
-                this.closeLanguageMenu(event);
-                break;
-            // no default
+        case KEY.ESCAPE:
+            this.closeLanguageMenu(event);
+            break;
+        // no default
         }
 
         return event.keyCode === KEY.TAB;
     },
 
-    nextLanguageMenuItem: function (event, index, total) {
+    nextLanguageMenuItem: function(event, index, total) {
         event.preventDefault();
 
         if (event.altKey || event.shiftKey) {
@@ -306,7 +307,7 @@ VideoCaption.prototype = {
         return false;
     },
 
-    previousLanguageMenuItem: function (event, index) {
+    previousLanguageMenuItem: function(event, index) {
         event.preventDefault();
 
         if (event.altKey || event.shiftKey) {
@@ -328,7 +329,7 @@ VideoCaption.prototype = {
         return false;
     },
 
-    openLanguageMenu: function (event) {
+    openLanguageMenu: function(event) {
         let button = this.languageChooserEl,
             menu = button.parent().find('.menu');
 
@@ -342,7 +343,7 @@ VideoCaption.prototype = {
             .focus();
     },
 
-    closeLanguageMenu: function (event) {
+    closeLanguageMenu: function(event) {
         let button = this.languageChooserEl;
         event.preventDefault();
 
@@ -352,37 +353,37 @@ VideoCaption.prototype = {
             .focus();
     },
 
-    onCaptionHandler: function (event) {
+    onCaptionHandler: function(event) {
         switch (event.type) {
-            case 'mouseover':
-            case 'mouseout':
-                this.captionMouseOverOut(event);
-                break;
-            case 'mousedown':
-                this.captionMouseDown(event);
-                break;
-            case 'click':
-                this.captionClick(event);
-                break;
-            case 'focusin':
-                this.captionFocus(event);
-                break;
-            case 'focusout':
-                this.captionBlur(event);
-                break;
-            case 'keydown':
-                this.captionKeyDown(event);
-                break;
-            // no default
+        case 'mouseover':
+        case 'mouseout':
+            this.captionMouseOverOut(event);
+            break;
+        case 'mousedown':
+            this.captionMouseDown(event);
+            break;
+        case 'click':
+            this.captionClick(event);
+            break;
+        case 'focusin':
+            this.captionFocus(event);
+            break;
+        case 'focusout':
+            this.captionBlur(event);
+            break;
+        case 'keydown':
+            this.captionKeyDown(event);
+            break;
+        // no default
         }
     },
 
     /**
-     * @desc Opens language menu.
-     *
-     * @param {jquery Event} event
-     */
-    onContainerMouseEnter: function (event) {
+    * @desc Opens language menu.
+    *
+    * @param {jquery Event} event
+    */
+    onContainerMouseEnter: function(event) {
         event.preventDefault();
         $(event.currentTarget).find('.lang').addClass('is-opened');
 
@@ -395,11 +396,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Closes language menu.
-     *
-     * @param {jquery Event} event
-     */
-    onContainerMouseLeave: function (event) {
+    * @desc Closes language menu.
+    *
+    * @param {jquery Event} event
+    */
+    onContainerMouseLeave: function(event) {
         event.preventDefault();
         $(event.currentTarget).find('.lang').removeClass('is-opened');
 
@@ -412,11 +413,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Freezes moving of captions when mouse is over them.
-     *
-     * @param {jquery Event} event
-     */
-    onMouseEnter: function () {
+    * @desc Freezes moving of captions when mouse is over them.
+    *
+    * @param {jquery Event} event
+    */
+    onMouseEnter: function() {
         if (this.frozen) {
             clearTimeout(this.frozen);
         }
@@ -428,11 +429,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Unfreezes moving of captions when mouse go out.
-     *
-     * @param {jquery Event} event
-     */
-    onMouseLeave: function () {
+    * @desc Unfreezes moving of captions when mouse go out.
+    *
+    * @param {jquery Event} event
+    */
+    onMouseLeave: function() {
         if (this.frozen) {
             clearTimeout(this.frozen);
         }
@@ -445,11 +446,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Freezes moving of captions when mouse is moving over them.
-     *
-     * @param {jquery Event} event
-     */
-    onMovement: function () {
+    * @desc Freezes moving of captions when mouse is moving over them.
+    *
+    * @param {jquery Event} event
+    */
+    onMovement: function() {
         this.onMouseEnter();
     },
 
@@ -458,7 +459,7 @@ VideoCaption.prototype = {
      *
      * @returns {array} if [startTime, endTime] are defined
      */
-    getStartEndTimes: function () {
+    getStartEndTimes: function() {
         // due to the way config.startTime/endTime are
         // processed in 03_video_player.js, we assume
         // endTime can be an integer or null,
@@ -475,7 +476,7 @@ VideoCaption.prototype = {
      * @returns {object} {start, captions} parallel arrays of
      *    start times and corresponding captions
      */
-    getBoundedCaptions: function () {
+    getBoundedCaptions: function() {
         // get start and caption. If startTime and endTime
         // are specified, filter by that range.
         let times = this.getStartEndTimes();
@@ -491,43 +492,80 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Shows/Hides Google disclaimer based on captions being AI generated and
-     * if ClosedCaptions are being shown.
-     *
-     * @param {array} captions List of captions for the video.
-     *
-     * @returns {boolean}
-     */
-    toggleGoogleDisclaimer: function(captions) {
+    * @desc Sets whether or not the Google disclaimer should be shown based on captions
+    * being AI generated, and shows/hides based on the above and if ClosedCaptions are being shown.
+    *
+    * @param {array} captions List of captions for the video.
+    *
+    * @returns {boolean}
+    */
+    updateGoogleDisclaimer: function(captions) {
+        const aIGeneratedSpanText = '<span id="captions-ai-generated"',
+              aiProviderRegexp = /data\-provider=["'](?<provider>\w+)["']/;
         let self = this,
             state = this.state,
-            aIGeneratedSpan = '<span id="captions-ai-generated"></span>',
-            captionsAIGenerated = captions.some(caption => caption.includes(aIGeneratedSpan));
+            aiGeneratedSpan = captions.find(caption => caption.includes(aIGeneratedSpanText)),
+            captionsAIGenerated = !(aiGeneratedSpan === undefined),
+            aiCaptionProviderIsGoogle = true;
 
-        if (!self.hideCaptionsOnLoad && !state.captionsHidden) {
-            if (captionsAIGenerated) {
-                state.el.find('.google-disclaimer').show();
-                self.shouldShowGoogleDisclaimer = true;
-            } else {
-                state.el.find('.google-disclaimer').hide();
-                self.shouldShowGoogleDisclaimer = false;
+        if (captionsAIGenerated) {
+            const providerMatch = aiProviderRegexp.exec(aiGeneratedSpan);
+            if (providerMatch !== null) {
+                aiCaptionProviderIsGoogle = providerMatch.groups['provider'] === 'gcp';
             }
+            // If there is no provider tag, it was generated before we added those,
+            // so it must be Google
+        }
+        // This field is whether or not, in general, this video should show the google disclaimer
+        self.shouldShowGoogleDisclaimer = captionsAIGenerated && aiCaptionProviderIsGoogle;
+        // Should we, right now, on load, show the google disclaimer
+        self.toggleGoogleDisclaimer(!self.hideCaptionsOnLoad && !state.captionsHidden);
+    },
+
+    /**
+    * @desc Show or hide the google translate disclaimer based on the passed param
+    *       and whether or not we are currently showing a google translated transcript.
+    * @param {boolean} [show] Show if true, hide if false - if we are showing a google
+    *                         translated transcript. If not, this will always hide.
+    */
+    toggleGoogleDisclaimer: function(show) {
+        let self = this,
+            state = this.state;
+        if (show && self.shouldShowGoogleDisclaimer) {
+            state.el.find('.google-disclaimer').show();
+        } else {
+            state.el.find('.google-disclaimer').hide();
         }
     },
 
     /**
-     * @desc Fetch the caption file specified by the user. Upon successful
-     *     receipt of the file, the captions will be rendered.
-     * @param {boolean} [fetchWithYoutubeId] Fetch youtube captions if true.
-     * @returns {boolean}
-     *     true: The user specified a caption file. NOTE: if an error happens
-     *         while the specified file is being retrieved (for example the
-     *         file is missing on the server), this function will still return
-     *         true.
-     *     false: No caption file was specified, or an empty string was
-     *         specified for the Youtube type player.
-     */
-    fetchCaption: function (fetchWithYoutubeId) {
+    * @desc Replaces content in a caption
+    *
+    * @param {array} captions List of captions for the video.
+    * @param {string} content content to be replaced
+    * @param {string} replacementContent the replace string
+    *
+    * @returns {array} captions List of captions for the video.
+    */
+    updateProblematicCaptionsContent: function(captions, content = '', replacementContent = '') {
+        let updatedCaptions = captions.map(caption => caption.replace(content, replacementContent));
+
+        return updatedCaptions;
+    },
+
+    /**
+    * @desc Fetch the caption file specified by the user. Upon successful
+    *     receipt of the file, the captions will be rendered.
+    * @param {boolean} [fetchWithYoutubeId] Fetch youtube captions if true.
+    * @returns {boolean}
+    *     true: The user specified a caption file. NOTE: if an error happens
+    *         while the specified file is being retrieved (for example the
+    *         file is missing on the server), this function will still return
+    *         true.
+    *     false: No caption file was specified, or an empty string was
+    *         specified for the Youtube type player.
+    */
+    fetchCaption: function(fetchWithYoutubeId) {
         let self = this,
             state = this.state,
             language = state.getCurrentLanguage(),
@@ -563,14 +601,18 @@ VideoCaption.prototype = {
             url: url,
             notifyOnError: false,
             data: data,
-            success: function (sjson) {
+            success: function(sjson) {
                 let results, start, captions;
                 self.sjson = new Sjson(sjson);
                 results = self.getBoundedCaptions();
                 start = results.start;
                 captions = results.captions;
+                let contentToReplace = CAPTIONS_CONTENT_TO_REPLACE,
+                    replacementContent = CAPTIONS_CONTENT_REPLACEMENT;
 
-                self.toggleGoogleDisclaimer(captions);
+                captions = self.updateProblematicCaptionsContent(captions, contentToReplace, replacementContent);
+
+                self.updateGoogleDisclaimer(captions);
 
                 if (self.loaded) {
                     if (self.rendered) {
@@ -604,7 +646,7 @@ VideoCaption.prototype = {
 
                 self.loaded = true;
             },
-            error: function (jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR, textStatus, errorThrown) {
                 let canFetchWithYoutubeId;
                 console.log('[Video info]: ERROR while fetching captions.');
                 console.log(
@@ -639,19 +681,19 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Fetch the list of available language codes. Upon successful receipt
-     * the list of available languages will be updated.
-     *
-     * @returns {jquery Promise}
-     */
-    fetchAvailableTranslations: function () {
+    * @desc Fetch the list of available language codes. Upon successful receipt
+    * the list of available languages will be updated.
+    *
+    * @returns {jquery Promise}
+    */
+    fetchAvailableTranslations: function() {
         let self = this,
             state = this.state;
 
         this.availableTranslationsXHR = $.ajaxWithPrefix({
             url: state.config.transcriptAvailableTranslationsUrl,
             notifyOnError: false,
-            success: function (response) {
+            success: function(response) {
                 let currentLanguages = state.config.transcriptLanguages,
                     newLanguages = _.pick(currentLanguages, response);
 
@@ -664,7 +706,7 @@ VideoCaption.prototype = {
                     self.renderLanguageMenu(newLanguages);
                 }
             },
-            error: function () {
+            error: function() {
                 self.hideCaptions(true);
                 self.languageChooserEl.hide();
             }
@@ -674,10 +716,10 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Recalculates and updates the height of the container of captions.
-     *
-     */
-    onResize: function () {
+    * @desc Recalculates and updates the height of the container of captions.
+    *
+    */
+    onResize: function() {
         this.subtitlesEl
             .find('.spacing').first()
             .height(this.topSpacingHeight());
@@ -691,14 +733,14 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Create any necessary DOM elements, attach them, and set their
-     *     initial configuration for the Language menu.
-     *
-     * @param {object} languages Dictionary where key is language code,
-     *     value - language label
-     *
-     */
-    renderLanguageMenu: function (languages) {
+    * @desc Create any necessary DOM elements, attach them, and set their
+    *     initial configuration for the Language menu.
+    *
+    * @param {object} languages Dictionary where key is language code,
+    *     value - language label
+    *
+    */
+    renderLanguageMenu: function(languages) {
         let self = this,
             state = this.state,
             $menu = $('<ol class="langs-list menu">'),
@@ -713,7 +755,7 @@ VideoCaption.prototype = {
 
         this.showLanguageMenu = true;
 
-        $.each(languages, function (code, label) {
+        $.each(languages, function(code, label) {
             $li = $('<li />', {'data-lang-code': code});
             linkHtml = HtmlUtils.joinHtml(
                 HtmlUtils.HTML('<button class="control control-lang">'),
@@ -736,7 +778,7 @@ VideoCaption.prototype = {
             HtmlUtils.HTML($menu)
         );
 
-        $menu.on('click', '.control-lang', function (e) {
+        $menu.on('click', '.control-lang', function(e) {
             let el = $(e.currentTarget).parent(),
                 captionState = self.state,
                 langCode = el.data('lang-code');
@@ -765,18 +807,18 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Create any necessary DOM elements, attach them, and set their
-     *     initial configuration.
-     *
-     * @param {jQuery element} container Element in which captions will be
-     *     inserted.
-     * @param {array} start List of start times for the video.
-     * @param {array} captions List of captions for the video.
-     * @returns {object} jQuery's Promise object
-     *
-     */
-    buildCaptions: function (container, start, captions) {
-        let process = function (text, index) {
+    * @desc Create any necessary DOM elements, attach them, and set their
+    *     initial configuration.
+    *
+    * @param {jQuery element} container Element in which captions will be
+    *     inserted.
+    * @param {array} start List of start times for the video.
+    * @param {array} captions List of captions for the video.
+    * @returns {object} jQuery's Promise object
+    *
+    */
+    buildCaptions: function(container, start, captions) {
+        let process = function(text, index) {
             let $spanEl = $('<span>', {
                 role: 'link',
                 'data-index': index,
@@ -789,7 +831,7 @@ VideoCaption.prototype = {
             return $spanEl.wrap('<li>').parent()[0]; // xss-lint: disable=javascript-jquery-insertion
         };
 
-        return AsyncProcess.array(captions, process).done(function (list) {
+        return AsyncProcess.array(captions, process).done(function(list) {
             HtmlUtils.append(
                 container,
                 HtmlUtils.HTML(list)
@@ -798,16 +840,16 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Initiates creating of captions and set their initial configuration.
-     *
-     * @param {array} start List of start times for the video.
-     * @param {array} captions List of captions for the video.
-     *
-     */
-    renderCaption: function (start, captions) {
+    * @desc Initiates creating of captions and set their initial configuration.
+    *
+    * @param {array} start List of start times for the video.
+    * @param {array} captions List of captions for the video.
+    *
+    */
+    renderCaption: function(start, captions) {
         let self = this;
 
-        let onRender = function () {
+        let onRender = function() {
             self.addPaddings();
             // Enables or disables automatic scrolling of the captions when the
             // video is playing. This feature has to be disabled when tabbing
@@ -855,15 +897,15 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Sets top and bottom spacing height and make sure they are taken
-     *     out of the tabbing order.
-     *
-     */
-    addPaddings: function () {
+    * @desc Sets top and bottom spacing height and make sure they are taken
+    *     out of the tabbing order.
+    *
+    */
+    addPaddings: function() {
         let topSpacer = HtmlUtils.interpolateHtml(
             HtmlUtils.HTML([
                 '<li class="spacing" style="height: {height}px">',
-                '<a href="#transcript-end-{id}" id="transcript-start-{id}" class="transcript-start"></a>', // eslint-disable-line max-len, indent
+                        '<a href="#transcript-end-{id}" id="transcript-start-{id}" class="transcript-start"></a>', // eslint-disable-line max-len, indent
                 '</li>'
             ].join('')),
             {
@@ -875,7 +917,7 @@ VideoCaption.prototype = {
         let bottomSpacer = HtmlUtils.interpolateHtml(
             HtmlUtils.HTML([
                 '<li class="spacing" style="height: {height}px">',
-                '<a href="#transcript-start-{id}" id="transcript-end-{id}" class="transcript-end"></a>', // eslint-disable-line max-len, indent
+                        '<a href="#transcript-start-{id}" id="transcript-end-{id}" class="transcript-end"></a>', // eslint-disable-line max-len, indent
                 '</li>'
             ].join('')),
             {
@@ -896,14 +938,14 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc
-     * On mouseOver: Hides the outline of a caption that has been tabbed to.
-     * On mouseOut: Shows the outline of a caption that has been tabbed to.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionMouseOverOut: function (event) {
+    * @desc
+    * On mouseOver: Hides the outline of a caption that has been tabbed to.
+    * On mouseOut: Shows the outline of a caption that has been tabbed to.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionMouseOverOut: function(event) {
         let $caption = $(event.target),
             captionIndex = parseInt($caption.attr('data-index'), 10);
 
@@ -917,12 +959,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Handles mousedown event on concrete caption.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionMouseDown: function (event) {
+    * @desc Handles mousedown event on concrete caption.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionMouseDown: function(event) {
         let $caption = $(event.target);
 
         this.isMouseFocus = true;
@@ -932,22 +974,22 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Handles click event on concrete caption.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionClick: function (event) {
+    * @desc Handles click event on concrete caption.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionClick: function(event) {
         this.seekPlayer(event);
     },
 
     /**
-     * @desc Handles focus event on concrete caption.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionFocus: function (event) {
+    * @desc Handles focus event on concrete caption.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionFocus: function(event) {
         let $caption = $(event.target),
             container = $caption.parent(),
             captionIndex = parseInt($caption.attr('data-index'), 10);
@@ -976,12 +1018,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Handles blur event on concrete caption.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionBlur: function (event) {
+    * @desc Handles blur event on concrete caption.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionBlur: function(event) {
         let $caption = $(event.target),
             container = $caption.parent(),
             captionIndex = parseInt($caption.attr('data-index'), 10);
@@ -999,12 +1041,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Handles keydown event on concrete caption.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    captionKeyDown: function (event) {
+    * @desc Handles keydown event on concrete caption.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    captionKeyDown: function(event) {
         this.isMouseFocus = false;
         if (event.which === 13) { // Enter key
             this.seekPlayer(event);
@@ -1012,10 +1054,10 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Scrolls caption container to make active caption visible.
-     *
-     */
-    scrollCaption: function () {
+    * @desc Scrolls caption container to make active caption visible.
+    *
+    */
+    scrollCaption: function() {
         let el = this.subtitlesEl.find('.current:first');
 
         // Automatic scrolling gets disabled if one of the captions has
@@ -1035,10 +1077,10 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Updates flags on play
-     *
-     */
-    play: function () {
+    * @desc Updates flags on play
+    *
+    */
+    play: function() {
         let captions, startAndCaptions, start;
         if (this.loaded) {
             if (!this.rendered) {
@@ -1053,22 +1095,22 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Updates flags on pause
-     *
-     */
-    pause: function () {
+    * @desc Updates flags on pause
+    *
+    */
+    pause: function() {
         if (this.loaded) {
             this.playing = false;
         }
     },
 
     /**
-     * @desc Updates captions UI on paying.
-     *
-     * @param {number} time Time in seconds.
-     *
-     */
-    updatePlayTime: function (time) {
+    * @desc Updates captions UI on paying.
+    *
+    * @param {number} time Time in seconds.
+    *
+    */
+    updatePlayTime: function(time) {
         let state = this.state,
             params, newIndex, times;
 
@@ -1110,17 +1152,17 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Sends log to the server on caption seek.
-     *
-     * @param {jquery Event} event
-     *
-     */
-    seekPlayer: function (event) {
+    * @desc Sends log to the server on caption seek.
+    *
+    * @param {jquery Event} event
+    *
+    */
+    seekPlayer: function(event) {
         let state = this.state,
             time = parseInt($(event.target).data('start'), 10);
 
         if (state.isFlashMode()) {
-            time = Math.round(convert(time, '1.0', state.speed));
+            time = Math.round(Time.convert(time, '1.0', state.speed));
         }
 
         state.trigger(
@@ -1135,41 +1177,41 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Calculates offset for paddings.
-     *
-     * @param {jquery element} element Top or bottom padding element.
-     * @returns {number} Offset for the passed padding element.
-     *
-     */
-    calculateOffset: function (element) {
+    * @desc Calculates offset for paddings.
+    *
+    * @param {jquery element} element Top or bottom padding element.
+    * @returns {number} Offset for the passed padding element.
+    *
+    */
+    calculateOffset: function(element) {
         return this.captionHeight() / 2 - element.height() / 2;
     },
 
     /**
-     * @desc Calculates offset for the top padding element.
-     *
-     * @returns {number} Offset for the passed top padding element.
-     *
-     */
-    topSpacingHeight: function () {
+    * @desc Calculates offset for the top padding element.
+    *
+    * @returns {number} Offset for the passed top padding element.
+    *
+    */
+    topSpacingHeight: function() {
         return this.calculateOffset(
             this.subtitlesEl.find('li:not(.spacing)').first()
         );
     },
 
     /**
-     * @desc Calculates offset for the bottom padding element.
-     *
-     * @returns {number} Offset for the passed bottom padding element.
-     *
-     */
-    bottomSpacingHeight: function () {
+    * @desc Calculates offset for the bottom padding element.
+    *
+    * @returns {number} Offset for the passed bottom padding element.
+    *
+    */
+    bottomSpacingHeight: function() {
         return this.calculateOffset(
             this.subtitlesEl.find('li:not(.spacing)').last()
         );
     },
 
-    handleCaptioningCookie: function () {
+    handleCaptioningCookie: function() {
         if ($.cookie('show_closed_captions') === 'true') {
             this.state.showClosedCaptions = true;
             this.showClosedCaptions();
@@ -1184,21 +1226,23 @@ VideoCaption.prototype = {
         }
     },
 
-    toggleClosedCaptions: function (event) {
+    toggleClosedCaptions: function(event) {
         event.preventDefault();
 
         if (this.state.el.hasClass('has-captions')) {
             this.state.showClosedCaptions = false;
             this.updateCaptioningCookie(false);
             this.hideClosedCaptions();
+            this.toggleGoogleDisclaimer(false);
         } else {
             this.state.showClosedCaptions = true;
             this.updateCaptioningCookie(true);
             this.showClosedCaptions();
+            this.toggleGoogleDisclaimer(true);
         }
     },
 
-    showClosedCaptions: function () {
+    showClosedCaptions: function() {
         let text = gettext('Hide closed captions');
         this.state.el.addClass('has-captions');
 
@@ -1223,7 +1267,7 @@ VideoCaption.prototype = {
         this.state.el.trigger('captions:show');
     },
 
-    hideClosedCaptions: function () {
+    hideClosedCaptions: function() {
         let text = gettext('Turn on closed captioning');
         this.state.el.removeClass('has-captions');
 
@@ -1239,7 +1283,7 @@ VideoCaption.prototype = {
         this.state.el.trigger('captions:hide');
     },
 
-    updateCaptioningCookie: function (method) {
+    updateCaptioningCookie: function(method) {
         if (method) {
             $.cookie('show_closed_captions', 'true', {
                 expires: 3650,
@@ -1253,11 +1297,11 @@ VideoCaption.prototype = {
     },
 
     /**
-     * This runs when the video block is first rendered and sets the initial visibility
-     * of the transcript panel based on the value of the 'show_transcript' cookie and/or
-     * the block's showCaptions setting.
-     */
-    setTranscriptVisibility: function () {
+    * This runs when the video block is first rendered and sets the initial visibility
+    * of the transcript panel based on the value of the 'show_transcript' cookie and/or
+    * the block's showCaptions setting.
+    */
+    setTranscriptVisibility: function() {
         let hideCaptionsOnRender = !this.state.config.showCaptions;
 
         if ($.cookie('show_transcript') === 'true') {
@@ -1277,12 +1321,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Shows/Hides transcript on click `transcript` button
-     *
-     * @param {jquery Event} event
-     *
-     */
-    toggleTranscript: function (event) {
+    * @desc Shows/Hides transcript on click `transcript` button
+    *
+    * @param {jquery Event} event
+    *
+    */
+    toggleTranscript: function(event) {
         event.preventDefault();
         if (this.state.el.hasClass('closed')) {
             this.hideCaptions(false, true);
@@ -1293,7 +1337,7 @@ VideoCaption.prototype = {
         }
     },
 
-    updateTranscriptCookie: function (showTranscript) {
+    updateTranscriptCookie: function(showTranscript) {
         if (showTranscript) {
             $.cookie('show_transcript', 'true', {
                 expires: 3650,
@@ -1306,7 +1350,7 @@ VideoCaption.prototype = {
         }
     },
 
-    listenForDragDrop: function () {
+    listenForDragDrop: function() {
         let captions = this.captionDisplayEl['0'];
 
         if (typeof Draggabilly === 'function') {
@@ -1318,12 +1362,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Shows/Hides the transcript panel.
-     *
-     * @param {boolean} hideCaptions if `true` hides the transcript panel,
-     *     otherwise - show.
-     */
-    hideCaptions: function (hideCaptions, triggerEvent) {
+    * @desc Shows/Hides the transcript panel.
+    *
+    * @param {boolean} hideCaptions if `true` hides the transcript panel,
+    *     otherwise - show.
+    */
+    hideCaptions: function(hideCaptions, triggerEvent) {
         let transcriptControlEl = this.transcriptControlEl,
             self = this,
             state = this.state,
@@ -1337,7 +1381,7 @@ VideoCaption.prototype = {
                 this.state.el.trigger('transcript:hide');
             }
 
-            state.el.find('.google-disclaimer').hide();
+            self.toggleGoogleDisclaimer(false);
 
             transcriptControlEl
                 .removeClass('is-active')
@@ -1352,9 +1396,7 @@ VideoCaption.prototype = {
                 this.state.el.trigger('transcript:show');
             }
 
-            if (self.shouldShowGoogleDisclaimer) {
-                state.el.find('.google-disclaimer').show();
-            }
+            self.toggleGoogleDisclaimer(true);
 
             transcriptControlEl
                 .addClass('is-active')
@@ -1374,12 +1416,12 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Return the caption container height.
-     *
-     * @returns {number} event Height of the container in pixels.
-     *
-     */
-    captionHeight: function () {
+    * @desc Return the caption container height.
+    *
+    * @returns {number} event Height of the container in pixels.
+    *
+    */
+    captionHeight: function() {
         let state = this.state;
         if (state.isFullScreen) {
             return state.container.height() - state.videoFullScreen.height;
@@ -1389,10 +1431,10 @@ VideoCaption.prototype = {
     },
 
     /**
-     * @desc Sets the height of the caption container element.
-     *
-     */
-    setSubtitlesHeight: function () {
+    * @desc Sets the height of the caption container element.
+    *
+    */
+    setSubtitlesHeight: function() {
         let height = 0,
             state = this.state;
         // on page load captionHidden = undefined
@@ -1414,6 +1456,4 @@ VideoCaption.prototype = {
     }
 };
 
-
-// Export as default
 export default VideoCaption;
