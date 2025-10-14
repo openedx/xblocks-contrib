@@ -670,6 +670,13 @@ class VideoBlock(
     def get_user_id(self):
         return self.runtime.service(self, 'user').get_current_user().opt_attrs.get(ATTR_KEY_USER_ID)
 
+    def get_public_video_url(self):
+        """
+        Returns the public video url
+        """
+        # TODO: Call service method to get public video url, Studio edit mixin needs it
+        pass
+
     def validate(self):
         """
         Validates the state of this Video XBlock instance. This
