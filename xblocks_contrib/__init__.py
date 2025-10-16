@@ -1,6 +1,4 @@
-"""
-Init for the xblocks_contrib package.
-"""
+"""Init for the xblocks_contrib package."""
 
 from .annotatable import AnnotatableBlock
 from .discussion import DiscussionXBlock

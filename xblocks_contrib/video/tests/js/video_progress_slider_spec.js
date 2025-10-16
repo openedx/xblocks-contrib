@@ -277,7 +277,7 @@
                     state.videoProgressSlider.handle
                 );
             });
-
+            
             it('is called when video plays', function(done) {
                 state.videoPlayer.play();
                 jasmine.waitUntil(function() {

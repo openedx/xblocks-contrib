@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "workspaces": [
+    "xblocks_contrib/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "test:ci": "npm run test:ci --workspaces"
+  }
+}

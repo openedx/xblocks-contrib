@@ -1,6 +1,7 @@
 const path = require('path');
 const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const webpack = require('webpack');
 
 const config = {
     entry: {
@@ -13,7 +14,9 @@ const config = {
         publicPath: '/'
     },
     resolve: {
-        alias: {
+        alias: { 
+            ajax_prefix: path.resolve(__dirname, 'static/js/utils/ajax_prefix.js'),
+            video: path.resolve(__dirname, 'static/js/src/'),
             'edx-ui-toolkit/js': 'edx-ui-toolkit/src/js',
             'hls': 'hls.js/dist/hls.js'
         },

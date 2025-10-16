@@ -226,16 +226,16 @@ function setDefaults(files) {
 function getBaseConfig(config, useRequireJs) {
     var getFrameworkFiles = function() {
         var files = [
-            'node_modules/jquery/dist/jquery.js',
-            'node_modules/jasmine-core/lib/jasmine-core/jasmine.js',
+            '../../node_modules/jquery/dist/jquery.js',
+            '../../node_modules/jasmine-core/lib/jasmine-core/jasmine.js',
             './jasmine_stack_trace.js',
-            'node_modules/karma-jasmine/lib/boot.js',
-            'node_modules/karma-jasmine/lib/adapter.js',
-            'node_modules/jasmine-jquery/lib/jasmine-jquery.js',
-            'node_modules/popper.js/dist/umd/popper.js',
-            'node_modules/bootstrap/dist/js/bootstrap.js',
-            'node_modules/underscore/underscore.js',
-            'node_modules/backbone/backbone.js',
+            '../../node_modules/karma-jasmine/lib/boot.js',
+            '../../node_modules/karma-jasmine/lib/adapter.js',
+            '../../node_modules/jasmine-jquery/lib/jasmine-jquery.js',
+            '../../node_modules/popper.js/dist/umd/popper.js',
+            '../../node_modules/bootstrap/dist/js/bootstrap.js',
+            '../../node_modules/underscore/underscore.js',
+            '../../node_modules/backbone/backbone.js',
             'tests/i18n.js',
             'tests/spec_helpers/jasmine-waituntil.js'
         ];
@@ -344,7 +344,11 @@ function getBaseConfig(config, useRequireJs) {
                 base: 'Firefox',
                 prefs: {
                     'app.update.auto': false,
-                    'app.update.enabled': false
+                    'app.update.enabled': false,
+                    'media.autoplay.default': 0, // allow autoplay
+                    'media.autoplay.blocking_policy': 0, // disable autoplay blocking
+                    'media.autoplay.allow-extension-background-pages': true,
+                    'media.autoplay.enabled.user-gestures-needed': false,
                 }
             },
             // ChromeDocker: {
