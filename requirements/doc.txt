@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via
     #   -r requirements/test.txt
     #   fs
-arrow==1.3.0
+arrow==1.4.0
     # via
     #   -r requirements/test.txt
     #   cookiecutter
@@ -32,11 +32,11 @@ binaryornot==0.4.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.50
+boto3==1.40.55
     # via
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.50
+botocore==1.40.55
     # via
     #   -r requirements/test.txt
     #   boto3
@@ -58,7 +58,7 @@ chardet==5.2.0
     #   -r requirements/test.txt
     #   binaryornot
     #   tox
-charset-normalizer==3.4.3
+charset-normalizer==3.4.4
     # via
     #   -r requirements/test.txt
     #   requests
@@ -77,11 +77,11 @@ cookiecutter==2.6.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.10.7
+coverage[toml]==7.11.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.2
+cryptography==46.0.3
     # via secretstorage
 ddt==1.7.2
     # via -r requirements/test.txt
@@ -147,7 +147,7 @@ imagesize==1.4.1
     # via sphinx
 importlib-metadata==8.7.0
     # via keyring
-iniconfig==2.1.0
+iniconfig==2.3.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -385,16 +385,16 @@ tox==4.31.0
     # via -r requirements/test.txt
 twine==6.2.0
     # via -r requirements/doc.in
-types-python-dateutil==2.9.0.20251008
-    # via
-    #   -r requirements/test.txt
-    #   arrow
 typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt
     #   beautifulsoup4
     #   edx-opaque-keys
     #   pydata-sphinx-theme
+tzdata==2025.2
+    # via
+    #   -r requirements/test.txt
+    #   arrow
 urllib3==2.5.0
     # via
     #   -r requirements/test.txt
