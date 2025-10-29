@@ -13,24 +13,17 @@ var configModule = require(path.join(__dirname, 'karma.common.conf.js'));
 var options = {
 
     useRequireJs: false,
-
-    // normalizePathsForCoverageFunc: function(appRoot, pattern) {
-    //     return pattern;
-    // },
-
+    
     libraryFilesToInclude: [
         {pattern: 'static/js/vendor/jquery.js', included: true},
         {pattern: 'static/js/utils/ajax_prefix.js', included: true},
         {pattern: 'static/js/utils/add_ajax_prefix.js', included: true},
         {pattern: 'static/js/src/utils/logger.js', included: true}
     ],
+
     libraryFiles: [],
     sourceFiles: [],
     specFiles: [],
-
-    // fixtureFiles: [
-    //     {pattern: 'xblocks_contrib/video/tests/fixtures/*.html', included: false, served: true}
-    // ],
 
     fixtureFiles: [
         {pattern: path.join(__dirname, 'tests/fixtures/*.*')},

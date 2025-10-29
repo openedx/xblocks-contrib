@@ -1,37 +1,5 @@
 // Common settings and helpers for setting up Karma config.
-//
-// To run all the tests in a suite and print results to the console:
-//
-//   karma start <karma_config_for_suite_path>
-//   E.g. karma start lms/static/karma_lms.conf.js
-//
-//
-// To run the tests for debugging: Debugging can be done in any browser
-// but Chrome's developer console debugging experience is best.
-//
-//   karma start <karma_config_for_suite_path> --browsers=BROWSER --single-run=false
-//
-//
-// To run the tests with coverage and junit reports:
-//
-//   karma start <karma_config_for_suite_path> --browsers=BROWSER
-// --coverage --junitreportpath=<xunit_report_path> --coveragereportpath=<report_path>
-//
-// where `BROWSER` could be Chrome or Firefox.
-//
-//
-// Troubleshooting tips:
-//
-// If you get an error like: "TypeError: __cov_KBCc7ZI4xZm8W2BC5NQLDg.s is undefined",
-// that means the patterns in sourceFiles and specFiles are matching the same file.
-// This causes Istanbul, which is used for tracking coverage to instrument the file
-// multiple times.
-//
-//
-// If you see the error: "EMFILE, too many open files" that means the files pattern
-// that has been added is matching too many files. The glob library used by Karma
-// does not use graceful-fs and tries to read files simultaneously.
-//
+
 
 /* eslint-env node */
 /* globals process */
@@ -42,39 +10,17 @@ var path = require('path');
 var _ = require('underscore');
 
 var appRoot = __dirname;
-// eslint-disable-next-line import/no-extraneous-dependencies
-// var webdriver = require('selenium-webdriver');
-// eslint-disable-next-line import/no-extraneous-dependencies
-// var firefox = require('selenium-webdriver/firefox');
-
 var webpackConfig = require(path.join(appRoot, 'webpack.dev.config.js'));
 
 // Files which are needed by all lms/cms suites.
 var commonFiles = {
-    // libraryFiles: [
-    //     {pattern: 'common/js/vendor/**/*.js'},
-    //     {pattern: 'edx-ui-toolkit/js/**/*.js'},
-    //     {pattern: 'xmodule_js/common_static/common/js/**/!(*spec).js'},
-    //     {pattern: 'xmodule_js/common_static/js/**/!(*spec).js'},
-    //     {pattern: 'xmodule_js/src/**/*.js'}
-    // ],
     libraryFiles: [
-        
         {pattern: 'video/static/js/vendor/*.js', included: true},
         {pattern: 'video/edx-ui-toolkit/js/utils/**/*.js', included: true},        
         {pattern: 'video/static/js/utils/*.js', included: true}
-        
     ],
-    sourceFiles: [
-        // {pattern: 'common/js/!(spec_helpers)/**/!(*spec).js'}
-    ],
-
     specFiles: [
         { pattern: 'tests/spec_helpers/*.js', watched: true, served: true, included: true }
-    ],
-
-    fixtureFiles: [
-        // {pattern: 'common/templates/**/*.underscore'}
     ]
 };
 
@@ -170,43 +116,6 @@ function junitSettings(config) {
 }
 
 /**
- * Return absolute path for files in common and xmodule_js symlink dirs.
- * @param {String} appRoot
- * @param {String} pattern
- * @return {String}
- */
-// I'd like to fix the no-shadow violation on the next line, but it would break this shared conf's API.
-// function defaultNormalizeFunc(appRoot, pattern) { // eslint-disable-line no-shadow
-//     var pat = pattern;
-//     if (pat.match(/^common\/js/)) {
-//         pat = path.join(appRoot, '/common/static/' + pat);
-//     } else if (pat.match(/^xmodule_js\/common_static/)) {
-//         pat = path.join(appRoot, '/common/static/'
-//             + pat.replace(/^xmodule_js\/common_static\//, ''));
-//     }
-//     return pat;
-// }
-
-// function normalizePathsForCoverage(files, normalizeFunc, preprocessors) {
-//     var normalizeFn = normalizeFunc || defaultNormalizeFunc,
-//         normalizedFile,
-//         filesForCoverage = {};
-
-//     files.forEach(function(file) {
-//         if (!file.ignoreCoverage) {
-//             normalizedFile = normalizeFn(appRoot, file.pattern);
-//             if (preprocessors && preprocessors.hasOwnProperty(normalizedFile)) {
-//                 filesForCoverage[normalizedFile] = ['coverage'].concat(preprocessors[normalizedFile]);
-//             } else {
-//                 filesForCoverage[normalizedFile] = ['coverage'];
-//             }
-//         }
-//     });
-
-//     return filesForCoverage;
-// }
-
-/**
  * Sets defaults for each file pattern.
  * RequireJS files are excluded by default.
  * Webpack files are included by default.
@@ -239,14 +148,7 @@ function getBaseConfig(config, useRequireJs) {
             'tests/i18n.js',
             'tests/spec_helpers/jasmine-waituntil.js'
         ];
-
-        // if (useRequireJs) {
-        //     files = files.concat([
-        //         'node_modules/requirejs/require.js',
-        //         'node_modules/karma-requirejs/lib/adapter.js'
-        //     ]);
-        // }
-
+        
         return files;
     };
 
@@ -315,9 +217,9 @@ function getBaseConfig(config, useRequireJs) {
             showSpecTiming: true
         },
 
-        // coverageReporter: coverageSettings(config),
+        coverageReporter: coverageSettings(config),
 
-        // junitReporter: junitSettings(config),
+        junitReporter: junitSettings(config),
 
         // web server hostname and port
         hostname: hostname,
@@ -350,32 +252,7 @@ function getBaseConfig(config, useRequireJs) {
                     'media.autoplay.allow-extension-background-pages': true,
                     'media.autoplay.enabled.user-gestures-needed': false,
                 }
-            },
-            // ChromeDocker: {
-            //     base: 'SeleniumWebdriver',
-            //     browserName: 'chrome',
-            //     getDriver: function() {
-            //         return new webdriver.Builder()
-            //             .forBrowser('chrome')
-            //             .usingServer('http://edx.devstack.chrome:4444/wd/hub')
-            //             .build();
-            //     }
-            // },
-            // FirefoxDocker: {
-            //     base: 'SeleniumWebdriver',
-            //     browserName: 'firefox',
-            //     getDriver: function() {
-            //         var options = new firefox.Options(),
-            //             profile = new firefox.Profile();
-            //         profile.setPreference('focusmanager.testmode', true);
-            //         options.setProfile(profile);
-            //         return new webdriver.Builder()
-            //             .forBrowser('firefox')
-            //             .usingServer('http://edx.devstack.firefox:4444/wd/hub')
-            //             .setFirefoxOptions(options)
-            //             .build();
-            //     }
-            // }
+            }
         },
         
         // Continuous Integration mode
@@ -424,10 +301,6 @@ function configure(config, options) {
         {pattern: path.join(appRoot, './jasmine.common.conf.js'), included: true}
     );
 
-    // if (useRequireJs) {
-    //     files.unshift({pattern: 'common/js/utils/require-serial.js', included: true});
-    // }
-
     // Karma sets included=true by default.
     // We set it to false by default because RequireJS should be used instead.
     files = setDefaults(files);
@@ -443,8 +316,7 @@ function configure(config, options) {
     // separately. So we pass absolute paths to the karma-coverage preprocessor.
     preprocessors = _.extend(
         {},
-        options.preprocessors,
-        // normalizePathsForCoverage(filesForCoverage, options.normalizePathsForCoverageFunc, options.preprocessors)
+        options.preprocessors
     );
 
     config.set(_.extend(baseConfig, {
