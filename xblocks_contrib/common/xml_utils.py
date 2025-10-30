@@ -1,6 +1,4 @@
-"""Shared utilities for pointer tag handling across XBlocks.
-
-This module centralizes detection, path computation, and attribute application
+"""This module centralizes detection, path computation, and attribute application
 for OLX "pointer" tags used by XBlocks during import/export.
 Also provides helpers to load definition XML files referenced by pointer tags.
 
@@ -133,10 +131,10 @@ def own_metadata(block):
 
 
 def apply_pointer_attributes(node, block) -> None:
-    """Apply required pointer attributes to the export node for a block.
+    """Apply required pointer attributes to the relevant node for a block.
 
-    Sets "url_name" for all blocks. For course blocks, also sets "org" and
-    "course" attributes.
+    Sets "url_name" for all blocks. For course blocks, additionally assigns
+    "org" and "course" attributes.
     """
     if not node.get("url_name"):
         node.set("url_name", block.url_name)
