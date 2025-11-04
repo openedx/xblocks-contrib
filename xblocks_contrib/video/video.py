@@ -733,7 +733,7 @@ class VideoBlock(
             html5_ids = get_html5_ids(self.html5_sources)
             for subs_id in html5_ids:
                 try:
-                    Transcript.asset(self.location, subs_id)
+                    Transcript.asset(self, self.location, subs_id)
                 except NotFoundError:
                     # If a transcript does not not exist with particular html5_id then there is no need to check other
                     # html5_ids because we have to create a new transcript with this missing html5_id by turning on

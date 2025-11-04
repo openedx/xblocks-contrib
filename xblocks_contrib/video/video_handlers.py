@@ -20,8 +20,8 @@ from xblock.exceptions import JsonHandlerError
 
 from xblocks_contrib.video.video_service_utils import add_library_static_asset, delete_library_static_asset, get_youtube_metadata
 
-from .exceptions import NotFoundError
-from .transcripts_utils import (
+from xblocks_contrib.video.exceptions import NotFoundError
+from xblocks_contrib.video.transcripts_utils import (
     Transcript,
     TranscriptException,
     TranscriptsGenerationException,
@@ -148,7 +148,7 @@ class VideoStudentViewHandlers:
         if youtube_id:
             # Youtube case:
             if self.transcript_language == 'en':
-                return Transcript.asset(self.location, youtube_id).data
+                return Transcript.asset(self, self.location, youtube_id).data
 
             youtube_ids = youtube_speed_dict(self)
             if youtube_id not in youtube_ids:
@@ -156,7 +156,7 @@ class VideoStudentViewHandlers:
                 raise NotFoundError
 
             try:
-                sjson_transcript = Transcript.asset(self.location, youtube_id, self.transcript_language).data
+                sjson_transcript = Transcript.asset(self, self.location, youtube_id, self.transcript_language).data
             except NotFoundError:
                 log.info("Can't find content in storage for %s transcript: generating.", youtube_id)
                 generate_sjson_for_all_speeds(
@@ -165,20 +165,20 @@ class VideoStudentViewHandlers:
                     {speed: youtube_id for youtube_id, speed in youtube_ids.items()},
                     self.transcript_language
                 )
-                sjson_transcript = Transcript.asset(self.location, youtube_id, self.transcript_language).data
+                sjson_transcript = Transcript.asset(self, self.location, youtube_id, self.transcript_language).data
 
             return sjson_transcript
         else:
             # HTML5 case
             if self.transcript_language == 'en':
                 if '.srt' not in sub:  # not bumper case
-                    return Transcript.asset(self.location, sub).data
+                    return Transcript.asset(self, self.location, sub).data
                 try:
                     return get_or_create_sjson(self, {'en': sub})
                 except TranscriptException:
                     pass  # to raise NotFoundError and try to get data in get_static_transcript
             elif other_lang:
-                return get_or_create_sjson(self, other_lang)
+                return get_or_create_sjson(self, self, other_lang)
 
         raise NotFoundError
 

@@ -144,3 +144,94 @@ def delete_library_static_asset(video_block, usage_key, filename):
         return video_config_service.delete_library_static_asset(usage_key, filename)
     
     raise ServiceUnavailable("Video config service is not available")
+
+
+def get_transcript(video_block, course_key, filename):
+    """
+    Get a transcript asset from storage.
+    
+    Args:
+        video_block: The video XBlock instance
+        course_key: The course key for the transcript
+        filename: The filename of the transcript
+        
+    Returns:
+        Asset object with transcript data
+        
+    Raises:
+        ServiceUnavailable: If the video_config service is not available
+        NotFoundError: If asset not found
+    """
+    video_config_service = video_block.runtime.service(video_block, 'video_config')
+    if video_config_service:
+        return video_config_service.get_transcript(course_key, filename)
+    
+    raise ServiceUnavailable("Video config service is not available")
+
+
+def delete_transcript(video_block, course_key, filename):
+    """
+    Delete a transcript asset from storage.
+    
+    Args:
+        video_block: The video XBlock instance
+        course_key: The course key for the transcript
+        filename: The filename of the transcript to delete
+        
+    Returns:
+        Asset location
+        
+    Raises:
+        ServiceUnavailable: If the video_config service is not available
+    """
+    video_config_service = video_block.runtime.service(video_block, 'video_config')
+    if video_config_service:
+        return video_config_service.delete_transcript(course_key, filename)
+    
+    raise ServiceUnavailable("Video config service is not available")
+
+
+def find_transcript(video_block, course_key, filename):
+    """
+    Find and retrieve a transcript asset from storage.
+    
+    Args:
+        video_block: The video XBlock instance
+        course_key: The course key for the transcript
+        filename: The filename of the transcript to find
+        
+    Returns:
+        Asset object with transcript data if found
+        
+    Raises:
+        ServiceUnavailable: If the video_config service is not available
+    """
+    video_config_service = video_block.runtime.service(video_block, 'video_config')
+    if video_config_service:
+        return video_config_service.find_transcript(course_key, filename)
+    
+    raise ServiceUnavailable("Video config service is not available")
+
+
+def save_transcript(video_block, content, filename, mime_type, course_key):
+    """
+    Save named content to store by course_key.
+    
+    Args:
+        video_block: The video XBlock instance
+        content: The content to save
+        filename: The filename
+        mime_type: The MIME type of the content
+        course_key: The course key
+        
+    Returns:
+        Content location of saved content
+        
+    Raises:
+        ServiceUnavailable: If the video_config service is not available
+    """
+    video_config_service = video_block.runtime.service(video_block, 'video_config')
+    if video_config_service:
+        return video_config_service.save_transcript(content, filename, mime_type, course_key)
+    
+    raise ServiceUnavailable("Video config service is not available")
