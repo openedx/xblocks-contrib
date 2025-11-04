@@ -36,12 +36,10 @@ jobs:
           sudo ln -sf /opt/firefox/firefox /usr/bin/firefox
 
       - name: Install Required System Packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libdbus-glib-1-2 libgtk-3-0 xvfb
+        run: sudo apt-get update && sudo apt-get install -y libxmlsec1-dev ubuntu-restricted-extras xvfb
 
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run test:ci || echo "⚠️ Tests skipped — no workspaces available"
+      - name: Run JS tests
+        run: npm run test
