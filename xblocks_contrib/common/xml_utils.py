@@ -8,11 +8,17 @@ https://github.com/openedx/edx-platform/blob/18d5abb2f641db7f364f7566187e57bebda
 
 import datetime
 import json
+from typing import Any, TextIO
 
 from django.core.serializers.json import DjangoJSONEncoder
+from fs.osfs import OSFS
 from lxml import etree
+from lxml.etree import _Element as Element
 from opaque_keys.edx.keys import CourseKey, UsageKey
-from xblock.fields import Scope
+from opaque_keys.edx.locator import BlockUsageLocator
+from xblock.core import XBlock
+from xblock.fields import Field, Scope
+from xblock.runtime import Runtime
 
 # Assume all XML files are persisted as utf-8.
 EDX_XML_PARSER = etree.XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding="utf-8")
@@ -41,7 +47,7 @@ class EdxJSONEncoder(DjangoJSONEncoder):
             return super().default(o)
 
 
-def name_to_pathname(name):
+def name_to_pathname(name: str) -> str:
     """
     Convert a location name for use in a path: replace ':' with '/'.
     This allows users of the xml format to organize content into directories
@@ -49,7 +55,7 @@ def name_to_pathname(name):
     return name.replace(":", "/")
 
 
-def is_pointer_tag(xml_obj):
+def is_pointer_tag(xml_obj: Element) -> bool:
     """
     Check if xml_obj is a pointer tag: <blah url_name="something" />.
     No children, one attribute named url_name, no text.
@@ -73,7 +79,7 @@ def is_pointer_tag(xml_obj):
     return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
 
 
-def serialize_field(value):
+def serialize_field(value: Any) -> str:
     """
     Return a string version of the value (where value is the JSON-formatted, internally stored value).
 
@@ -90,7 +96,7 @@ def serialize_field(value):
     return json.dumps(value, cls=EdxJSONEncoder)
 
 
-def deserialize_field(field, value):
+def deserialize_field(field: Field, value: str) -> Any:
     """
     Deserialize the string version to the value stored internally.
 
@@ -122,7 +128,7 @@ def deserialize_field(field, value):
         return value
 
 
-def own_metadata(block):
+def own_metadata(block: XBlock) -> dict[str, Any]:
     """
     Return a JSON-friendly dictionary that contains only non-inherited field
     keys, mapped to their serialized values
@@ -130,7 +136,7 @@ def own_metadata(block):
     return block.get_explicitly_set_fields_by_scope(Scope.settings)
 
 
-def apply_pointer_attributes(node, block) -> None:
+def apply_pointer_attributes(node: Element, block: XBlock) -> None:
     """Apply required pointer attributes to the relevant node for a block.
 
     Sets "url_name" for all blocks. For course blocks, additionally assigns
@@ -145,12 +151,12 @@ def apply_pointer_attributes(node, block) -> None:
         node.set("course", block.location.course)
 
 
-def format_filepath(category, name):
+def format_filepath(category: str, name: str) -> str:
     """Formats a path to an XML definition file."""
     return f"{category}/{name}.{filename_extension}"
 
 
-def file_to_xml(file_object):
+def file_to_xml(file_object: TextIO) -> Element:
     """
     Used when this module wants to parse a file object to xml
     that will be converted to the definition.
@@ -160,7 +166,7 @@ def file_to_xml(file_object):
     return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()
 
 
-def load_file(filepath, fs, def_id):
+def load_file(filepath: str, fs: OSFS, def_id: BlockUsageLocator) -> Element:
     """
     Open the specified file in fs, and call `file_to_xml` on it,
     returning the lxml object.
@@ -175,7 +181,7 @@ def load_file(filepath, fs, def_id):
         raise Exception(f"Unable to load file contents at path {filepath} for item {def_id}: {err}") from err
 
 
-def load_definition_xml(node, runtime, def_id):
+def load_definition_xml(node: Element, runtime: Runtime, def_id: BlockUsageLocator) -> tuple[Element, str]:
     """
     Loads definition_xml stored in a dedicated file
     """
