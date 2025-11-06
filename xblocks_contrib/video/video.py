@@ -1,4 +1,3 @@
-# NOTE: Code has been copied from the source file https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_block.py
 """Video is ungraded Xmodule for support video content.
 It's new improved video block, which support additional feature:
 - Can play non-YouTube video sources via in-browser HTML5 video player.
@@ -13,55 +12,66 @@ Examples of html5 videos for manual testing:
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
 """
 
-
 import copy
+import datetime
 import json
 import logging
+import os
+import uuid
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.translation import gettext_noop as _
 from edx_django_utils.cache import RequestCache
 from lxml import etree
-from opaque_keys.edx.keys import CourseKey
+from lxml.etree import ElementTree, XMLParser
 from opaque_keys.edx.locator import AssetLocator
+from opaque_keys.edx.keys import CourseKey, UsageKey
 from web_fragments.fragment import Fragment
 from xblock.completable import XBlockCompletionMode
-from xblock.core import XBlock
-from xblock.fields import ScopeIds
-from xblock.runtime import KvsFieldData
-from xblocks_contrib.video import VideoBlock as _ExtractedVideoBlock
-from xblock.utils.resources import ResourceLoader
-
-from common.djangoapps.xblock_django.constants import ATTR_KEY_REQUEST_COUNTRY_CODE, ATTR_KEY_USER_ID
-from openedx.core.lib.cache_utils import request_cached
-from openedx.core.lib.license import LicenseMixin
-from xmodule.contentstore.content import StaticContent
-from xmodule.editing_block import EditingMixin
-from xmodule.exceptions import NotFoundError
-from xmodule.modulestore.inheritance import InheritanceKeyValueStore, own_metadata
-from xmodule.raw_block import EmptyDataRawMixin
-from xmodule.util.builtin_assets import add_css_to_fragment, add_webpack_js_to_fragment
-from xmodule.validation import StudioValidation, StudioValidationMessage
-from xmodule.video_block import manage_video_subtitles_save
-from xmodule.x_module import (
-    PUBLIC_VIEW, STUDENT_VIEW,
-    ResourceTemplates, shim_xmodule_js,
-    XModuleMixin, XModuleToXBlockMixin,
+from xblock.core import XML_NAMESPACES, XBlock
+from xblock.fields import (
+    Dict,
+    Float,
+    Integer,
+    List,
+    Scope,
+    ScopeIds,
+    String,
 )
-from xmodule.xml_block import XmlMixin, deserialize_field, is_pointer_tag, name_to_pathname
-from .bumper_utils import bumperize
-from openedx.core.djangoapps.video_config.transcripts_utils import (
+from xblock.runtime import KeyValueStore, KvsFieldData
+from xblock.utils.resources import ResourceLoader
+from xblock.utils.studio_editable import StudioEditableXBlockMixin
+
+from xblocks_contrib.video.bumper_utils import bumperize
+from xblocks_contrib.video.content import StaticContent
+from xblocks_contrib.video.exceptions import NotFoundError
+from xblocks_contrib.video.mixin import LicenseMixin
+from xblocks_contrib.video.studio_metadata_mixin import StudioMetadataMixin
+from xblocks_contrib.video.utils import deserialize_field, own_metadata
+from xblocks_contrib.video.validation import StudioValidation, StudioValidationMessage
+from xblocks_contrib.video.constants import (
+    STUDENT_VIEW,
+    PUBLIC_VIEW,
+    ATTR_KEY_USER_ID,
+    ATTR_KEY_REQUEST_COUNTRY_CODE,
+)
+from xblocks_contrib.video.transcripts_utils import (
     Transcript,
     VideoTranscriptsMixin,
     clean_video_id,
     get_endonym_or_label,
     get_html5_ids,
-    subs_filename
+    subs_filename,
+    manage_video_subtitles_save,
 )
-from .video_handlers import VideoStudentViewHandlers, VideoStudioViewHandlers
-from .video_utils import create_youtube_string, format_xml_exception_message, get_poster, rewrite_video_url
-from .video_xfields import VideoFields
+from xblocks_contrib.video.cache_utils import request_cached
+from xblocks_contrib.video.video_handlers import VideoStudioViewHandlers, VideoStudentViewHandlers
+from xblocks_contrib.video.video_utils import format_xml_exception_message, rewrite_video_url, create_youtube_string, get_poster
+from xblocks_contrib.video.video_xfields import VideoFields, RelativeTime
+from xblocks_contrib.video.ajax_handler_mixin import AjaxHandlerMixin
 
 from xblocks_contrib.video.exceptions import TranscriptNotFoundError
 
@@ -97,7 +107,7 @@ except ImportError:
     edxval_api = None
 
 log = logging.getLogger(__name__)
-loader = ResourceLoader("lms")
+loader = ResourceLoader(__name__)
 
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
@@ -105,14 +115,109 @@ _ = lambda text: text
 
 EXPORT_IMPORT_COURSE_DIR = 'course'
 EXPORT_IMPORT_STATIC_DIR = 'static'
+# assume all XML files are persisted as utf-8.
+EDX_XML_PARSER = XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding="utf-8")
 
 
-@XBlock.wants('settings', 'completion', 'i18n', 'request_cache', 'video_config')
-@XBlock.needs('mako', 'user')
-class _BuiltInVideoBlock(
-        VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
-        EmptyDataRawMixin, XmlMixin, EditingMixin, XModuleToXBlockMixin,
-        ResourceTemplates, XModuleMixin, LicenseMixin):
+class EdxJSONEncoder(DjangoJSONEncoder):
+    """
+    Custom JSONEncoder that handles ``Location`` and ``datetime.datetime`` objects.
+    Encodes ``Location`` as its URL string form, and ``datetime.datetime`` as an ISO 8601 string.
+    """
+
+    def default(self, o):
+        if isinstance(o, (CourseKey, UsageKey)):
+            return str(o)
+        elif isinstance(o, datetime.datetime):
+            if o.tzinfo is not None:
+                if o.utcoffset() is None:
+                    return o.isoformat() + "Z"
+                else:
+                    return o.isoformat()
+            else:
+                return o.isoformat()
+        else:
+            return super().default(o)
+
+
+def name_to_pathname(name):
+    """
+    Convert a location name for use in a path: replace ':' with '/'.
+    This allows users of the xml format to organize content into directories
+    """
+    return name.replace(":", "/")
+
+
+def is_pointer_tag(xml_obj):
+    """
+    Check if xml_obj is a pointer tag: <blah url_name="something" />.
+    No children, one attribute named url_name, no text.
+
+    Special case for course roots: the pointer is
+      <course url_name="something" org="myorg" course="course">
+
+    xml_obj: an etree Element
+
+    Returns a bool.
+    """
+    if xml_obj.tag != "course":
+        expected_attr = {"url_name"}
+    else:
+        expected_attr = {"url_name", "course", "org"}
+
+    actual_attr = set(xml_obj.attrib.keys())
+
+    has_text = xml_obj.text is not None and len(xml_obj.text.strip()) > 0
+
+    return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
+
+
+def serialize_field(value):
+    """
+    Return a string version of the value (where value is the JSON-formatted, internally stored value).
+
+    If the value is a string, then we simply return what was passed in.
+    Otherwise, we return json.dumps on the input value.
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, datetime.datetime):
+        if value.tzinfo is not None and value.utcoffset() is None:
+            return value.isoformat() + "Z"
+        return value.isoformat()
+
+    return json.dumps(value, cls=EdxJSONEncoder)
+
+
+class InheritanceLikeKeyValueStore(KeyValueStore):
+    """
+    Minimal version of InheritanceKeyValueStore that works outside xmodule.
+    It indexes by field_name so values from XML are properly inherited.
+    """
+
+    def __init__(self, initial_values=None):
+        self._fields = dict(initial_values or {})
+
+    def get(self, key):
+        return self._fields[key.field_name]
+
+    def set(self, key, value):
+        self._fields[key.field_name] = value
+
+    def delete(self, key):
+        del self._fields[key.field_name]
+
+    def has(self, key):
+        return key.field_name in self._fields
+
+
+@XBlock.wants('settings', 'completion', 'request_cache')
+@XBlock.needs('i18n', 'user', 'video_config')
+class VideoBlock(
+    VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
+    StudioEditableXBlockMixin, XBlock,
+    AjaxHandlerMixin, StudioMetadataMixin,
+    LicenseMixin):
     """
     XML source example:
         <video show_captions="true"
@@ -124,7 +229,7 @@ class _BuiltInVideoBlock(
             <source src=".../mit-3091x/M-3091X-FA12-L21-3_100.ogv"/>
         </video>
     """
-    is_extracted = False
+    is_extracted = True
     has_custom_completion = True
     completion_mode = XBlockCompletionMode.COMPLETABLE
 
@@ -147,8 +252,59 @@ class _BuiltInVideoBlock(
 
     mako_template = "widgets/tabs-aggregator.html"
     js_module_name = "TabsEditingDescriptor"
+    filename_extension = "xml"
 
     uses_xmodule_styles_setup = True
+
+    xml_attributes = Dict(
+        help="Map of unhandled xml attributes, used only for storage between import and export",
+        default={},
+        scope=Scope.settings,
+    )
+
+    metadata_to_strip = (
+        "data_dir",
+        "tabs",
+        "grading_policy",
+        "discussion_blackouts",
+        # VS[compat]
+        # These attributes should have been removed from here once all 2012-fall courses imported into
+        # the CMS and "inline" OLX format deprecated. But, it never got deprecated. Moreover, it's
+        # widely used to this date. So, we still have to strip them. Also, removing of "filename"
+        # changes OLX returned by `/api/olx-export/v1/xblock/{block_id}/`, which indicates that some
+        # places in the platform rely on it.
+        "course",
+        "org",
+        "url_name",
+        "filename",
+        # Used for storing xml attributes between import and export, for roundtrips
+        "xml_attributes",
+        # Used by _import_xml_node_to_parent in cms/djangoapps/contentstore/helpers.py to prevent
+        # XmlMixin from treating some XML nodes as "pointer nodes".
+        "x-is-pointer-node",
+    )
+
+    # This is a categories to fields map that contains the block category specific fields which should not be
+    # cleaned and/or override while adding xml to node.
+    metadata_to_not_to_clean = {
+        # A category `video` having `sub` and `transcripts` fields
+        # which should not be cleaned/override in an xml object.
+        "video": ("sub", "transcripts")
+    }
+
+    metadata_to_export_to_policy = ("discussion_topics",)
+
+    @property
+    def location(self):
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
+            usage_id=value,
+        )
 
     def get_transcripts_for_student(self, transcripts, dest_lang=None):
         """Return transcript information necessary for rendering the XModule student view.
@@ -202,8 +358,11 @@ class _BuiltInVideoBlock(
         Return True if youtube is deprecated and hls as primary playback is enabled else False
         """
         video_config_service = self.runtime.service(self, 'video_config')
+        if not video_config_service:
+            return False
+
         # Return False if `hls` playback feature is disabled.
-        if not self.is_hls_playback_enabled(self.location.course_key):
+        if not video_config_service.is_hls_playback_enabled(self.location.course_key):
             return False
 
         # check if youtube has been deprecated and hls as primary playback
@@ -239,33 +398,31 @@ class _BuiltInVideoBlock(
 
         return False
 
-    def student_view(self, context):
+    def student_view(self, context=None):
         """
-        Return the student view.
+        Create primary view of the VideoBlock, shown to students when viewing courses.
         """
-        fragment = Fragment(self.get_html(context=context))
-        add_css_to_fragment(fragment, 'VideoBlockDisplay.css')
-        add_webpack_js_to_fragment(fragment, 'VideoBlockDisplay')
-        fragment.initialize_js('Video')
-        return fragment
+
+        frag = Fragment()
+        frag.add_content(
+            loader.render_django_template(
+                "templates/video.html",
+                self.get_html(context=context),
+                i18n_service=self.runtime.service(self, "i18n"),
+            )
+        )
+        frag.add_css(loader.load_unicode("static/css/video.css"))
+        frag.add_javascript_url(
+            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+        )
+        frag.initialize_js("Video")
+        return frag
 
     def author_view(self, context):
         """
         Renders the Studio preview view.
         """
         return self.student_view(context)
-
-    def studio_view(self, _context):
-        """
-        Return the studio view.
-        """
-        fragment = Fragment(
-            self.runtime.service(self, 'mako').render_cms_template(self.mako_template, self.get_context())
-        )
-        add_css_to_fragment(fragment, 'VideoBlockEditor.css')
-        add_webpack_js_to_fragment(fragment, 'VideoBlockEditor')
-        shim_xmodule_js(fragment, 'TabsEditingDescriptor')
-        return fragment
 
     def public_view(self, context):
         """
@@ -278,12 +435,12 @@ class _BuiltInVideoBlock(
             return self.student_view(context)
 
         fragment = Fragment(self.get_html(view=PUBLIC_VIEW, context=context))
-        add_css_to_fragment(fragment, 'VideoBlockDisplay.css')
-        add_webpack_js_to_fragment(fragment, 'VideoBlockMain')
-        fragment.initialize_js('Video')
+        # add_css_to_fragment(fragment, 'VideoBlockDisplay.css')
+        # add_webpack_js_to_fragment(fragment, 'VideoBlockDisplay')
+        # shim_xmodule_js(fragment, 'Video')
         return fragment
 
-    def get_html(self, view=STUDENT_VIEW, context=None):  # lint-amnesty, pylint: disable=arguments-differ, too-many-statements
+    def get_html(self, view=STUDENT_VIEW, context=None): # lint-amnesty, pylint: disable=arguments-differ, too-many-statements
         """
         Return html for a given view of this block.
         """
@@ -311,7 +468,8 @@ class _BuiltInVideoBlock(
             try:
                 val_profiles = ["youtube", "desktop_webm", "desktop_mp4"]
 
-                if self.is_hls_playback_enabled(self.course_id):
+                video_config_service = self.runtime.service(self, 'video_config')
+                if video_config_service and video_config_service.is_hls_playback_enabled(self.course_id):
                     val_profiles.append('hls')
 
                 # strip edx_video_id to prevent ValVideoNotFoundError error if unwanted spaces are there. TNL-5769
@@ -398,7 +556,7 @@ class _BuiltInVideoBlock(
         # For autoadvance controls to be shown, both the feature flag and the course setting must be true.
         # This allows to enable the feature for certain courses only.
         autoadvance_enabled = settings.FEATURES.get('ENABLE_AUTOADVANCE_VIDEOS', False) and \
-            getattr(self, 'video_auto_advance', False)
+                              getattr(self, 'video_auto_advance', False)
 
         # This is the current status of auto-advance (not the control visibility).
         # But when controls aren't visible we force it to off. The student might have once set the preference to
@@ -431,6 +589,8 @@ class _BuiltInVideoBlock(
             'end': self.end_time.total_seconds(),  # pylint: disable=no-member
             'generalSpeed': self.global_speed,
             'lmsRootURL': settings.LMS_ROOT_URL,
+            # TODO: Remove following line after the testing is done
+            # 'lmsRootURL': "https://localhost:18000",
             'poster': poster,
             'prioritizeHls': self.prioritize_hls(self.youtube_streams, sources),
             'publishCompletionUrl': self.runtime.handler_url(self, 'publish_completion', '').rstrip('?'),
@@ -482,7 +642,7 @@ class _BuiltInVideoBlock(
             'is_video_from_same_origin': is_video_from_same_origin,
             'handout': self.handout,
             'hide_downloads': is_public_view or is_embed,
-            'id': self.location.html_id(),
+            'id': uuid.uuid1(0),
             'block_id': str(self.location),
             'course_id': str(self.context_key),
             'video_id': str(self.edx_video_id),
@@ -493,14 +653,18 @@ class _BuiltInVideoBlock(
             'poster': json.dumps(get_poster(self)),
             'track': track_url,
             'transcript_download_format': transcript_download_format,
-            'transcript_download_formats_list': self.fields['transcript_download_format'].values,  # lint-amnesty, pylint: disable=unsubscriptable-object
+            'transcript_download_formats_list': self.fields['transcript_download_format'].values, # lint-amnesty, pylint: disable=unsubscriptable-object
             'transcript_feedback_enabled': self.is_transcript_feedback_enabled(),
         }
-        video_config_service = self.runtime.service(self, 'video_config')
-        if video_config_service:
-            template_context.update(video_config_service.get_public_sharing_context(self, self.course_id))
+        try:
+            video_config_service = self.runtime.service(self, 'video_config')
+            sharing_context = video_config_service.get_public_sharing_context(self, self.course_id) if video_config_service else None
+            if sharing_context:
+                template_context.update(sharing_context)
+        except Exception as err:
+            log.exception(f"Error getting public sharing context: {err}")
 
-        return loader.render_django_template("templates/video.html", template_context)
+        return template_context
 
     def is_transcript_feedback_enabled(self):
         """
@@ -537,12 +701,12 @@ class _BuiltInVideoBlock(
         validation = super().validate()
         if not isinstance(validation, StudioValidation):
             validation = StudioValidation.copy(validation)
-
+    
         no_transcript_lang = []
         for lang_code, transcript in self.transcripts.items():
             if not transcript:
                 no_transcript_lang.append([label for code, label in settings.ALL_LANGUAGES if code == lang_code][0])
-
+    
         if no_transcript_lang:
             ungettext = self.runtime.service(self, "i18n").ungettext
             validation.set_summary(
@@ -556,7 +720,7 @@ class _BuiltInVideoBlock(
                 )
             )
         return validation
-
+    
     def editor_saved(self, user, old_metadata, old_content):  # lint-amnesty, pylint: disable=unused-argument
         """
         Used to update video values during `self`:save method from CMS.
@@ -575,7 +739,7 @@ class _BuiltInVideoBlock(
         This should be fixed too.
         """
         metadata_was_changed_by_user = old_metadata != own_metadata(self)
-
+    
         # There is an edge case when old_metadata and own_metadata are same and we are importing transcript from youtube
         # then there is a syncing issue where html5_subs are not syncing with youtube sub, We can make sync better by
         # checking if transcript is present for the video and if any html5_ids transcript is not present then trigger
@@ -584,7 +748,7 @@ class _BuiltInVideoBlock(
             html5_ids = get_html5_ids(self.html5_sources)
             for subs_id in html5_ids:
                 try:
-                    Transcript.asset(self.location, subs_id)
+                    Transcript.asset(self, self.location, subs_id)
                 except NotFoundError:
                     # If a transcript does not not exist with particular html5_id then there is no need to check other
                     # html5_ids because we have to create a new transcript with this missing html5_id by turning on
@@ -594,7 +758,7 @@ class _BuiltInVideoBlock(
 
         if metadata_was_changed_by_user:
             self.edx_video_id = self.edx_video_id and self.edx_video_id.strip()
-
+    
             # We want to override `youtube_id_1_0` with val youtube profile in the first place when someone adds/edits
             # an `edx_video_id` or its underlying YT val profile. Without this, override will only happen when a user
             # saves the video second time. This is because of the syncing of basic and advanced video settings which
@@ -603,7 +767,7 @@ class _BuiltInVideoBlock(
                 val_youtube_id = edxval_api.get_url_for_profile(self.edx_video_id, 'youtube')
                 if val_youtube_id and self.youtube_id_1_0 != val_youtube_id:
                     self.youtube_id_1_0 = val_youtube_id
-
+    
             manage_video_subtitles_save(
                 self,
                 user,
@@ -618,38 +782,50 @@ class _BuiltInVideoBlock(
         self.save()
         self.runtime.modulestore.update_item(self, user.id)
 
-    @property
-    def editable_metadata_fields(self):
-        editable_fields = super().editable_metadata_fields
+    @classmethod
+    def load_definition_xml(cls, node, runtime, def_id):
+        """
+        Loads definition_xml stored in a dedicated file
+        """
+        url_name = node.get("url_name")
+        filepath = cls._format_filepath(node.tag, name_to_pathname(url_name))
+        definition_xml = cls.load_file(filepath, runtime.resources_fs, def_id)
+        return definition_xml, filepath
 
-        settings_service = self.runtime.service(self, 'settings')
-        if settings_service:
-            xb_settings = settings_service.get_settings_bucket(self)
-            if not xb_settings.get("licensing_enabled", False) and "license" in editable_fields:
-                del editable_fields["license"]
+    @classmethod
+    def _format_filepath(cls, category, name):
+        """Formats a path to an XML definition file."""
+        return f"{category}/{name}.{cls.filename_extension}"
 
-        # Default Timed Transcript a.k.a `sub` has been deprecated and end users shall
-        # not be able to modify it.
-        editable_fields.pop('sub')
+    @classmethod
+    def clean_metadata_from_xml(cls, xml_object, excluded_fields=()):
+        """
+        Remove any attribute named for a field with scope Scope.settings from the supplied
+        xml_object
+        """
+        for field_name, field in cls.fields.items():  # pylint: disable=no-member
+            if (
+                field.scope == Scope.settings
+                and field_name not in excluded_fields
+                and xml_object.get(field_name) is not None
+            ):
+                del xml_object.attrib[field_name]
 
-        languages = [{'label': label, 'code': lang} for lang, label in settings.ALL_LANGUAGES]
-        languages.sort(key=lambda l: l['label'])
-        editable_fields['transcripts']['custom'] = True
-        editable_fields['transcripts']['languages'] = languages
-        editable_fields['transcripts']['type'] = 'VideoTranslations'
+    @classmethod
+    def file_to_xml(cls, file_object):
+        """
+        Used when this module wants to parse a file object to xml
+        that will be converted to the definition.
 
-        # We need to send ajax requests to show transcript status
-        # whenever edx_video_id changes on frontend. Thats why we
-        # are changing type to `VideoID` so that a specific
-        # Backbonjs view can handle it.
-        editable_fields['edx_video_id']['type'] = 'VideoID'
+        Returns an lxml Element
+        """
+        return etree.parse(file_object, parser=EDX_XML_PARSER).getroot()  # CHANGEE
 
-        # `public_access` is a boolean field and by default backbonejs code render it as a dropdown with 2 options
-        # but in our case we also need to show an input field with dropdown, the input field will show the url to
-        # be shared with leaners. This is not possible with default rendering logic in backbonjs code, that is why
-        # we are setting a new type and then do a custom rendering in backbonejs code to render the desired UI.
-        editable_fields['public_access']['type'] = 'PublicAccess'
-        editable_fields['public_access']['url'] = self.get_public_video_url()
+    @classmethod
+    def load_file(cls, filepath, fs, def_id):
+        """
+        Open the specified file in fs, and call cls.file_to_xml on it,
+        returning the lxml object.
 
         # construct transcripts info and also find if `en` subs exist
         transcripts_info = self.get_transcripts_info()
@@ -673,6 +849,14 @@ class _BuiltInVideoBlock(
         editable_fields['handout']['type'] = 'FileUploader'
 
         return editable_fields
+        Add details and reraise on error.
+        """
+        try:
+            with fs.open(filepath) as xml_file:
+                return cls.file_to_xml(xml_file)
+        except Exception as err:
+            # Add info about where we are, but keep the traceback
+            raise Exception(f"Unable to load file contents at path {filepath} for item {def_id}: {err}") from err
 
     @classmethod
     def parse_xml_new_runtime(cls, node, runtime, keys):
@@ -685,7 +869,8 @@ class _BuiltInVideoBlock(
         for key, val in field_data.items():
             if key not in cls.fields:  # lint-amnesty, pylint: disable=unsupported-membership-test
                 continue  # parse_video_xml returns some old non-fields like 'source'
-            setattr(video_block, key, cls.fields[key].from_json(val))  # lint-amnesty, pylint: disable=unsubscriptable-object
+            setattr(video_block, key,
+                    cls.fields[key].from_json(val))  # lint-amnesty, pylint: disable=unsubscriptable-object
         # Don't use VAL in the new runtime:
         video_block.edx_video_id = None
         return video_block
@@ -694,7 +879,7 @@ class _BuiltInVideoBlock(
     def parse_xml(cls, node, runtime, _keys):
         """
         Use `node` to construct a new block.
-
+    
         See XmlMixin.parse_xml for the detailed description.
         """
         url_name = node.get('url_name')
@@ -702,12 +887,13 @@ class _BuiltInVideoBlock(
         definition_id = runtime.id_generator.create_definition(block_type, url_name)
         usage_id = runtime.id_generator.create_usage(definition_id)
         aside_children = []
+
         if is_pointer_tag(node):
             filepath = cls._format_filepath(node.tag, name_to_pathname(url_name))
             node = cls.load_file(filepath, runtime.resources_fs, usage_id)
             aside_children = runtime.parse_asides(node, definition_id, usage_id, runtime.id_generator)
         field_data = cls.parse_video_xml(node, runtime.id_generator)
-        kvs = InheritanceKeyValueStore(initial_values=field_data)
+        kvs = InheritanceLikeKeyValueStore(initial_values=field_data)
         field_data = KvsFieldData(kvs)
         video = runtime.construct_xblock_from_class(
             cls,
@@ -729,6 +915,72 @@ class _BuiltInVideoBlock(
             cls.add_applicable_asides_to_block(video, runtime, aside_children)
 
         return video
+
+    def export_to_file(self):
+        """If this returns True, write the definition of this block to a separate
+        file.
+
+        NOTE: Do not override this without a good reason.  It is here
+        specifically for customtag...
+        """
+        return True
+
+    def add_xml_to_node(self, node):
+        """For exporting, set data on `node` from ourselves."""
+        xml_object = self.definition_to_xml(self.runtime.export_fs)
+        if xml_object is None:
+            return
+
+        for aside in self.runtime.get_asides(self):
+            if aside.needs_serialization():
+                aside_node = etree.Element("unknown_root", nsmap=XML_NAMESPACES)
+                aside.add_xml_to_node(aside_node)
+                xml_object.append(aside_node)
+
+        not_to_clean_fields = self.metadata_to_not_to_clean.get(self.category, ())
+        self.clean_metadata_from_xml(xml_object, excluded_fields=not_to_clean_fields)
+        xml_object.tag = self.category
+        node.tag = self.category
+
+        for attr in sorted(own_metadata(self)):
+            if (
+                attr not in self.metadata_to_strip
+                and attr not in self.metadata_to_export_to_policy
+                and attr not in not_to_clean_fields
+            ):
+                # pylint: disable=unsubscriptable-object
+                val = serialize_field(self.fields[attr].to_json(getattr(self, attr)))
+                try:
+                    xml_object.set(attr, val)
+                except Exception:  # pylint: disable=broad-exception-caught
+                    logging.exception("Failed to serialize metadata attribute %s in module %s.", attr, self.url_name)
+
+        for key, value in self.xml_attributes.items():
+            if key not in self.metadata_to_strip:
+                xml_object.set(key, serialize_field(value))
+
+        if self.export_to_file():
+            url_path = name_to_pathname(self.url_name)
+            filepath = self._format_filepath(
+                self.category, self.location.run if self.category == "course" else url_path
+            )
+            self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
+            with self.runtime.export_fs.open(filepath, "wb") as fileobj:
+                ElementTree(xml_object).write(fileobj, pretty_print=True, encoding="utf-8")
+        else:
+            node.clear()
+            node.tag = xml_object.tag
+            node.text = xml_object.text
+            node.tail = xml_object.tail
+            node.attrib.update(xml_object.attrib)
+            node.extend(xml_object)
+
+        if not node.get("url_name"):
+            node.set("url_name", self.url_name)
+
+        if self.category == "course":
+            node.set("org", self.location.org)
+            node.set("course", self.location.course)
 
     def definition_to_xml(self, resource_fs):  # lint-amnesty, pylint: disable=too-many-statements
         """
@@ -837,10 +1089,10 @@ class _BuiltInVideoBlock(
 
     def create_youtube_url(self, youtube_id):
         """
-
+    
         Args:
             youtube_id: The ID of the video to create a link for
-
+    
         Returns:
             A full youtube url to the video whose ID is passed in
         """
@@ -898,7 +1150,8 @@ class _BuiltInVideoBlock(
         if self.edx_video_id and edxval_api:
 
             val_profiles = ['youtube', 'desktop_webm', 'desktop_mp4']
-            if self.is_hls_playback_enabled(self.scope_ids.usage_id.context_key.for_branch(None)):
+            video_config_service = self.runtime.service(self, 'video_config')
+            if video_config_service and video_config_service.is_hls_playback_enabled(self.scope_ids.usage_id.context_key.for_branch(None)):
                 val_profiles.append('hls')
 
             # Get video encodings for val profiles.
@@ -959,21 +1212,21 @@ class _BuiltInVideoBlock(
         """
         Parse video fields out of xml_data. The fields are set if they are
         present in the XML.
-
+    
         Arguments:
             id_generator is used to generate course-specific urls and identifiers
         """
         if isinstance(xml, str):
             xml = etree.fromstring(xml)
-
+    
         field_data = {}
-
+    
         # Convert between key types for certain attributes --
         # necessary for backwards compatibility.
         conversions = {
             # example: 'start_time': cls._example_convert_start_time
         }
-
+    
         # Convert between key names for certain attributes --
         # necessary for backwards compatibility.
         compat_keys = {
@@ -1017,7 +1270,8 @@ class _BuiltInVideoBlock(
             else:
                 # We export values with json.dumps (well, except for Strings, but
                 # for about a month we did it for Strings also).
-                field_data[attr] = deserialize_field(cls.fields[attr], value)  # lint-amnesty, pylint: disable=unsubscriptable-object
+                field_data[attr] = deserialize_field(cls.fields[attr],
+                                                     value)  # lint-amnesty, pylint: disable=unsubscriptable-object
 
         course_id = getattr(id_generator, 'target_course_id', None)
         # Update the handout location with current course_id
@@ -1133,7 +1387,7 @@ class _BuiltInVideoBlock(
     @request_cached(
         request_cache_getter=lambda args, kwargs: args[1],
     )
-    def get_cached_val_data_for_course(cls, request_cache, video_profile_names, course_id):  # lint-amnesty, pylint: disable=unused-argument
+    def get_cached_val_data_for_course(cls, request_cache, video_profile_names, course_id): # lint-amnesty, pylint: disable=unused-argument
         """
         Returns the VAL data for the requested video profiles for the given course.
         """
@@ -1158,7 +1412,8 @@ class _BuiltInVideoBlock(
         # Check in VAL data first if edx_video_id exists
         if self.edx_video_id:
             video_profile_names = context.get("profiles", ["mobile_low", 'desktop_mp4', 'desktop_webm', 'mobile_high'])
-            if self.is_hls_playback_enabled(self.location.course_key) and 'hls' not in video_profile_names:
+            video_config_service = self.runtime.service(self, 'video_config')
+            if video_config_service and video_config_service.is_hls_playback_enabled(self.location.course_key) and 'hls' not in video_profile_names:
                 video_profile_names.append('hls')
 
             # get and cache bulk VAL data for course
@@ -1230,9 +1485,22 @@ class _BuiltInVideoBlock(
             )
         return None
 
-
-VideoBlock = (
-    _ExtractedVideoBlock if settings.USE_EXTRACTED_VIDEO_BLOCK
-    else _BuiltInVideoBlock
-)
-VideoBlock.__name__ = "VideoBlock"
+    @staticmethod
+    def workbench_scenarios():
+        """Create canned scenario for display in the workbench."""
+        return [
+            (
+                "VideoBlock",
+                """<_video_extracted/>
+                """,
+            ),
+            (
+                "Multiple VideoBlock",
+                """<vertical_demo>
+                <_video_extracted/>
+                <_video_extracted/>
+                <_video_extracted/>
+                </vertical_demo>
+                """,
+            ),
+        ]

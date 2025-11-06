@@ -2,13 +2,13 @@
 Exceptions for video block.
 """
 
-
 class TranscriptsGenerationException(Exception):
     pass
 
 
 class TranscriptNotFoundError(Exception):
     pass
+
 
 # # lint-amnesty, pylint: disable=missing-module-docstring
 # class InvalidDefinitionError(Exception):
