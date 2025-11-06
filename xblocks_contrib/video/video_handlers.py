@@ -1,5 +1,3 @@
-# NOTE: Original code has been copied from the following files: 
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_handlers.py
 """
 Handlers for video block.
 
@@ -20,11 +18,8 @@ from webob import Response
 from xblock.core import XBlock
 from xblock.exceptions import JsonHandlerError
 
-from xmodule.exceptions import NotFoundError
-from xmodule.fields import RelativeTime
-from openedx.core.djangoapps.content_libraries import api as lib_api
-
-from .transcripts_utils import (
+from xblocks_contrib.video.exceptions import NotFoundError
+from xblocks_contrib.video.transcripts_utils import (
     Transcript,
     TranscriptException,
     TranscriptsGenerationException,
@@ -32,12 +27,12 @@ from .transcripts_utils import (
     generate_sjson_for_all_speeds,
     get_html5_ids,
     get_or_create_sjson,
-    get_transcript,
     get_transcript_from_contentstore,
     remove_subs_from_store,
     subs_filename,
     youtube_speed_dict
 )
+from xblocks_contrib.video.video_xfields import RelativeTime
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +50,7 @@ def to_boolean(value):
         return value.lower() == 'true'
     else:
         return bool(value)
+
 
 
 class VideoStudentViewHandlers:
@@ -149,7 +145,7 @@ class VideoStudentViewHandlers:
         if youtube_id:
             # Youtube case:
             if self.transcript_language == 'en':
-                return Transcript.asset(self.location, youtube_id).data
+                return Transcript.asset(self, self.location, youtube_id).data
 
             youtube_ids = youtube_speed_dict(self)
             if youtube_id not in youtube_ids:
@@ -157,7 +153,7 @@ class VideoStudentViewHandlers:
                 raise NotFoundError
 
             try:
-                sjson_transcript = Transcript.asset(self.location, youtube_id, self.transcript_language).data
+                sjson_transcript = Transcript.asset(self, self.location, youtube_id, self.transcript_language).data
             except NotFoundError:
                 log.info("Can't find content in storage for %s transcript: generating.", youtube_id)
                 generate_sjson_for_all_speeds(
@@ -166,20 +162,20 @@ class VideoStudentViewHandlers:
                     {speed: youtube_id for youtube_id, speed in youtube_ids.items()},
                     self.transcript_language
                 )
-                sjson_transcript = Transcript.asset(self.location, youtube_id, self.transcript_language).data
+                sjson_transcript = Transcript.asset(self, self.location, youtube_id, self.transcript_language).data
 
             return sjson_transcript
         else:
             # HTML5 case
             if self.transcript_language == 'en':
                 if '.srt' not in sub:  # not bumper case
-                    return Transcript.asset(self.location, sub).data
+                    return Transcript.asset(self, self.location, sub).data
                 try:
                     return get_or_create_sjson(self, {'en': sub})
                 except TranscriptException:
                     pass  # to raise NotFoundError and try to get data in get_static_transcript
             elif other_lang:
-                return get_or_create_sjson(self, other_lang)
+                return get_or_create_sjson(self, self, other_lang)
 
         raise NotFoundError
 
@@ -344,7 +340,8 @@ class VideoStudentViewHandlers:
                         transcripts
                     )
                 else:
-                    content, filename, mimetype = get_transcript(
+                    video_config_service = self.runtime.service(self, 'video_config')
+                    content, filename, mimetype = video_config_service.get_transcript(
                         self,
                         lang=self.transcript_language,
                         output_format=Transcript.SJSON,
@@ -371,7 +368,8 @@ class VideoStudentViewHandlers:
             lang = request.GET.get('lang', None)
 
             try:
-                content, filename, mimetype = get_transcript(self, lang, output_format=self.transcript_download_format)
+                video_config_service = self.runtime.service(self, 'video_config')
+                content, filename, mimetype = video_config_service.get_transcript(self, lang, output_format=self.transcript_download_format)
             except NotFoundError:
                 return Response(status=404)
 
@@ -423,15 +421,19 @@ class VideoStudentViewHandlers:
         This handler is only used in the Learning-Core-based runtime. The old
         runtime uses a similar REST API that's not an XBlock handler.
         """
-        from lms.djangoapps.courseware.views.views import load_metadata_from_youtube
+
         if not self.youtube_id_1_0:
             # TODO: more informational response to explain that yt_video_metadata not supported for non-youtube videos.
             return Response('{}', status=400)
-
-        metadata, status_code = load_metadata_from_youtube(video_id=self.youtube_id_1_0, request=request)
-        response = Response(json.dumps(metadata), status=status_code)
-        response.content_type = 'application/json'
-        return response
+        try:
+            video_config_service = self.runtime.service(self, 'video_config')
+            metadata, status_code = video_config_service.get_youtube_metadata(self.youtube_id_1_0, request)
+            response = Response(json.dumps(metadata), status=status_code)
+            response.content_type = 'application/json'
+            return response
+        except Exception as e:
+            log.exception(f"Error getting YouTube metadata for video ID: {self.youtube_id_1_0}")
+            return Response('{"error": "Failed to retrieve YouTube metadata"}', status=500)
 
 
 class VideoStudioViewHandlers:
@@ -565,11 +567,13 @@ class VideoStudioViewHandlers:
                 if is_library:
                     # Save transcript as static asset in Learning Core if is a library component
                     filename = f"static/{filename}"
-                    lib_api.add_library_block_static_asset_file(
-                        self.usage_key,
-                        filename,
-                        content,
-                    )
+                    try:
+                        video_config_service = self.runtime.service(self, 'video_config')
+                        success = video_config_service.add_library_static_asset(self.usage_key, filename, content)
+                        if not success:
+                            log.error(f"Failed to add library static asset {filename} for usage key: {self.usage_key}")
+                    except Exception as e:
+                        log.exception(f"Error adding library static asset {filename} for usage key: {self.usage_key}")
                 else:
                     sjson_subs = Transcript.convert(
                         content=content.decode('utf-8'),
@@ -624,13 +628,15 @@ class VideoStudioViewHandlers:
         if isinstance(self.usage_key.context_key, LibraryLocatorV2):
             transcript_name = self.transcripts.pop(language, None)
             if transcript_name:
-                # TODO: In the future, we need a proper XBlock API
-                # like `self.static_assets.delete(...)` instead of coding
-                # these runtime-specific/library-specific APIs.
-                lib_api.delete_library_block_static_asset_file(
-                    self.usage_key,
-                    f"static/{transcript_name}",
-                )
+                # Delete transcript as static asset in Learning Core if is a library component
+                filename = f"static/{transcript_name}"
+                try:
+                    video_config_service = self.runtime.service(self, 'video_config')
+                    success = video_config_service.delete_library_static_asset(self.usage_key, filename)
+                    if not success:
+                        log.error(f"Failed to delete library static asset {filename} for usage key: {self.usage_key}")
+                except Exception as e:
+                    log.exception(f"Error deleting library static asset {filename} for usage key: {self.usage_key}")
                 self._save_transcript_field()
         else:
             if language == 'en':
@@ -662,8 +668,9 @@ class VideoStudioViewHandlers:
             return Response(json={'error': _('Language is required.')}, status=400)
 
         try:
-            transcript_content, transcript_name, mime_type = get_transcript(
-                video=self, lang=language, output_format=Transcript.SRT
+            video_config_service = self.runtime.service(self, 'video_config')
+            transcript_content, transcript_name, mime_type = video_config_service.get_transcript(
+                video_block=self, lang=language, output_format=Transcript.SRT
             )
             response = Response(transcript_content, headerlist=[
                 (
