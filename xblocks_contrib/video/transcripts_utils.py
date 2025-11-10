@@ -621,32 +621,32 @@ def clean_video_id(edx_video_id):
     return edx_video_id and edx_video_id.strip()
 
 
-def get_video_transcript_content(edx_video_id, language_code):
-    """
-    Gets video transcript content, only if the corresponding feature flag is enabled for the given `course_id`.
+# def get_video_transcript_content(edx_video_id, language_code):
+#     """
+#     Gets video transcript content, only if the corresponding feature flag is enabled for the given `course_id`.
 
-    Arguments:
-        language_code(unicode): Language code of the requested transcript
-        edx_video_id(unicode): edx-val's video identifier
+#     Arguments:
+#         language_code(unicode): Language code of the requested transcript
+#         edx_video_id(unicode): edx-val's video identifier
 
-    Returns:
-        A dict containing transcript's file name and its sjson content.
-    """
-    transcript = None
-    edx_video_id = clean_video_id(edx_video_id)
-    if edxval_api and edx_video_id:
-        try:
-            transcript = edxval_api.get_video_transcript_data(edx_video_id, language_code)
-        except ValueError:
-            log.exception(
-                f"Error getting transcript from edx-val id: {edx_video_id}: language code {language_code}"
-            )
-            content = '{"start": [1],"end": [2],"text": ["An error occured obtaining the transcript."]}'
-            transcript = dict(
-                file_name='error-{edx_video_id}-{language_code}.srt',
-                content=Transcript.convert(content, 'sjson', 'srt')
-            )
-    return transcript
+#     Returns:
+#         A dict containing transcript's file name and its sjson content.
+#     """
+#     transcript = None
+#     edx_video_id = clean_video_id(edx_video_id)
+#     if edxval_api and edx_video_id:
+#         try:
+#             transcript = edxval_api.get_video_transcript_data(edx_video_id, language_code)
+#         except ValueError:
+#             log.exception(
+#                 f"Error getting transcript from edx-val id: {edx_video_id}: language code {language_code}"
+#             )
+#             content = '{"start": [1],"end": [2],"text": ["An error occured obtaining the transcript."]}'
+#             transcript = dict(
+#                 file_name='error-{edx_video_id}-{language_code}.srt',
+#                 content=Transcript.convert(content, 'sjson', 'srt')
+#             )
+#     return transcript
 
 
 def get_available_transcript_languages(edx_video_id):
@@ -667,24 +667,24 @@ def get_available_transcript_languages(edx_video_id):
     return available_languages
 
 
-def convert_video_transcript(file_name, content, output_format):
-    """
-    Convert video transcript into desired format
+# def convert_video_transcript(file_name, content, output_format):
+#     """
+#     Convert video transcript into desired format
 
-    Arguments:
-        file_name: name of transcript file along with its extension
-        content: transcript content stream
-        output_format: the format in which transcript will be converted
+#     Arguments:
+#         file_name: name of transcript file along with its extension
+#         content: transcript content stream
+#         output_format: the format in which transcript will be converted
 
-    Returns:
-        A dict containing the new transcript filename and the content converted into desired format.
-    """
-    name_and_extension = os.path.splitext(file_name)
-    basename, input_format = name_and_extension[0], name_and_extension[1][1:]
-    filename = f'{basename}.{output_format}'
-    converted_transcript = Transcript.convert(content, input_format=input_format, output_format=output_format)
+#     Returns:
+#         A dict containing the new transcript filename and the content converted into desired format.
+#     """
+#     name_and_extension = os.path.splitext(file_name)
+#     basename, input_format = name_and_extension[0], name_and_extension[1][1:]
+#     filename = f'{basename}.{output_format}'
+#     converted_transcript = Transcript.convert(content, input_format=input_format, output_format=output_format)
 
-    return dict(filename=filename, content=converted_transcript)
+#     return dict(filename=filename, content=converted_transcript)
 
 
 # def clear_transcripts(block):
@@ -948,28 +948,28 @@ class VideoTranscriptsMixin:
         }
 
 
-@exception_decorator
-def get_transcript_from_val(edx_video_id, lang=None, output_format=Transcript.SRT):
-    """
-    Get video transcript from edx-val.
-    Arguments:
-        edx_video_id (unicode): video identifier
-        lang (unicode): transcript language
-        output_format (unicode): transcript output format
-    Returns:
-        tuple containing content, filename, mimetype
-    """
-    transcript = get_video_transcript_content(edx_video_id, lang)
-    if not transcript:
-        raise NotFoundError(f'Transcript not found for {edx_video_id}, lang: {lang}')
+# @exception_decorator
+# def get_transcript_from_val(edx_video_id, lang=None, output_format=Transcript.SRT):
+#     """
+#     Get video transcript from edx-val.
+#     Arguments:
+#         edx_video_id (unicode): video identifier
+#         lang (unicode): transcript language
+#         output_format (unicode): transcript output format
+#     Returns:
+#         tuple containing content, filename, mimetype
+#     """
+#     transcript = get_video_transcript_content(edx_video_id, lang)
+#     if not transcript:
+#         raise NotFoundError(f'Transcript not found for {edx_video_id}, lang: {lang}')
 
-    transcript_conversion_props = dict(transcript, output_format=output_format)
-    transcript = convert_video_transcript(**transcript_conversion_props)
-    filename = transcript['filename']
-    content = transcript['content']
-    mimetype = Transcript.mime_types[output_format]
+#     transcript_conversion_props = dict(transcript, output_format=output_format)
+#     transcript = convert_video_transcript(**transcript_conversion_props)
+#     filename = transcript['filename']
+#     content = transcript['content']
+#     mimetype = Transcript.mime_types[output_format]
 
-    return content, filename, mimetype
+#     return content, filename, mimetype
 
 
 def get_transcript_for_video(video_block, video_location, subs_id, file_name, language):
@@ -1165,10 +1165,6 @@ def get_transcript_from_contentstore(video, language, output_format, transcripts
 #
 #     return output_transcript, output_filename, Transcript.mime_types[output_format]
 
-# NOTE: This function is not used in xblocks-contrib. The implementation in edx-platform
-# (xmodule.video_block.transcripts_utils.get_transcript_from_learning_core) is called
-# via the VideoConfigService when needed.
-
 
 # def get_transcript(video, lang=None, output_format=Transcript.SRT, youtube_id=None):
 #     """
@@ -1204,10 +1200,6 @@ def get_transcript_from_contentstore(video, language, output_format, transcripts
 #             output_format=output_format,
 #             transcripts_info=transcripts_info
 #         )
-
-# NOTE: This function has been moved to VideoConfigService in edx-platform
-# and is now accessed by calling video_config service's get_transcript() method directly.
-# The implementation in edx-platform calls xmodule.video_block.transcripts_utils.get_transcript
 
 
 def resolve_language_code_to_transcript_code(transcripts, dest_lang):
