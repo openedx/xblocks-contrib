@@ -29,12 +29,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.40.68
+boto3==1.40.69
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.40.68
+botocore==1.40.69
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -95,7 +95,7 @@ cookiecutter==2.6.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.11.1
+coverage[toml]==7.11.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -125,7 +125,7 @@ django==5.2.8
     #   edx-i18n-tools
     #   openedx-django-pyfs
     #   xblock-sdk
-django-appconf==1.1.0
+django-appconf==1.2.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -334,7 +334,7 @@ pyproject-hooks==1.2.0
     #   -r requirements/pip-tools.txt
     #   build
     #   pip-tools
-pytest==8.4.2
+pytest==9.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
