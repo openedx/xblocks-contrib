@@ -16,11 +16,11 @@ asgiref==3.10.0
     #   django
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.40.68
+boto3==1.40.69
     # via
     #   -r requirements/base.txt
     #   fs-s3fs
-botocore==1.40.68
+botocore==1.40.69
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -45,7 +45,7 @@ colorama==0.4.6
     # via tox
 cookiecutter==2.6.0
     # via xblock-sdk
-coverage[toml]==7.11.1
+coverage[toml]==7.11.2
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
@@ -59,7 +59,7 @@ distlib==0.4.0
     #   edx-i18n-tools
     #   openedx-django-pyfs
     #   xblock-sdk
-django-appconf==1.1.0
+django-appconf==1.2.0
     # via
     #   -r requirements/base.txt
     #   django-statici18n
@@ -168,7 +168,7 @@ pypng==0.20220715.0
     # via xblock-sdk
 pyproject-api==1.10.0
     # via tox
-pytest==8.4.2
+pytest==9.0.0
     # via
     #   pytest-cov
     #   pytest-django
