@@ -427,6 +427,8 @@ class VideoStudentViewHandlers:
             return Response('{}', status=400)
         try:
             video_config_service = self.runtime.service(self, 'video_config')
+            if not video_config_service:
+                return Response('{"error": "Video config service not found"}', status=500)
             metadata, status_code = video_config_service.get_youtube_metadata(self.youtube_id_1_0, request)
             response = Response(json.dumps(metadata), status=status_code)
             response.content_type = 'application/json'
@@ -569,9 +571,10 @@ class VideoStudioViewHandlers:
                     filename = f"static/{filename}"
                     try:
                         video_config_service = self.runtime.service(self, 'video_config')
-                        success = video_config_service.add_library_static_asset(self.usage_key, filename, content)
-                        if not success:
-                            log.error(f"Failed to add library static asset {filename} for usage key: {self.usage_key}")
+                        if video_config_service:
+                            success = video_config_service.add_library_static_asset(self.usage_key, filename, content)
+                            if not success:
+                                log.error(f"Failed to add library static asset {filename} for usage key: {self.usage_key}")
                     except Exception as e:
                         log.exception(f"Error adding library static asset {filename} for usage key: {self.usage_key}")
                 else:
@@ -632,9 +635,10 @@ class VideoStudioViewHandlers:
                 filename = f"static/{transcript_name}"
                 try:
                     video_config_service = self.runtime.service(self, 'video_config')
-                    success = video_config_service.delete_library_static_asset(self.usage_key, filename)
-                    if not success:
-                        log.error(f"Failed to delete library static asset {filename} for usage key: {self.usage_key}")
+                    if video_config_service:
+                        success = video_config_service.delete_library_static_asset(self.usage_key, filename)
+                        if not success:
+                            log.error(f"Failed to delete library static asset {filename} for usage key: {self.usage_key}")
                 except Exception as e:
                     log.exception(f"Error deleting library static asset {filename} for usage key: {self.usage_key}")
                 self._save_transcript_field()

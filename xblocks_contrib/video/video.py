@@ -345,6 +345,9 @@ class VideoBlock(
         Return True if youtube is deprecated and hls as primary playback is enabled else False
         """
         video_config_service = self.runtime.service(self, 'video_config')
+        if not video_config_service:
+            return False
+
         # Return False if `hls` playback feature is disabled.
         if not video_config_service.is_hls_playback_enabled(self.location.course_key):
             return False
@@ -362,7 +365,8 @@ class VideoBlock(
             return cache_response.value
 
         video_config_service = self.runtime.service(self, 'video_config')
-        youtube_is_disabled = video_config_service.is_youtube_blocked_for_course(self.location.course_key)
+        youtube_is_disabled = video_config_service.is_youtube_blocked_for_course(
+            self.location.course_key) if video_config_service else False
         request_cache.set(self.location.context_key, youtube_is_disabled)
         return youtube_is_disabled
 
@@ -452,7 +456,7 @@ class VideoBlock(
                 val_profiles = ["youtube", "desktop_webm", "desktop_mp4"]
 
                 video_config_service = self.runtime.service(self, 'video_config')
-                if video_config_service.is_hls_playback_enabled(self.course_id):
+                if video_config_service and video_config_service.is_hls_playback_enabled(self.course_id):
                     val_profiles.append('hls')
 
                 # strip edx_video_id to prevent ValVideoNotFoundError error if unwanted spaces are there. TNL-5769
@@ -641,7 +645,7 @@ class VideoBlock(
         }
         try:
             video_config_service = self.runtime.service(self, 'video_config')
-            sharing_context = video_config_service.get_public_sharing_context(self, self.course_id)
+            sharing_context = video_config_service.get_public_sharing_context(self, self.course_id) if video_config_service else None
             if sharing_context:
                 template_context.update(sharing_context)
         except Exception as err:
@@ -658,7 +662,8 @@ class VideoBlock(
         try:
             # Video transcript feedback must be enabled in order to show the widget
             video_config_service = self.runtime.service(self, 'video_config')
-            feature_enabled = video_config_service.is_transcript_feedback_enabled(self.context_key)
+            feature_enabled = video_config_service.is_transcript_feedback_enabled(
+                self.context_key) if video_config_service else False
         except Exception as err:  # pylint: disable=broad-except
             log.exception(f"Error retrieving course for course ID: {self.context_key}")
             return False
@@ -1111,7 +1116,7 @@ class VideoBlock(
 
             val_profiles = ['youtube', 'desktop_webm', 'desktop_mp4']
             video_config_service = self.runtime.service(self, 'video_config')
-            if video_config_service.is_hls_playback_enabled(self.scope_ids.usage_id.context_key.for_branch(None)):
+            if video_config_service and video_config_service.is_hls_playback_enabled(self.scope_ids.usage_id.context_key.for_branch(None)):
                 val_profiles.append('hls')
 
             # Get video encodings for val profiles.
@@ -1370,7 +1375,7 @@ class VideoBlock(
         if self.edx_video_id:
             video_profile_names = context.get("profiles", ["mobile_low", 'desktop_mp4', 'desktop_webm', 'mobile_high'])
             video_config_service = self.runtime.service(self, 'video_config')
-            if video_config_service.is_hls_playback_enabled(self.location.course_key) and 'hls' not in video_profile_names:
+            if video_config_service and video_config_service.is_hls_playback_enabled(self.location.course_key) and 'hls' not in video_profile_names:
                 video_profile_names.append('hls')
 
             # get and cache bulk VAL data for course
