@@ -32,6 +32,7 @@ from xblocks_contrib.video.transcripts_utils import (
     subs_filename,
     youtube_speed_dict
 )
+from xblocks_contrib.video.utils import load_metadata_from_youtube
 from xblocks_contrib.video.video_xfields import RelativeTime
 
 log = logging.getLogger(__name__)
@@ -426,10 +427,7 @@ class VideoStudentViewHandlers:
             # TODO: more informational response to explain that yt_video_metadata not supported for non-youtube videos.
             return Response('{}', status=400)
         try:
-            video_config_service = self.runtime.service(self, 'video_config')
-            if not video_config_service:
-                return Response('{"error": "Video config service not found"}', status=500)
-            metadata, status_code = video_config_service.get_youtube_metadata(self.youtube_id_1_0, request)
+            metadata, status_code = load_metadata_from_youtube(self.youtube_id_1_0, request)
             response = Response(json.dumps(metadata), status=status_code)
             response.content_type = 'application/json'
             return response
