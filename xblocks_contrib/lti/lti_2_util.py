@@ -10,15 +10,17 @@ import hashlib
 import json
 import logging
 import math
+import os
 import re
 from unittest import mock
 from urllib import parse
 
 from django.conf import settings
 from lxml import etree
+from lxml.etree import ElementTree
 from oauthlib.oauth1 import Client
 from webob import Response
-from xblock.core import XBlock
+from xblock.core import XML_NAMESPACES, XBlock
 from xblock.fields import Dict, Scope, ScopeIds
 
 from xblocks_contrib.common.xml_utils import (
@@ -533,7 +535,6 @@ class LTIXmlMixin:
         Returns (XBlock): The newly parsed XBlock
 
         """
-        import pdb ; pdb.set_trace()
         if keys is None:
             # Passing keys=None is against the XBlock API but some platform tests do it.
             def_id = runtime.id_generator.create_definition(node.tag, node.get("url_name"))
@@ -616,3 +617,55 @@ class LTIXmlMixin:
         for aside in asides:
             if aside.scope_ids.block_type in asides_tags:
                 block.add_aside(aside)
+
+    def export_to_file(self):
+        """If this returns True, write the definition of this block to a separate
+        file.
+        """
+        return True
+
+    def add_xml_to_node(self, node):
+        """For exporting, set data on `node` from ourselves."""
+        xml_object = etree.Element(self.category)
+
+        if xml_object is None:
+            return
+
+        for aside in self.runtime.get_asides(self):
+            if aside.needs_serialization():
+                aside_node = etree.Element("unknown_root", nsmap=XML_NAMESPACES)
+                aside.add_xml_to_node(aside_node)
+                xml_object.append(aside_node)
+
+        self.clean_metadata_from_xml(xml_object)
+        xml_object.tag = self.category
+        node.tag = self.category
+
+        for attr in sorted(own_metadata(self)):
+            if attr not in self.metadata_to_strip:
+                # pylint: disable=unsubscriptable-object
+                val = serialize_field(self.fields[attr].to_json(getattr(self, attr)))
+                try:
+                    xml_object.set(attr, val)
+                except Exception:  # pylint: disable=broad-exception-caught
+                    logging.exception("Failed to serialize metadata attribute %s in module %s.", attr, self.url_name)
+
+        for key, value in self.xml_attributes.items():
+            if key not in self.metadata_to_strip:
+                xml_object.set(key, serialize_field(value))
+
+        if self.export_to_file():
+            url_path = name_to_pathname(self.url_name)
+            filepath = format_filepath(self.category, url_path)
+            self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
+            with self.runtime.export_fs.open(filepath, "wb") as fileobj:
+                ElementTree(xml_object).write(fileobj, pretty_print=True, encoding="utf-8")
+        else:
+            node.clear()
+            node.tag = xml_object.tag
+            node.text = xml_object.text
+            node.tail = xml_object.tail
+            node.attrib.update(xml_object.attrib)
+            node.extend(xml_object)
+
+        apply_pointer_attributes(node, self)
