@@ -84,7 +84,7 @@ except ModuleNotFoundError:
     from xblockutils.resources import ResourceLoader
     from xblockutils.studio_editable import StudioEditableXBlockMixin
 
-from .lti_2_util import LTI20BlockMixin, LTIError
+from .lti_2_util import LTI20BlockMixin, LTIError, LTIXmlMixin
 
 # The anonymous user ID for the user in the course.
 ATTR_KEY_ANONYMOUS_USER_ID = 'edx-platform.anonymous_user_id'
@@ -290,6 +290,7 @@ class LTIFields:
 class LTIBlock(
     LTIFields,
     LTI20BlockMixin,
+    LTIXmlMixin,
     StudioEditableXBlockMixin,
     XBlock,
 ):
