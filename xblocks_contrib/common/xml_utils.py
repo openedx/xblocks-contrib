@@ -1,19 +1,23 @@
-# NOTE: Code has been copied from the source file: https://github.com/openedx/edx-platform/blob/master/xmodule/xml_block.py
+"""
+XML utility functions and classes for XBlocks.
+Note: Most of the functionality is taken from the edx-platform's XmlMixin.
+https://github.com/openedx/edx-platform/blob/master/xmodule/xml_block.py
+"""
 
-# lint-amnesty, pylint: disable=missing-module-docstring
 import copy
 import datetime
 import json
 import logging
 import os
+from typing import Any
 
+from django.core.serializers.json import DjangoJSONEncoder
 from lxml import etree
 from lxml.etree import ElementTree, XMLParser
-from xblock.core import XML_NAMESPACES
-from xblock.fields import Dict, Scope, ScopeIds
-from xblock.runtime import KvsFieldData
-from xmodule.modulestore import EdxJSONEncoder
-from xmodule.modulestore.inheritance import InheritanceKeyValueStore, own_metadata
+from lxml.etree import _Element
+from opaque_keys.edx.keys import CourseKey, UsageKey
+from xblock.core import XBlock, XML_NAMESPACES
+from xblock.fields import Dict, Field, Scope, ScopeIds
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +25,28 @@ log = logging.getLogger(__name__)
 EDX_XML_PARSER = XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding='utf-8')
 
 
-def name_to_pathname(name):
+class EdxJSONEncoder(DjangoJSONEncoder):
+    """
+    Custom JSONEncoder that handles ``Location`` and ``datetime.datetime`` objects.
+    Encodes ``Location`` as its URL string form, and ``datetime.datetime`` as an ISO 8601 string.
+    """
+
+    def default(self, o):
+        if isinstance(o, (CourseKey, UsageKey)):
+            return str(o)
+        elif isinstance(o, datetime.datetime):
+            if o.tzinfo is not None:
+                if o.utcoffset() is None:
+                    return o.isoformat() + "Z"
+                else:
+                    return o.isoformat()
+            else:
+                return o.isoformat()
+        else:
+            return super().default(o)
+
+
+def name_to_pathname(name: str) -> str:
     """
     Convert a location name for use in a path: replace ':' with '/'.
     This allows users of the xml format to organize content into directories
@@ -29,7 +54,7 @@ def name_to_pathname(name):
     return name.replace(':', '/')
 
 
-def is_pointer_tag(xml_obj):
+def is_pointer_tag(xml_obj: _Element) -> bool:
     """
     Check if xml_obj is a pointer tag: <blah url_name="something" />.
     No children, one attribute named url_name, no text.
@@ -53,7 +78,7 @@ def is_pointer_tag(xml_obj):
     return len(xml_obj) == 0 and actual_attr == expected_attr and not has_text
 
 
-def serialize_field(value):
+def serialize_field(value: Any) -> str:
     """
     Return a string version of the value (where value is the JSON-formatted, internally stored value).
 
@@ -70,7 +95,7 @@ def serialize_field(value):
     return json.dumps(value, cls=EdxJSONEncoder)
 
 
-def deserialize_field(field, value):
+def deserialize_field(field: Field, value: str) -> Any:
     """
     Deserialize the string version to the value stored internally.
 
@@ -102,34 +127,41 @@ def deserialize_field(field, value):
         return value
 
 
-class XmlMixin:
+def own_metadata(block: XBlock) -> dict[str, Any]:
     """
-    Class containing XML parsing functionality shared between XBlock and XModuleDescriptor.
+    Return a JSON-friendly dictionary that contains only non-inherited field
+    keys, mapped to their serialized values
     """
-    resources_dir = None
+    return block.get_explicitly_set_fields_by_scope(Scope.settings)
 
+
+class LegacyXmlMixin:
+    """
+    Class containing XML parsing functionality for the extracted XBlocks.
+    NOTE: This is a temporary solution, we don't want new XBlocks to use this mixin.
+    It will be removed in the future improvements.
+    """
     # Extension to append to filename paths
     filename_extension = 'xml'
 
-    xml_attributes = Dict(help="Map of unhandled xml attributes, used only for storage between import and export",
-                          default={}, scope=Scope.settings)
+    xml_attributes = Dict(
+        help="Map of unhandled xml attributes, used only for storage between import and export",
+        default={},
+        scope=Scope.settings
+    )
 
-    metadata_to_strip = ('data_dir',
-                         'tabs', 'grading_policy',
-                         'discussion_blackouts',
-                         # VS[compat]
-                         # These attributes should have been removed from here once all 2012-fall courses imported into
-                         # the CMS and "inline" OLX format deprecated. But, it never got deprecated. Moreover, it's
-                         # widely used to this date. So, we still have to strip them. Also, removing of "filename"
-                         # changes OLX returned by `/api/olx-export/v1/xblock/{block_id}/`, which indicates that some
-                         # places in the platform rely on it.
-                         'course', 'org', 'url_name', 'filename',
-                         # Used for storing xml attributes between import and export, for roundtrips
-                         'xml_attributes',
-                         # Used by _import_xml_node_to_parent in cms/djangoapps/contentstore/helpers.py to prevent
-                         # XmlMixin from treating some XML nodes as "pointer nodes".
-                         "x-is-pointer-node",
-                         )
+    metadata_to_strip = (
+        'data_dir',
+        'tabs',
+        'grading_policy',
+        'discussion_blackouts',
+        'course',
+        'org',
+        'url_name',
+        'filename',
+        'xml_attributes',
+        "x-is-pointer-node",
+    )
 
     # This is a categories to fields map that contains the block category specific fields which should not be
     # cleaned and/or override while adding xml to node.
@@ -197,7 +229,7 @@ class XmlMixin:
         try:
             with fs.open(filepath) as xml_file:
                 return cls.file_to_xml(xml_file)
-        except Exception as err:  # lint-amnesty, pylint: disable=broad-except
+        except Exception as err:
             # Add info about where we are, but keep the traceback
             raise Exception(f'Unable to load file contents at path {filepath} for item {def_id}: {err}') from err
 
@@ -291,7 +323,7 @@ class XmlMixin:
                 metadata[attr] = value
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys):  # pylint: disable=too-many-statements
+    def parse_xml(cls, node, runtime, keys):
         """
         Use `node` to construct a new block.
 
@@ -306,13 +338,14 @@ class XmlMixin:
         Returns (XBlock): The newly parsed XBlock
 
         """
-        from xmodule.modulestore.xml import XMLImportingModuleStoreRuntime  # done here to avoid circular import
-
         if keys is None:
             # Passing keys=None is against the XBlock API but some platform tests do it.
             def_id = runtime.id_generator.create_definition(node.tag, node.get('url_name'))
             keys = ScopeIds(None, node.tag, def_id, runtime.id_generator.create_usage(def_id))
         aside_children = []
+
+        # Let the runtime construct the block. It will have a proper, inheritance-aware field data store.
+        xblock = runtime.construct_xblock_from_class(cls, keys)
 
         # VS[compat]
         # In 2012, when the platform didn't have CMS, and all courses were handwritten XML files, problem tags
@@ -358,30 +391,19 @@ class XmlMixin:
         # Set/override any metadata specified by policy
         cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
 
-        field_data = {**metadata, **definition, "children": children}
-        field_data['xml_attributes']['filename'] = definition.get('filename', ['', None])  # for git link
-        if "filename" in field_data:
-            del field_data["filename"]  # filename should only be in xml_attributes.
+        field_data = {**metadata, **definition}
 
-        if isinstance(runtime, XMLImportingModuleStoreRuntime):
-            # we shouldn't be instantiating our own field data instance here, but there are complex
-            # inter-depenencies between this mixin and XMLImportingModuleStoreRuntime that currently
-            # seem to require it for proper metadata inheritance.
-            kvs = InheritanceKeyValueStore(initial_values=field_data)
-            field_data = KvsFieldData(kvs)
-            xblock = runtime.construct_xblock_from_class(cls, keys, field_data)
-        else:
-            # The "normal" / new way to set field data:
-            xblock = runtime.construct_xblock_from_class(cls, keys)
-            for (key, value_jsonish) in field_data.items():
-                if key in cls.fields:
-                    setattr(xblock, key, cls.fields[key].from_json(value_jsonish))
-                elif key == 'children':
-                    xblock.children = value_jsonish
-                else:
-                    log.warning(
-                        "Imported %s XBlock does not have field %s found in XML.", xblock.scope_ids.block_type, key,
-                    )
+        for field_name, value in field_data.items():
+            # The 'xml_attributes' field has a special setter logic in its Field class,
+            # so we must handle it carefully to avoid duplicating data.
+            if field_name == "xml_attributes":
+                # The 'filename' attribute is specially handled for git links.
+                value["filename"] = definition.get("filename", ["", None])
+                xblock.xml_attributes.update(value)
+            elif field_name in xblock.fields:
+                setattr(xblock, field_name, value)
+
+        xblock.children = children
 
         if aside_children:
             cls.add_applicable_asides_to_block(xblock, runtime, aside_children)
@@ -400,17 +422,6 @@ class XmlMixin:
                 block.add_aside(aside)
 
     @classmethod
-    def parse_xml_new_runtime(cls, node, runtime, keys):
-        """
-        This XML lives within Learning Core and the new runtime doesn't need this
-        legacy XModule code. Use the "normal" XBlock parsing code.
-        """
-        try:
-            return super().parse_xml_new_runtime(node, runtime, keys)
-        except AttributeError:
-            return super().parse_xml(node, runtime, keys)
-
-    @classmethod
     def load_definition_xml(cls, node, runtime, def_id):
         """
         Loads definition_xml stored in a dedicated file
@@ -427,9 +438,6 @@ class XmlMixin:
     def export_to_file(self):
         """If this returns True, write the definition of this block to a separate
         file.
-
-        NOTE: Do not override this without a good reason.  It is here
-        specifically for customtag...
         """
         return True
 
@@ -437,13 +445,8 @@ class XmlMixin:
         """
         For exporting, set data on `node` from ourselves.
         """
-        # Get the definition
-        # if node.tag == 'lti':
-        #     import pdb ; pdb.set_trace()
         xml_object = self.definition_to_xml(self.runtime.export_fs)
 
-        # If xml_object is None, we don't know how to serialize this node, but
-        # we shouldn't crash out the whole export for it.
         if xml_object is None:
             return
 
@@ -482,11 +485,7 @@ class XmlMixin:
         if self.export_to_file():
             # Write the definition to a file
             url_path = name_to_pathname(self.url_name)
-            # if folder is course then create file with name {course_run}.xml
-            filepath = self._format_filepath(
-                self.category,
-                self.location.run if self.category == 'course' else url_path,
-            )
+            filepath = self._format_filepath(self.category, url_path)
             self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
             with self.runtime.export_fs.open(filepath, 'wb') as fileobj:
                 ElementTree(xml_object).write(fileobj, pretty_print=True, encoding='utf-8')
@@ -499,15 +498,8 @@ class XmlMixin:
             node.attrib.update(xml_object.attrib)
             node.extend(xml_object)
 
-        # Do not override an existing value for the course.
         if not node.get('url_name'):
             node.set('url_name', self.url_name)
-
-        # Special case for course pointers:
-        if self.category == 'course':
-            # add org and course attributes on the pointer tag
-            node.set('org', self.location.org)
-            node.set('course', self.location.course)
 
     def definition_to_xml(self, resource_fs):
         """
@@ -522,5 +514,5 @@ class XmlMixin:
         Return a list of all metadata fields that cannot be edited.
         """
         non_editable_fields = super().non_editable_metadata_fields
-        non_editable_fields.append(XmlMixin.xml_attributes)
+        non_editable_fields.append(LegacyXmlMixin.xml_attributes)
         return non_editable_fields
