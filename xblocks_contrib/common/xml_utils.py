@@ -13,10 +13,9 @@ from typing import Any
 
 from django.core.serializers.json import DjangoJSONEncoder
 from lxml import etree
-from lxml.etree import ElementTree, XMLParser
-from lxml.etree import _Element
+from lxml.etree import ElementTree, XMLParser, _Element
 from opaque_keys.edx.keys import CourseKey, UsageKey
-from xblock.core import XBlock, XML_NAMESPACES
+from xblock.core import XML_NAMESPACES, XBlock
 from xblock.fields import Dict, Field, Scope, ScopeIds
 
 log = logging.getLogger(__name__)
@@ -474,7 +473,8 @@ class LegacyXmlMixin:
                     xml_object.set(attr, val)
                 except Exception:  # lint-amnesty, pylint: disable=broad-except
                     logging.exception(
-                        'Failed to serialize metadata attribute %s with value %s in module %s. This could mean data loss!!!',  # lint-amnesty, pylint: disable=line-too-long
+                        'Failed to serialize metadata attribute %s with value %s in module %s. '
+                        'This could mean data loss!!!',
                         attr, val, self.url_name
                     )
 

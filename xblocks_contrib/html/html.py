@@ -15,13 +15,12 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from fs.errors import ResourceNotFound
 from lxml import etree
-from lxml.etree import XMLParser
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys.edx.locator import LibraryLocatorV2
 from path import Path as path
 from web_fragments.fragment import Fragment
-from xblock.core import XML_NAMESPACES, XBlock
-from xblock.fields import Boolean, Scope, ScopeIds, String, UserScope
+from xblock.core import XBlock
+from xblock.fields import Boolean, Scope, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
 from xblocks_contrib.common.xml_utils import LegacyXmlMixin, name_to_pathname
@@ -144,7 +143,7 @@ def stringify_children(node):
 # This makes our block more resilient. It won't crash in test environments
 # where the user service might not be available.
 @XBlock.wants("user")
-class HtmlBlock(LegacyXmlMixin, XBlock):
+class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
     """
     The HTML XBlock.
     """
@@ -440,7 +439,7 @@ class HtmlBlock(LegacyXmlMixin, XBlock):
     # snippets that will be included in the middle of pages.
 
     @classmethod
-    def load_definition(cls, xml_object, system, location, id_generator):  # pylint: disable=unused-argument
+    def load_definition(cls, xml_object, system, def_id, id_generator):
         """Load a descriptor from the specified xml_object:
 
         If there is a filename attribute, load it as a string, and
@@ -467,7 +466,7 @@ class HtmlBlock(LegacyXmlMixin, XBlock):
             # from .html
             # 'filename' in html pointers is a relative path
             # (not same as 'html/blah.html' when the pointer is in a directory itself)
-            pointer_path = "{category}/{url_path}".format(category="html", url_path=name_to_pathname(location.block_id))
+            pointer_path = "{category}/{url_path}".format(category="html", url_path=name_to_pathname(def_id.block_id))
             base = path(pointer_path).dirname()
             # log.debug("base = {0}, base.dirname={1}, filename={2}".format(base, base.dirname(), filename))
             filepath = f"{base}/{filename}.html"
@@ -548,5 +547,4 @@ class HtmlBlock(LegacyXmlMixin, XBlock):
     @property
     def non_editable_metadata_fields(self):
         """`use_latex_compiler` should not be editable in the Studio settings editor."""
-        # pylint: disable=no-member
         return super().non_editable_metadata_fields + [HtmlBlock.xml_attributes, HtmlBlock.use_latex_compiler]
