@@ -4,7 +4,6 @@ This XBlock allows users to embed HTML content inside courses.
 """
 
 import copy
-import json
 import logging
 import os
 import re
@@ -16,34 +15,22 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from fs.errors import ResourceNotFound
 from lxml import etree
-from lxml.etree import ElementTree, XMLParser
+from lxml.etree import XMLParser
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys.edx.locator import LibraryLocatorV2
 from path import Path as path
 from web_fragments.fragment import Fragment
 from xblock.core import XML_NAMESPACES, XBlock
-from xblock.fields import Boolean, Dict, Scope, ScopeIds, String, UserScope
+from xblock.fields import Boolean, Scope, ScopeIds, String, UserScope
 from xblock.utils.resources import ResourceLoader
 
-from xblocks_contrib.common.xml_utils import (
-    apply_pointer_attributes,
-    deserialize_field,
-    format_filepath,
-    is_pointer_tag,
-    load_definition_xml,
-    name_to_pathname,
-    own_metadata,
-    serialize_field,
-)
+from xblocks_contrib.common.xml_utils import LegacyXmlMixin, name_to_pathname
 
 log = logging.getLogger(__name__)
 resource_loader = ResourceLoader(__name__)
 
 # The global (course-agnostic) anonymous user ID for the user.
 ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_id"
-
-# assume all XML files are persisted as utf-8.
-EDX_XML_PARSER = XMLParser(dtd_validation=False, load_dtd=False, remove_blank_text=True, encoding="utf-8")
 
 
 class MLStripper(HTMLParser):
@@ -157,7 +144,7 @@ def stringify_children(node):
 # This makes our block more resilient. It won't crash in test environments
 # where the user service might not be available.
 @XBlock.wants("user")
-class HtmlBlock(XBlock):
+class HtmlBlock(LegacyXmlMixin, XBlock):
     """
     The HTML XBlock.
     """
@@ -191,46 +178,8 @@ class HtmlBlock(XBlock):
     ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA = "ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"
 
     uses_xmodule_styles_setup = True
-    filename_extension = "xml"
     template_dir_name = "html"
     show_in_read_only_mode = True
-
-    xml_attributes = Dict(
-        help="Map of unhandled xml attributes, used only for storage between import and export",
-        default={},
-        scope=Scope.settings,
-    )
-    metadata_to_strip = (
-        "data_dir",
-        "tabs",
-        "grading_policy",
-        "discussion_blackouts",
-        # VS[compat]
-        # These attributes should have been removed from here once all 2012-fall courses imported into
-        # the CMS and "inline" OLX format deprecated. But, it never got deprecated. Moreover, it's
-        # widely used to this date. So, we still have to strip them. Also, removing of "filename"
-        # changes OLX returned by `/api/olx-export/v1/xblock/{block_id}/`, which indicates that some
-        # places in the platform rely on it.
-        "course",
-        "org",
-        "url_name",
-        "filename",
-        # Used for storing xml attributes between import and export, for roundtrips
-        "xml_attributes",
-        # Used by _import_xml_node_to_parent in cms/djangoapps/contentstore/helpers.py to prevent
-        # XmlMixin from treating some XML nodes as "pointer nodes".
-        "x-is-pointer-node",
-    )
-
-    # This is a categories to fields map that contains the block category specific fields which should not be
-    # cleaned and/or override while adding xml to node.
-    metadata_to_not_to_clean = {
-        # A category `video` having `sub` and `transcripts` fields
-        # which should not be cleaned/override in an xml object.
-        "video": ("sub", "transcripts")
-    }
-
-    metadata_to_export_to_policy = ("discussion_topics",)
 
     @property
     def category(self):
@@ -485,20 +434,6 @@ class HtmlBlock(XBlock):
             ),
         ]
 
-    @classmethod
-    def clean_metadata_from_xml(cls, xml_object, excluded_fields=()):
-        """
-        Remove any attribute named for a field with scope Scope.settings from the supplied
-        xml_object
-        """
-        for field_name, field in cls.fields.items():  # pylint: disable=no-member
-            if (
-                field.scope == Scope.settings
-                and field_name not in excluded_fields
-                and xml_object.get(field_name) is not None
-            ):
-                del xml_object.attrib[field_name]
-
     # NOTE: html descriptors are special.  We do not want to parse and
     # export them ourselves, because that can break things (e.g. lxml
     # adds body tags when it exports, but they should just be html
@@ -574,140 +509,6 @@ class HtmlBlock(XBlock):
                 raise Exception(msg).with_traceback(sys.exc_info()[2])
 
     @classmethod
-    def load_metadata(cls, xml_object):
-        """
-        Read the metadata attributes from this xml_object.
-
-        Returns a dictionary {key: value}.
-        """
-        metadata = {"xml_attributes": {}}
-        for attr, val in xml_object.attrib.items():
-
-            if attr in cls.metadata_to_strip:
-                # don't load these
-                continue
-
-            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
-                metadata["xml_attributes"][attr] = val
-            else:
-                metadata[attr] = deserialize_field(cls.fields[attr], val)  # pylint: disable=unsubscriptable-object
-        return metadata
-
-    @classmethod
-    def apply_policy(cls, metadata, policy):
-        """
-        Add the keys in policy to metadata, after processing them
-        through the attrmap.  Updates the metadata dict in place.
-        """
-        for attr, value in policy.items():
-            if attr not in cls.fields:  # pylint: disable=unsupported-membership-test
-                # Store unknown attributes coming from policy.json
-                # in such a way that they will export to xml unchanged
-                metadata["xml_attributes"][attr] = value
-            else:
-                metadata[attr] = value
-
-    @classmethod
-    def parse_xml(cls, node, runtime, keys):
-        """
-        Use `node` to construct a new block.
-
-        Arguments:
-            node (etree.Element): The xml node to parse into an xblock.
-
-            runtime (:class:`.Runtime`): The runtime to use while parsing.
-
-            keys (:class:`.ScopeIds`): The keys identifying where this block
-                will store its data.
-
-        Returns (XBlock): The newly parsed XBlock
-
-        """
-
-        if keys is None:
-            # Passing keys=None is against the XBlock API but some platform tests do it.
-            def_id = runtime.id_generator.create_definition(node.tag, node.get("url_name"))
-            keys = ScopeIds(None, node.tag, def_id, runtime.id_generator.create_usage(def_id))
-        aside_children = []
-
-        # Let the runtime construct the block. It will have a proper, inheritance-aware field data store.
-        block = runtime.construct_xblock_from_class(cls, keys)
-
-        # VS[compat]
-        # In 2012, when the platform didn't have CMS, and all courses were handwritten XML files, problem tags
-        # contained XML problem descriptions withing themselves. Later, when Studio has been created, and "pointer" tags
-        # became the preferred problem format, edX has to add this compatibility code to 1) support both pre- and
-        # post-Studio course formats simulteneously, and 2) be able to migrate 2012-fall courses to Studio. Old style
-        # support supposed to be removed, but the deprecation process have never been initiated, so this
-        # compatibility must stay, probably forever.
-        if is_pointer_tag(node):
-            # new style:
-            # read the actual definition file--named using url_name.replace(':','/')
-            definition_xml, filepath = load_definition_xml(node, runtime, keys.def_id)
-            aside_children = runtime.parse_asides(definition_xml, keys.def_id, keys.usage_id, runtime.id_generator)
-        else:
-            filepath = None
-            definition_xml = node
-
-        # Note: removes metadata.
-        definition, children = cls.load_definition(definition_xml, runtime, keys.def_id, runtime.id_generator)
-
-        # VS[compat]
-        # Make Ike's github preview links work in both old and new file layouts.
-        if is_pointer_tag(node):
-            # new style -- contents actually at filepath
-            definition["filename"] = [filepath, filepath]
-
-        metadata = cls.load_metadata(definition_xml)
-
-        # move definition metadata into dict
-        dmdata = definition.get("definition_metadata", "")
-        if dmdata:
-            metadata["definition_metadata_raw"] = dmdata
-            try:
-                metadata.update(json.loads(dmdata))
-            except Exception as err:  # lint-amnesty, pylint: disable=broad-except
-                log.debug("Error in loading metadata %r", dmdata, exc_info=True)
-                metadata["definition_metadata_err"] = str(err)
-
-        definition_aside_children = definition.pop("aside_children", None)
-        if definition_aside_children:
-            aside_children.extend(definition_aside_children)
-
-        # Set/override any metadata specified by policy
-        cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
-
-        field_data = {**metadata, **definition}
-
-        for field_name, value in field_data.items():
-            # The 'xml_attributes' field has a special setter logic in its Field class,
-            # so we must handle it carefully to avoid duplicating data.
-            if field_name == "xml_attributes":
-                # The 'filename' attribute is specially handled for git links.
-                value["filename"] = definition.get("filename", ["", None])
-                block.xml_attributes.update(value)
-            elif field_name in block.fields:
-                setattr(block, field_name, value)
-
-        block.children = children
-
-        if aside_children:
-            cls.add_applicable_asides_to_block(block, runtime, aside_children)
-
-        return block
-
-    @classmethod
-    def add_applicable_asides_to_block(cls, block, runtime, aside_children):
-        """
-        Add asides to the block. Moved this out of the parse_xml method to use it in the VideoBlock.parse_xml
-        """
-        asides_tags = [aside_child.tag for aside_child in aside_children]
-        asides = runtime.get_asides(block)
-        for aside in asides:
-            if aside.scope_ids.block_type in asides_tags:
-                block.add_aside(aside)
-
-    @classmethod
     def parse_xml_new_runtime(cls, node, runtime, keys):
         """
         Parse XML in the new learning-core-based runtime. Since it doesn't yet
@@ -720,67 +521,6 @@ class HtmlBlock(XBlock):
         for name, value in node.items():
             cls._set_field_if_present(block, name, value, {})
         return block
-
-    def export_to_file(self):
-        """If this returns True, write the definition of this block to a separate
-        file.
-
-        NOTE: Do not override this without a good reason.  It is here
-        specifically for customtag...
-        """
-        return True
-
-    def add_xml_to_node(self, node):
-        """For exporting, set data on `node` from ourselves."""
-        xml_object = self.definition_to_xml(self.runtime.export_fs)
-        if xml_object is None:
-            return
-
-        for aside in self.runtime.get_asides(self):
-            if aside.needs_serialization():
-                aside_node = etree.Element("unknown_root", nsmap=XML_NAMESPACES)
-                aside.add_xml_to_node(aside_node)
-                xml_object.append(aside_node)
-
-        not_to_clean_fields = self.metadata_to_not_to_clean.get(self.category, ())
-        self.clean_metadata_from_xml(xml_object, excluded_fields=not_to_clean_fields)
-        xml_object.tag = self.category
-        node.tag = self.category
-
-        for attr in sorted(own_metadata(self)):
-            if (
-                attr not in self.metadata_to_strip
-                and attr not in self.metadata_to_export_to_policy
-                and attr not in not_to_clean_fields
-            ):
-                # pylint: disable=unsubscriptable-object
-                val = serialize_field(self.fields[attr].to_json(getattr(self, attr)))
-                try:
-                    xml_object.set(attr, val)
-                except Exception:  # pylint: disable=broad-exception-caught
-                    logging.exception("Failed to serialize metadata attribute %s in module %s.", attr, self.url_name)
-
-        for key, value in self.xml_attributes.items():
-            if key not in self.metadata_to_strip:
-                xml_object.set(key, serialize_field(value))
-
-        if self.export_to_file():
-            url_path = name_to_pathname(self.url_name)
-            filepath = format_filepath(
-                self.category, self.location.run if self.category == "course" else url_path
-            )
-            self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
-            with self.runtime.export_fs.open(filepath, "wb") as fileobj:
-                ElementTree(xml_object).write(fileobj, pretty_print=True, encoding="utf-8")
-        else:
-            node.clear()
-            node.tag = xml_object.tag
-            node.text = xml_object.text
-            node.tail = xml_object.tail
-            node.attrib.update(xml_object.attrib)
-            node.extend(xml_object)
-
-        apply_pointer_attributes(node, self)
 
     def definition_to_xml(self, resource_fs):
         """
