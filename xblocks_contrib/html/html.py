@@ -159,6 +159,13 @@ class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
         default=_("Text"),
     )
     data = String(help=_("Html contents to display for this block"), default="", scope=Scope.content)
+    upstream_data = String(
+        help=_("Upstream html contents to store upstream data field"),
+        default=None,
+        hidden=True,
+        enforce_type=True,
+        scope=Scope.content,
+    )
     source_code = String(
         help=_("Source code for LaTeX documents. This feature is not well-supported."), scope=Scope.settings
     )
@@ -179,6 +186,7 @@ class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
     uses_xmodule_styles_setup = True
     template_dir_name = "html"
     show_in_read_only_mode = True
+    icon_class = "other"
 
     @property
     def category(self):
@@ -252,6 +260,9 @@ class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
                 user_id = current_user.opt_attrs.get(ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID)
                 if user_id:
                     data = data.replace("%%USER_ID%%", user_id)
+                if current_user.emails:
+                    email = current_user.emails[0]
+                    data = data.replace("%%USER_EMAIL%%", email)
 
         # The course ID replacement is always safe to run.
         data = data.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
@@ -259,10 +270,16 @@ class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
 
     def studio_view(self, context=None):  # pylint: disable=unused-argument
         """Return a fragment that contains the html for the studio view."""
-        frag = Fragment(self.get_html())
-        frag.add_javascript("""function HtmlBlock(runtime, element){}""")
-        frag.initialize_js("HtmlBlock")
-        return frag
+        # Only the ReactJS editor is supported for this block.
+        # See https://github.com/openedx/frontend-app-authoring/tree/master/src/editors/containers/TextEditor
+        raise NotImplementedError
+
+    @classmethod
+    def get_customizable_fields(cls) -> dict[str, str | None]:
+        return {
+            "display_name": "upstream_display_name",
+            "data": "upstream_data",
+        }
 
     # VS[compat] TODO (cpennington): Delete this method once all fall 2012 course
     # are being edited in the cms

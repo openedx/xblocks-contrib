@@ -131,7 +131,19 @@ def own_metadata(block: XBlock) -> dict[str, Any]:
     Return a JSON-friendly dictionary that contains only non-inherited field
     keys, mapped to their serialized values
     """
-    return block.get_explicitly_set_fields_by_scope(Scope.settings)
+    result = {}
+    for field in block.fields.values():  # lint-amnesty, pylint: disable=no-member
+        if field.scope == Scope.settings and field.is_set_on(block):
+            try:
+                result[field.name] = field.read_json(block)
+            except TypeError as exception:
+                exception_message = "{message}, Block-location:{location}, Field-name:{field_name}".format(
+                    message=str(exception),
+                    location=str(block.location),
+                    field_name=field.name
+                )
+                raise TypeError(exception_message)  # lint-amnesty, pylint: disable=raise-missing-from
+    return result
 
 
 class LegacyXmlMixin:
