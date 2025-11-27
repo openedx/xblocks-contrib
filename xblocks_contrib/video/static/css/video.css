@@ -708,6 +708,10 @@
     line-height: lh();
 }
 
+.video .subtitles .subtitles-menu li:has(> span:empty) {
+    display: none;
+}
+
 .video .subtitles .subtitles-menu li span {
     display: block;
 }
