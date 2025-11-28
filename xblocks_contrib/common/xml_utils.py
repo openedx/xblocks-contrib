@@ -155,24 +155,25 @@ class LegacyXmlMixin:
     # Extension to append to filename paths
     filename_extension = 'xml'
 
-    xml_attributes = Dict(
-        help="Map of unhandled xml attributes, used only for storage between import and export",
-        default={},
-        scope=Scope.settings
-    )
+    xml_attributes = Dict(help="Map of unhandled xml attributes, used only for storage between import and export",
+                          default={}, scope=Scope.settings)
 
-    metadata_to_strip = (
-        'data_dir',
-        'tabs',
-        'grading_policy',
-        'discussion_blackouts',
-        'course',
-        'org',
-        'url_name',
-        'filename',
-        'xml_attributes',
-        "x-is-pointer-node",
-    )
+    metadata_to_strip = ('data_dir',
+                         'tabs', 'grading_policy',
+                         'discussion_blackouts',
+                         # VS[compat]
+                         # These attributes should have been removed from here once all 2012-fall courses imported into
+                         # the CMS and "inline" OLX format deprecated. But, it never got deprecated. Moreover, it's
+                         # widely used to this date. So, we still have to strip them. Also, removing of "filename"
+                         # changes OLX returned by `/api/olx-export/v1/xblock/{block_id}/`, which indicates that some
+                         # places in the platform rely on it.
+                         'course', 'org', 'url_name', 'filename',
+                         # Used for storing xml attributes between import and export, for roundtrips
+                         'xml_attributes',
+                         # Used by _import_xml_node_to_parent in cms/djangoapps/contentstore/helpers.py to prevent
+                         # XmlMixin from treating some XML nodes as "pointer nodes".
+                         "x-is-pointer-node",
+                         )
 
     # This is a categories to fields map that contains the block category specific fields which should not be
     # cleaned and/or override while adding xml to node.
@@ -402,6 +403,8 @@ class LegacyXmlMixin:
         # Set/override any metadata specified by policy
         cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
 
+        # We don't want to use InheritanceKeyValueStore here (doing so will necessitate a lot of code to be moved
+        # from the `xmodule.modulestore.inheritance` into this class), so we manually set the fields on the block.
         field_data = {**metadata, **definition}
 
         for field_name, value in field_data.items():
@@ -433,6 +436,17 @@ class LegacyXmlMixin:
                 block.add_aside(aside)
 
     @classmethod
+    def parse_xml_new_runtime(cls, node, runtime, keys):
+        """
+        This XML lives within Learning Core and the new runtime doesn't need this
+        legacy XModule code. Use the "normal" XBlock parsing code.
+        """
+        try:
+            return super().parse_xml_new_runtime(node, runtime, keys)
+        except AttributeError:
+            return super().parse_xml(node, runtime, keys)
+
+    @classmethod
     def load_definition_xml(cls, node, runtime, def_id):
         """
         Loads definition_xml stored in a dedicated file
@@ -449,6 +463,9 @@ class LegacyXmlMixin:
     def export_to_file(self):
         """If this returns True, write the definition of this block to a separate
         file.
+
+        NOTE: Do not override this without a good reason.  It is here
+        specifically for customtag...
         """
         return True
 
@@ -458,6 +475,8 @@ class LegacyXmlMixin:
         """
         xml_object = self.definition_to_xml(self.runtime.export_fs)
 
+        # If xml_object is None, we don't know how to serialize this node, but
+        # we shouldn't crash out the whole export for it.
         if xml_object is None:
             return
 
@@ -510,8 +529,18 @@ class LegacyXmlMixin:
             node.attrib.update(xml_object.attrib)
             node.extend(xml_object)
 
+        # Do not override an existing value for the course.
         if not node.get('url_name'):
             node.set('url_name', self.url_name)
+
+        # We do not need to cater the `course` category here in xblocks_contrib,
+        # because course export is handled in the edx-platform code.
+
+        # Special case for course pointers:
+        # if self.category == 'course':
+        #     # add org and course attributes on the pointer tag
+        #     node.set('org', self.location.org)
+        #     node.set('course', self.location.course)
 
     def definition_to_xml(self, resource_fs):
         """
