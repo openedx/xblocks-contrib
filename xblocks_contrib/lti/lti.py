@@ -86,6 +86,8 @@ except ModuleNotFoundError:
 
 from .lti_2_util import LTI20BlockMixin, LTIError
 
+from xblocks_contrib.common.xml_utils import LegacyXmlMixin
+
 # The anonymous user ID for the user in the course.
 ATTR_KEY_ANONYMOUS_USER_ID = 'edx-platform.anonymous_user_id'
 # The user's role in the course ('staff', 'instructor', or 'student').
@@ -122,6 +124,8 @@ class LTIFields:
 
         https://github.com/idan/oauthlib/blob/master/oauthlib/oauth1/rfc5849/signature.py#L136
     """
+    data = String(default='', scope=Scope.content)
+
     display_name = String(
         display_name=_("Display Name"),
         help=_(
@@ -290,6 +294,7 @@ class LTIFields:
 class LTIBlock(
     LTIFields,
     LTI20BlockMixin,
+    LegacyXmlMixin,
     StudioEditableXBlockMixin,
     XBlock,
 ):
@@ -1011,3 +1016,14 @@ oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"'}
         else:
             close_date = due_date
         return close_date is not None and datetime.datetime.now(UTC) > close_date
+
+    @classmethod
+    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+        if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
+            return {'data': ''}, []
+        return {'data': etree.tostring(xml_object, pretty_print=True, encoding='unicode')}, []
+
+    def definition_to_xml(self, resource_fs):  # lint-amnesty, pylint: disable=unused-argument
+        if self.data:
+            return etree.fromstring(self.data)
+        return etree.Element(self.category)
