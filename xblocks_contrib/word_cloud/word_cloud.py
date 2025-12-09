@@ -313,12 +313,12 @@ class WordCloudBlock(StudioEditableXBlockMixin, LegacyXmlMixin, XBlock):
         return xblock_body
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_from_xml(cls, xml_object, system):
         if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
             return {'data': ''}, []
         return {'data': etree.tostring(xml_object, pretty_print=True, encoding='unicode')}, []
 
-    def definition_to_xml(self, resource_fs):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_to_xml(self, resource_fs):
         if self.data:
             return etree.fromstring(self.data)
         return etree.Element(self.category)

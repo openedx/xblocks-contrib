@@ -132,7 +132,7 @@ def own_metadata(block: XBlock) -> dict[str, Any]:
     keys, mapped to their serialized values
     """
     result = {}
-    for field in block.fields.values():  # lint-amnesty, pylint: disable=no-member
+    for field in block.fields.values():
         if field.scope == Scope.settings and field.is_set_on(block):
             try:
                 result[field.name] = field.read_json(block)

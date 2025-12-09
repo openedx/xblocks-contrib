@@ -304,20 +304,22 @@ class PollBlock(LegacyXmlMixin, XBlock):
         return result
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):  # pylint: disable=unused-argument
-        """Pull out the data into dictionary.
+    def definition_from_xml(cls, xml_object, system):
+        """
+        Pull out the data into a dictionary.
 
         Args:
-            xml_object: xml from file.
+            xml_object: XML from file.
             system: `system` object.
 
         Returns:
-            (definition, children) - tuple
-            definition - dict:
-                {
-                    'answers': <List of answers>,
-                    'question': <Question string>
-                }
+            tuple: A tuple ``(definition, children)``.
+
+            definition (dict):
+                A dictionary containing:
+
+                - ``answers`` (list): List of answers.
+                - ``question`` (str): Question string.
         """
         # Check for presense of required tags in xml.
         if len(xml_object.xpath(cls._child_tag_name)) == 0:
@@ -338,7 +340,7 @@ class PollBlock(LegacyXmlMixin, XBlock):
         children = []
         return (definition, children)
 
-    def definition_to_xml(self, resource_fs=None):  # pylint: disable=unused-argument
+    def definition_to_xml(self, resource_fs=None):
         """Return an xml element representing to this definition."""
 
         poll_str = HTML("<{tag_name}>{text}</{tag_name}>").format(tag_name=self._tag_name, text=self.question)

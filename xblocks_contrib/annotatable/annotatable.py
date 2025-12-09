@@ -12,6 +12,7 @@ import uuid
 import markupsafe
 from django.utils.translation import gettext_noop as _
 from lxml import etree
+from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Scope, String, XMLString
@@ -94,6 +95,18 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
 
     # List of supported highlight colors for annotations
     HIGHLIGHT_COLORS = ["yellow", "orange", "purple", "blue", "green"]
+
+    @property
+    def location(self):
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
+            usage_id=value,
+        )
 
     def _get_annotation_class_attr(self, index, el):  # pylint: disable=unused-argument
         """Returns a dict with the CSS class attribute to set on the annotation
@@ -247,12 +260,12 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
         ]
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_from_xml(cls, xml_object, system):
         if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
             return {'data': ''}, []
         return {'data': etree.tostring(xml_object, pretty_print=True, encoding='unicode')}, []
 
-    def definition_to_xml(self, resource_fs):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_to_xml(self, resource_fs):
         """
         Return an Element if we've kept the import OLX, or None otherwise.
         """
@@ -278,7 +291,7 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
             # Can't recover here, so just add some info and
             # re-raise
             lines = self.data.split('\n')
-            line, offset = err.position
+            line, offset = err.position  # lint-amnesty, pylint: disable=unpacking-non-sequence
             msg = (
                 "Unable to create xml for block {loc}. "
                 "Context: '{context}'"
@@ -286,4 +299,4 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
                 context=lines[line - 1][offset - 40:offset + 40],
                 loc=self.location,
             )
-            raise SerializationError(self.location, msg)  # lint-amnesty, pylint: disable=raise-missing-from
+            raise SerializationError(self.location, msg) from err

@@ -143,7 +143,7 @@ def stringify_children(node):
 # This makes our block more resilient. It won't crash in test environments
 # where the user service might not be available.
 @XBlock.wants("user")
-class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
+class HtmlBlock(LegacyXmlMixin, XBlock):
     """
     The HTML XBlock.
     """
@@ -268,7 +268,7 @@ class HtmlBlock(LegacyXmlMixin, XBlock):  # pylint: disable=abstract-method
         data = data.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
         return data
 
-    def studio_view(self, context=None):  # pylint: disable=unused-argument
+    def studio_view(self, context=None):
         """Return a fragment that contains the html for the studio view."""
         # Only the ReactJS editor is supported for this block.
         # See https://github.com/openedx/frontend-app-authoring/tree/master/src/editors/containers/TextEditor

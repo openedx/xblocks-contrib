@@ -84,9 +84,9 @@ except ModuleNotFoundError:
     from xblockutils.resources import ResourceLoader
     from xblockutils.studio_editable import StudioEditableXBlockMixin
 
-from .lti_2_util import LTI20BlockMixin, LTIError
-
 from xblocks_contrib.common.xml_utils import LegacyXmlMixin
+
+from .lti_2_util import LTI20BlockMixin, LTIError
 
 # The anonymous user ID for the user in the course.
 ATTR_KEY_ANONYMOUS_USER_ID = 'edx-platform.anonymous_user_id'
@@ -1018,12 +1018,12 @@ oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"'}
         return close_date is not None and datetime.datetime.now(UTC) > close_date
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_from_xml(cls, xml_object, system):
         if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
             return {'data': ''}, []
         return {'data': etree.tostring(xml_object, pretty_print=True, encoding='unicode')}, []
 
-    def definition_to_xml(self, resource_fs):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_to_xml(self, resource_fs):
         if self.data:
             return etree.fromstring(self.data)
         return etree.Element(self.category)
