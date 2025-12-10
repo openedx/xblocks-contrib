@@ -1,0 +1,45 @@
+{% load i18n %}
+<div class="choicegroup capa_inputtype" id="inputtype_{{ id }}">
+    <fieldset {{ describedby_html|safe }}>
+        {% if response_data.label %}
+            <legend id="{{ id }}-legend" class="response-fieldset-legend field-group-hd">{{ response_data.label }}</legend>
+        {% endif %}
+        {% for description_id, description_text in response_data.descriptions.items %}
+            <p class="question-description" id="{{ description_id }}">{{ description_text }}</p>
+        {% endfor %}
+        {% for choice_id, choice_label in choices %}
+            <div class="field">
+                <input type="{{ input_type }}"
+                       name="input_{{ id }}{{ name_array_suffix }}"
+                       id="input_{{ id }}_{{ choice_id }}"
+                       class="field-input input-{{ input_type }}{% if choice_id in value %} submitted{% endif %}"
+                       value="{{ choice_id }}"
+                       {% if choice_id in value %}checked="true"{% endif %} />
+                <label id="{{ id }}-{{ choice_id }}-label"
+                       for="input_{{ id }}_{{ choice_id }}"
+                       class="response-label field-label label-inline{% if choice_id in value and status.classname and show_correctness != 'never' %} choicegroup_{{ status.classname }}{% endif %}"
+                       {{ describedby_html|safe }}>
+                    <div>{{ choice_label|safe }}</div>
+                </label>
+            </div>
+        {% endfor %}
+        <span id="answer_{{ id }}"></span>
+    </fieldset>
+    <div class="indicator-container">
+        {% if show_correctness != 'never' %}
+            {% include "status_span.html" with status=status status_id=id %}
+        {% else %}
+            {% include "status_span.html" with status=status status_id=id hide_correctness=True %}
+        {% endif %}
+    </div>
+    {% if show_correctness == 'never' %}
+        {% if value %}
+            <div class="capa_alert">{{ submitted_message }}</div>
+        {% elif status != 'unsubmitted' %}
+            <div class="capa_alert">{{ submitted_message }}</div>
+        {% endif %}
+    {% endif %}
+    {% if msg %}
+        <span class="message" aria-describedby="{{ id }}-legend" tabindex="-1">{{ msg_html|safe }}</span>
+    {% endif %}
+</div>
