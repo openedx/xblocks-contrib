@@ -22,7 +22,7 @@ from pysrt.srtexc import Error
 from opaque_keys.edx.locator import LibraryLocatorV2
 
 from xblocks_contrib.video.content import StaticContent
-from xblocks_contrib.video.exceptions import NotFoundError, TranscriptsGenerationException
+from xblocks_contrib.video.exceptions import NotFoundError, TranscriptNotFoundError, TranscriptsGenerationException
 
 
 try:
@@ -34,6 +34,24 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 NON_EXISTENT_TRANSCRIPT = 'non_existent_dummy_file_name'
+
+
+def get_transcript_from_store(video_block, location, subs_id, lang='en', filename=None):
+    """
+    Get transcript from video config service.
+    """
+    video_config_service = video_block.runtime.service(video_block, 'video_config')
+    if not video_config_service:
+        raise TranscriptNotFoundError("Video config service was not found")
+
+    # HACK Warning! this is temporary and will be removed once edx-val take over the
+    # transcript module and contentstore will only function as fallback until all the
+    # data is migrated to edx-val. It will be saving a contentstore hit for a hardcoded
+    # dummy-non-existent-transcript name.
+    if NON_EXISTENT_TRANSCRIPT in [subs_id, filename]:
+        raise TranscriptNotFoundError
+    asset_filename = subs_filename(subs_id, lang) if not filename else filename
+    return video_config_service.get_transcript_from_store(location.course_key, asset_filename)
 
 
 class TranscriptException(Exception):
@@ -281,12 +299,12 @@ def save_subs_to_store(video_block, subs, subs_id, item, language='en'):
 #     return subs
 
 
-def remove_subs_from_store(subs_id, item, lang='en'):
-    """
-    Remove from store, if transcripts content exists.
-    """
-    filename = subs_filename(subs_id, lang)
-    Transcript.delete_asset(item, item.location, filename)
+# def remove_subs_from_store(subs_id, item, lang='en'):
+#     """
+#     Remove from store, if transcripts content exists.
+#     """
+#     filename = subs_filename(subs_id, lang)
+#     Transcript.delete_asset(item, item.location, filename)
 
 
 def generate_subs_from_source(video_block, speed_subs, subs_type, subs_filedata, block, language='en'):
@@ -494,7 +512,10 @@ def manage_video_subtitles_save(item, user, old_metadata=None, generate_translat
         for lang in old_langs.difference(new_langs):  # 3a
             for video_id in possible_video_id_list:
                 if video_id:
-                    remove_subs_from_store(video_id, item, lang)
+                    # remove_subs_from_store(video_id, item, lang)
+                    filename = subs_filename(video_id, lang)
+                    video_config_service = item.runtime.service(item, 'video_config')
+                    video_config_service.delete_transcript_from_store(item.location.course_key, filename)
 
         reraised_message = ''
         if not isinstance(item.usage_key.context_key, LibraryLocatorV2):
@@ -539,9 +560,13 @@ def generate_sjson_for_all_speeds(block, user_filename, result_subs_dict, lang):
     """
     _ = block.runtime.service(block, "i18n").gettext
 
+    video_config_service = block.runtime.service(block, 'video_config')
+    if not video_config_service:
+        raise TranscriptNotFoundError("Video config service was not found")
+
     try:
-        srt_transcripts = Transcript.find_transcript_from_store(block, block.location.course_key, user_filename)
-    except NotFoundError as ex:
+        srt_transcripts = video_config_service.find_transcript_from_store(block.location.course_key, user_filename)
+    except TranscriptNotFoundError as ex:
         raise TranscriptException(_("{exception_message}: Can't find uploaded transcripts: {user_filename}").format(  # lint-amnesty, pylint: disable=raise-missing-from
             exception_message=str(ex),
             user_filename=user_filename
@@ -579,10 +604,10 @@ def get_or_create_sjson(block, transcripts):
     user_subs_id = os.path.splitext(user_filename)[0]
     source_subs_id, result_subs_dict = user_subs_id, {1.0: user_subs_id}
     try:
-        sjson_transcript = Transcript.asset(block, block.location, source_subs_id, block.transcript_language).data
-    except NotFoundError:  # generating sjson from srt
+        sjson_transcript = get_transcript_from_store(block, block.location, source_subs_id, block.transcript_language).data
+    except TranscriptNotFoundError:  # generating sjson from srt
         generate_sjson_for_all_speeds(block, user_filename, result_subs_dict, block.transcript_language)
-        sjson_transcript = Transcript.asset(block, block.location, source_subs_id, block.transcript_language).data
+        sjson_transcript = get_transcript_from_store(block, block.location, source_subs_id, block.transcript_language).data
     return sjson_transcript
 
 
@@ -711,14 +736,6 @@ class Transcript:
     }
 
     @staticmethod
-    def find_transcript_from_store(video_block, course_key, filename):
-        """
-        Find transcript from store by course_key and filename.
-        """
-        video_config_service = video_block.runtime.service(video_block, 'video_config')
-        return video_config_service.find_transcript_from_store(course_key, filename)
-
-    @staticmethod
     def convert(content, input_format, output_format):
         """
         Convert transcript `content` from `input_format` to `output_format`.
@@ -780,48 +797,48 @@ class Transcript:
             elif output_format == 'srt':
                 return generate_srt_from_sjson(content_dict, speed=1.0)
 
-    @staticmethod
-    def asset(video_block, location, subs_id, lang='en', filename=None):
-        """
-        Get asset from contentstore, asset location is built from subs_id and lang.
+    # @staticmethod
+    # def asset(video_block, location, subs_id, lang='en', filename=None):
+    #     """
+    #     Get asset from contentstore, asset location is built from subs_id and lang.
 
-        `location` is block location.
-        """
-        # HACK Warning! this is temporary and will be removed once edx-val take over the
-        # transcript module and contentstore will only function as fallback until all the
-        # data is migrated to edx-val. It will be saving a contentstore hit for a hardcoded
-        # dummy-non-existent-transcript name.
-        if NON_EXISTENT_TRANSCRIPT in [subs_id, filename]:
-            raise NotFoundError
+    #     `location` is block location.
+    #     """
+    #     # HACK Warning! this is temporary and will be removed once edx-val take over the
+    #     # transcript module and contentstore will only function as fallback until all the
+    #     # data is migrated to edx-val. It will be saving a contentstore hit for a hardcoded
+    #     # dummy-non-existent-transcript name.
+    #     if NON_EXISTENT_TRANSCRIPT in [subs_id, filename]:
+    #         raise NotFoundError
 
-        asset_filename = subs_filename(subs_id, lang) if not filename else filename
-        return Transcript.get_asset(video_block, location, asset_filename)
+    #     asset_filename = subs_filename(subs_id, lang) if not filename else filename
+    #     return Transcript.get_asset(video_block, location, asset_filename)
 
-    @staticmethod
-    def get_asset(video_block, location, filename):
-        """
-        Return asset by location and filename.
-        """
-        video_config_service = video_block.runtime.service(video_block, 'video_config')
-        return video_config_service.get_transcript_from_store(location.course_key, filename)
+    # @staticmethod
+    # def get_asset(video_block, location, filename):
+    #     """
+    #     Return asset by location and filename.
+    #     """
+    #     video_config_service = video_block.runtime.service(video_block, 'video_config')
+    #     return video_config_service.get_transcript_from_store(location.course_key, filename)
 
-    @staticmethod
-    def asset_location(location, filename):
-        """
-        Return asset location. `location` is block location.
-        """
-        # If user transcript filename is empty, raise `TranscriptException` to avoid `InvalidKeyError`.
-        if not filename:
-            raise TranscriptException("Transcript not uploaded yet")
-        return StaticContent.compute_location(location.course_key, filename)
+    # @staticmethod
+    # def asset_location(location, filename):
+    #     """
+    #     Return asset location. `location` is block location.
+    #     """
+    #     # If user transcript filename is empty, raise `TranscriptException` to avoid `InvalidKeyError`.
+    #     if not filename:
+    #         raise TranscriptException("Transcript not uploaded yet")
+    #     return StaticContent.compute_location(location.course_key, filename)
 
-    @staticmethod
-    def delete_asset(video_block, location, filename):
-        """
-        Delete asset by location and filename.
-        """
-        video_config_service = video_block.runtime.service(video_block, 'video_config')
-        video_config_service.delete_transcript_from_store(location.course_key, filename)
+    # @staticmethod
+    # def delete_asset(video_block, location, filename):
+    #     """
+    #     Delete asset by location and filename.
+    #     """
+    #     video_config_service = video_block.runtime.service(video_block, 'video_config')
+    #     video_config_service.delete_transcript_from_store(location.course_key, filename)
 
 
 class VideoTranscriptsMixin:
@@ -993,11 +1010,11 @@ def get_transcript_for_video(video_block, video_location, subs_id, file_name, la
     try:
         if subs_id is None:
             raise NotFoundError
-        content = Transcript.asset(video_block, video_location, subs_id, language).data.decode('utf-8')
+        content = get_transcript_from_store(video_block, video_location, subs_id, language).data.decode('utf-8')
         base_name = subs_id
         input_format = Transcript.SJSON
     except NotFoundError:
-        content = Transcript.asset(video_block, video_location, None, language, file_name).data.decode('utf-8')
+        content = get_transcript_from_store(video_block, video_location, None, language, file_name).data.decode('utf-8')
         base_name = os.path.splitext(file_name)[0]
         input_format = Transcript.SRT
 

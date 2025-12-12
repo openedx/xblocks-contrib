@@ -64,6 +64,7 @@ from xblocks_contrib.video.transcripts_utils import (
     clean_video_id,
     get_endonym_or_label,
     get_html5_ids,
+    get_transcript_from_store,
     subs_filename,
     manage_video_subtitles_save,
 )
@@ -748,8 +749,9 @@ class VideoBlock(
             html5_ids = get_html5_ids(self.html5_sources)
             for subs_id in html5_ids:
                 try:
-                    Transcript.asset(self, self.location, subs_id)
-                except NotFoundError:
+                    get_transcript_from_store(self, self.location, subs_id)
+                    # Transcript.asset(self, self.location, subs_id)
+                except TranscriptNotFoundError:
                     # If a transcript does not not exist with particular html5_id then there is no need to check other
                     # html5_ids because we have to create a new transcript with this missing html5_id by turning on
                     # metadata_was_changed_by_user flag.
