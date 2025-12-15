@@ -148,7 +148,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
     The HTML XBlock mixin.
     This provides the base class for all Html-ish blocks (including the HTML XBlock).
     """
-    
+
     display_name = String(
         display_name=_("Display Name"),
         help=_("The display name for this component."),
