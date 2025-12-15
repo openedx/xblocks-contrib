@@ -143,13 +143,12 @@ def stringify_children(node):
 # This makes our block more resilient. It won't crash in test environments
 # where the user service might not be available.
 @XBlock.wants("user")
-class HtmlBlock(LegacyXmlMixin, XBlock):
+class HtmlBlockMixin(LegacyXmlMixin, XBlock):
     """
-    The HTML XBlock.
+    The HTML XBlock mixin.
+    This provides the base class for all Html-ish blocks (including the HTML XBlock).
     """
-
-    # Indicates that this XBlock has been extracted from edx-platform.
-    is_extracted = True
+    
     display_name = String(
         display_name=_("Display Name"),
         help=_("The display name for this component."),
@@ -565,3 +564,12 @@ class HtmlBlock(LegacyXmlMixin, XBlock):
     def non_editable_metadata_fields(self):
         """`use_latex_compiler` should not be editable in the Studio settings editor."""
         return super().non_editable_metadata_fields + [HtmlBlock.xml_attributes, HtmlBlock.use_latex_compiler]
+
+
+class HtmlBlock(HtmlBlockMixin):
+    """
+    The HTML XBlock.
+    """
+
+    # Indicates that this XBlock has been extracted from edx-platform.
+    is_extracted = True
