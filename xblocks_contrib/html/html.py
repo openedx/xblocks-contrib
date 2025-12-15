@@ -566,7 +566,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
         return super().non_editable_metadata_fields + [HtmlBlock.xml_attributes, HtmlBlock.use_latex_compiler]
 
 
-class HtmlBlock(HtmlBlockMixin):
+class HtmlBlock(HtmlBlockMixin):    # pylint: disable=abstract-method
     """
     The HTML XBlock.
     """
