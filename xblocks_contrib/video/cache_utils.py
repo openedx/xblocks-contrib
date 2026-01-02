@@ -1,13 +1,6 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/openedx/core/lib/cache_utils.py
-"""
-Utilities related to caching.
-"""
-
-
 import itertools
-
 import wrapt
+
 from django.utils.encoding import force_str
 
 from edx_django_utils.cache import RequestCache
