@@ -1,21 +1,22 @@
-# NOTE: Code has been copied from the following source file
-# https://github.com/openedx/edx-platform/blob/master/xmodule/x_module.py#L739
+from xblock.core import XBlock
+from webob.multidict import MultiDict
+from webob import Response
 
-class XModuleToXBlockMixin:
+class AjaxHandlerMixin:
     """
-    Common code needed by XModule and XBlocks converted from XModules.
+    Mixin that provides AJAX handling for Video XBlock
     """
     @property
     def ajax_url(self):
         """
         Returns the URL for the ajax handler.
         """
-        return self.runtime.handler_url(self, 'xmodule_handler', '', '').rstrip('/?')
+        return self.runtime.handler_url(self, 'ajax_handler', '', '').rstrip('/?')
 
     @XBlock.handler
-    def xmodule_handler(self, request, suffix=None):
+    def ajax_handler(self, request, suffix=None):
         """
-        XBlock handler that wraps `handle_ajax`
+        XBlock handler that wraps `ajax_handler`
         """
         class FileObjForWebobFiles:
             """
