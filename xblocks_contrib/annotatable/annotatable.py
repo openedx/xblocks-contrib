@@ -31,7 +31,7 @@ class SerializationError(Exception):
     """
     def __init__(self, location, msg):
         super().__init__(msg)
-        self.location = location
+        self.scope_ids.usage_id = location
 
 
 @XBlock.needs("i18n")
@@ -279,8 +279,8 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
         if not self.data:
             log.warning(
                 "Could not serialize %s: No XBlock installed for '%s' tag.",
-                self.location,
-                self.location.block_type,
+                self.scope_ids.usage_id,
+                self.scope_ids.usage_id.block_type,
             )
             return None
 
@@ -297,6 +297,6 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
                 "Context: '{context}'"
             ).format(
                 context=lines[line - 1][offset - 40:offset + 40],
-                loc=self.location,
+                loc=self.scope_ids.usage_id,
             )
-            raise SerializationError(self.location, msg) from err
+            raise SerializationError(self.scope_ids.usage_id, msg) from err

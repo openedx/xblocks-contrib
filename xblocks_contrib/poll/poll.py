@@ -121,11 +121,11 @@ class PollBlock(LegacyXmlMixin, XBlock):
 
     @property
     def url_name(self):
-        return self.location.block_id
+        return self.scope_ids.usage_id.block_id
 
     @property
     def course_id(self):
-        return self.location.course_key
+        return self.scope_ids.usage_id.course_key
 
     @property
     def category(self):
@@ -298,7 +298,7 @@ class PollBlock(LegacyXmlMixin, XBlock):
                     result[field.name] = field.read_json(self)
                 except TypeError as exception:
                     exception_message = "{message}, Block-location:{location}, Field-name:{field_name}".format(
-                        message=str(exception), location=str(self.location), field_name=field.name
+                        message=str(exception), location=str(self.scope_ids.usage_id), field_name=field.name
                     )
                     raise TypeError(exception_message)  # pylint: disable=raise-missing-from
         return result

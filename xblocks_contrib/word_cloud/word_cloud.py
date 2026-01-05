@@ -342,4 +342,4 @@ class WordCloudBlock(StudioEditableXBlockMixin, LegacyXmlMixin, XBlock):
     def definition_to_xml(self, resource_fs):
         if self.data:
             return etree.fromstring(self.data)
-        return etree.Element(self.category)
+        return etree.Element(self.scope_ids.block_type)
