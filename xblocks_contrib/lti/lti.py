@@ -509,7 +509,7 @@ class LTIBlock(
 
             # These parameters do not participate in OAuth signing.
             'launch_url': self.launch_url.strip(),
-            'element_id': self.location.html_id(),
+            'element_id': self.scope_ids.usage_id.html_id(),
             'element_class': self.scope_ids.block_type,
             'open_in_a_new_page': self.open_in_a_new_page,
             'display_name': self.display_name,
@@ -743,7 +743,7 @@ class LTIBlock(
         i4x-2-3-lti-31de800015cf4afb973356dbe81496df this part of resource_link_id:
         makes resource_link_id to be unique among courses inside same system.
         """
-        return str(parse.quote(f"{settings.LMS_BASE}-{self.location.html_id()}"))
+        return str(parse.quote(f"{settings.LMS_BASE}-{self.scope_ids.usage_id.html_id()}"))
 
     def get_lis_result_sourcedid(self):
         """
@@ -764,7 +764,7 @@ class LTIBlock(
         """
         Return course by course id.
         """
-        return self.runtime.modulestore.get_course(self.location.course_key)
+        return self.runtime.modulestore.get_course(self.scope_ids.usage_id.course_key)
 
     @property
     def context_id(self):
@@ -774,7 +774,7 @@ class LTIBlock(
         context_id is an opaque identifier that uniquely identifies the context (e.g., a course)
         that contains the link being launched.
         """
-        return str(self.location.course_key)
+        return str(self.scope_ids.usage_id.course_key)
 
     @property
     def role(self):
@@ -871,8 +871,8 @@ class LTIBlock(
             # Stubbing headers for now:
             log.info(
                 "LTI block %s in course %s does not have oauth parameters correctly configured.",
-                self.location,
-                self.location.course_key,
+                self.scope_ids.usage_id,
+                self.scope_ids.usage_id.course_key,
             )
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -1026,4 +1026,4 @@ oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"'}
     def definition_to_xml(self, resource_fs):
         if self.data:
             return etree.fromstring(self.data)
-        return etree.Element(self.category)
+        return etree.Element(self.scope_ids.block_type)
