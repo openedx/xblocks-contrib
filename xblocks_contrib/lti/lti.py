@@ -70,7 +70,7 @@ from django.conf import settings
 from django.utils.translation import gettext_noop as _
 from lxml import etree
 from oauthlib.oauth1.rfc5849 import signature
-from opaque_keys.edx.keys import UsageKey
+from opaque_keys.edx.keys import CourseKey, UsageKey
 from pytz import UTC
 from web_fragments.fragment import Fragment
 from webob import Response
@@ -382,6 +382,15 @@ class LTIBlock(
 
     # Indicates that this XBlock has been extracted from edx-platform.
     is_extracted = True
+
+    @property
+    def category(self):
+        """Return the block type/category."""
+        return self.scope_ids.block_type
+
+    @property
+    def url_name(self):
+        return self.location.block_id
 
     @property
     def location(self):
@@ -764,7 +773,9 @@ class LTIBlock(
         """
         Return course by course id.
         """
-        return self.runtime.modulestore.get_course(self.location.course_key)
+        if isinstance(self.location.course_key, CourseKey):
+            return self.runtime.modulestore.get_course(self.location.course_key)
+        return None
 
     @property
     def context_id(self):
@@ -992,7 +1003,7 @@ oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"'}
         Obtains client_key and client_secret credentials from current course.
         """
         course = self.get_course()
-        for lti_passport in course.lti_passports:
+        for lti_passport in course.lti_passports if course else []:
             try:
                 lti_id, key, secret = [i.strip() for i in lti_passport.split(':')]
             except ValueError:
