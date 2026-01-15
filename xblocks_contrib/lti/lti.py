@@ -772,6 +772,11 @@ class LTIBlock(
     def get_course(self):
         """
         Return course by course id.
+
+        Note: This only works for Modulestore-backed courses.
+              It will return None for Learning-Core-backed content libraries.
+              In general, please do not add new code that access Modulestore, because it
+              will not work in Learning Core. We do it here just to support a legacy feature.
         """
         if isinstance(self.location.course_key, CourseKey):
             return self.runtime.modulestore.get_course(self.location.course_key)
