@@ -225,7 +225,7 @@ setup(
     author_email="oscm@openedx.org",
     url="https://github.com/openedx/xblocks-contrib",
     packages=find_packages(
-        include=["xblocks_contrib", "xblocks_contrib.*"],
+        include=["xblocks_contrib", "xblocks_contrib.*", "xblock_pdf"],
         exclude=["*tests"],
     ),
     include_package_data=True,
@@ -254,12 +254,23 @@ setup(
             "_problem_extracted = xblocks_contrib:ProblemBlock",
             "_video_extracted = xblocks_contrib:VideoBlock",
             "_word_cloud_extracted = xblocks_contrib:WordCloudBlock",
+            # 'Done' XBlocks-- ones that are ready for general use today,
+            # and have been migrated fully from edx-platform or their original
+            # repository.
+            "pdf = xblock_pdf:PDFBlock",
         ]
     },
-    package_data=package_data("xblocks_contrib", ["static", "public", "templates"]),
+    package_data={
+        **package_data(
+            "xblocks_contrib", ["static", "public", "templates"],
+        ),
+        **package_data(
+            "xblock_pdf", ["static", "templates"],
+        ),
+    },
     cmdclass={
         "build_py": JSBuildPy,
         "develop": JSDevelop,
         "sdist": JSSdist,
-    },
+    }
 )
