@@ -1,13 +1,24 @@
-""" Video Block Static Content, class copied from StaticContent class in edx-platform/xmodule/contentstore/content.py """
+"""
+Video Block Static Content.
+
+Class copied from StaticContent class in edx-platform/xmodule/contentstore/content.py
+"""
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import AssetKey
 from opaque_keys.edx.locator import AssetLocator
 
-class VideoBlockStaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
-    def __init__(self, loc, name, content_type, data, last_modified_at=None, thumbnail_location=None, import_path=None,
-                 length=None, locked=False, content_digest=None):
+
+class VideoBlockStaticContent:
+    """
+    Represents static content associated with a video block (such as video files or related assets).
+    """
+    def __init__(  # pylint: disable=too-many-positional-arguments
+        self, loc, name, content_type, data, last_modified_at=None,
+        thumbnail_location=None, import_path=None, length=None, locked=False, content_digest=None
+    ):
         self.location = loc
-        self.name = name  # a display string which can be edited, and thus not part of the location which needs to be fixed  # lint-amnesty, pylint: disable=line-too-long
+        # a display string which can be edited, and thus not part of the location which needs to be fixed
+        self.name = name
         self.content_type = content_type
         self._data = data
         self.length = length
@@ -20,7 +31,7 @@ class VideoBlockStaticContent:  # lint-amnesty, pylint: disable=missing-class-do
         self.content_digest = content_digest
 
     @staticmethod
-    def compute_location(course_key, path, revision=None, is_thumbnail=False):  # lint-amnesty, pylint: disable=unused-argument
+    def compute_location(course_key, path, revision=None, is_thumbnail=False):  # pylint: disable=unused-argument
         """
         Constructs a location object for static content.
 
@@ -48,6 +59,7 @@ class VideoBlockStaticContent:  # lint-amnesty, pylint: disable=missing-class-do
             if path.startswith('/') or path.endswith('/'):
                 # try stripping off the leading slash and try again
                 return AssetKey.from_string(path.strip('/'))
+            return None
 
     @staticmethod
     def serialize_asset_key_with_slash(asset_key):
