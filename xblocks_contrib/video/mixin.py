@@ -5,9 +5,11 @@ License mixin for XBlocks
 from xblock.core import XBlockMixin
 from xblock.fields import Scope, String
 
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
+
+# Make '_' a no-op so we can scrape strings. Using dummy function instead of
 #  `django.utils.translation.gettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
+def _(text):
+    return text
 
 
 class LicenseMixin(XBlockMixin):

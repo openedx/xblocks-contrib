@@ -14,8 +14,8 @@ from django.utils.timezone import now
 from opaque_keys.edx.locator import CourseLocator
 from webob import Response
 from xblock.core import XBlock
-from xblock.fields import RelativeTime
 from xblock.exceptions import JsonHandlerError
+from xblock.fields import RelativeTime
 
 from xblocks_contrib.video.exceptions import TranscriptNotFoundError, TranscriptsGenerationException
 from xblocks_contrib.video.video_transcripts_utils import TranscriptExtensions, clean_video_id, subs_filename
@@ -226,23 +226,26 @@ class VideoStudentViewHandlers:
         """
         Entry point for transcript handlers for student_view.
 
-        Request GET contains:
+        Request GET contains::
+
             (optional) `videoId` for `translation` dispatch.
             `is_bumper=1` flag for bumper case.
 
-        Dispatches, (HTTP GET):
+        Dispatches, (HTTP GET)::
+
             /translation/[language_id]
             /download
             /available_translations/
 
-        Explanations:
+        Explanations::
+
             `download`: returns SRT or TXT file.
             `translation`: depends on HTTP methods:
                     Provide translation for requested language, SJSON format is sent back on success,
                     Proper language_id should be in url.
             `available_translations`:
                     Returns list of languages, for which transcript files exist.
-                    For 'en' check if SJSON exists. For non-`en` check if SRT file exists.
+                    For 'en' check if SJSON exists. For non-'en' check if SRT file exists.
         """
         is_bumper = request.GET.get('is_bumper', False)
         transcripts = self.get_transcripts_info(is_bumper)
@@ -410,17 +413,20 @@ class VideoStudioViewHandlers:
         """
         Entry point for Studio transcript handlers.
 
-        Dispatches:
-            /translation/[language_id] - language_id sould be in url.
+        Dispatches::
 
-        `translation` dispatch support following HTTP methods:
+            /translation/[language_id] - language_id should be in url.
+
+        ``translation`` dispatch support following HTTP methods::
+
             `POST`:
                 Upload srt file. Check possibility of generation of proper sjson files.
                 For now, it works only for self.transcripts, not for `en`.
-            `GET:
+            `GET`:
                 Return filename from storage. SRT format is sent back on success. Filename should be in GET dict.
 
-        We raise all exceptions right in Studio:
+        We raise all exceptions right in Studio::
+
             TranscriptNotFoundError:
                 Video or asset was deleted from module/contentstore, but request came later.
                 Seems impossible to be raised. block_render.py catches NotFoundErrors from here.

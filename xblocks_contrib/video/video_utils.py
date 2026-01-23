@@ -3,7 +3,6 @@ Module contains utils specific for video_block but not for transcripts.
 """
 
 
-import json
 import logging
 from collections import OrderedDict
 from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunsplit
@@ -48,10 +47,10 @@ def rewrite_video_url(cdn_base_url, original_video_url):
     Re-write rules for country codes are specified via the
     EDX_VIDEO_CDN_URLS configuration structure.
 
-    :param cdn_base_url: The scheme, hostname, port and any relevant path prefix for the alternate CDN,
-    for example: https://mirror.example.cn/edx
-    :param original_video_url: The canonical source for this video, for example:
-    https://cdn.example.com/edx-course-videos/VIDEO101/001.mp4
+    :param cdn_base_url: The scheme, hostname, port and any relevant path prefix
+        for the alternate CDN, for example: https://mirror.example.cn/edx
+    :param original_video_url: The canonical source for this video,
+        for example: https://cdn.example.com/edx-course-videos/VIDEO101/001.mp4
     :return: The re-written URL
     """
 
@@ -85,7 +84,7 @@ def get_poster(video):
     Poster metadata is dict of youtube url for image thumbnail and edx logo
     """
     if not video.bumper.get("enabled"):
-        return
+        return None
 
     poster = OrderedDict({"url": "", "type": ""})
 
@@ -125,6 +124,7 @@ def set_query_parameter(url, param_name, param_value):
 
     return urlunsplit((scheme, netloc, path, new_query_string, fragment))
 
+
 def load_metadata_from_youtube(video_id, request):
     """
     Get metadata about a YouTube video.
@@ -163,14 +163,20 @@ def load_metadata_from_youtube(video_id, request):
                     if res_json.get('items', []):
                         metadata = res_json
                     else:
-                        logging.warning('Unable to find the items in response. Following response '
-                                        'was received: {res}'.format(res=res.text))
+                        logging.warning(
+                            'Unable to find the items in response. Following response was received: %s',
+                            res.text
+                        )
                 except ValueError:
-                    logging.warning('Unable to decode response to json. Following response '
-                                    'was received: {res}'.format(res=res.text))
+                    logging.warning(
+                        'Unable to decode response to json. Following response was received: %s',
+                        res.text
+                    )
             else:
-                logging.warning('YouTube API request failed with status code={status} - '
-                                'Error message is={message}'.format(status=status_code, message=res.text))
+                logging.warning(
+                    'YouTube API request failed with status code=%s - Error message is=%s',
+                    status_code, res.text
+                )
         except (Timeout, ConnectionError):
             logging.warning('YouTube API request failed because of connection time out or connection error')
     else:
