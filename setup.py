@@ -204,6 +204,7 @@ setup(
             "_problem_extracted = xblocks_contrib:ProblemBlock",
             "_video_extracted = xblocks_contrib:VideoBlock",
             "_word_cloud_extracted = xblocks_contrib:WordCloudBlock",
+            "_pdf_extracted = xblocks_contrib:PDFBlock",
         ]
     },
     package_data=package_data("xblocks_contrib", ["static", "public", "templates"]),

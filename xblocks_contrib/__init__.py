@@ -4,6 +4,7 @@ from .annotatable import AnnotatableBlock
 from .discussion import DiscussionXBlock
 from .html import HtmlBlock
 from .lti import LTIBlock
+from .pdf import PDFBlock
 from .poll import PollBlock
 from .problem import ProblemBlock
 from .video import VideoBlock
