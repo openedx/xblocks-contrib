@@ -21,6 +21,7 @@ These are the XBlocks being moved here, and each of their statuses:
 * ``word_cloud`` -- Ready to Use
 * ``annotatable`` -- Ready to Use
 * ``lti`` -- In Development
+* ``pdf`` -- In Development
 * ``html`` -- Ready to Use
 * ``discussion`` -- Placeholder
 * ``problem`` -- In Development
