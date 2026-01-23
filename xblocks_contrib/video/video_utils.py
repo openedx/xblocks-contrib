@@ -85,7 +85,7 @@ def get_poster(video):
     Poster metadata is dict of youtube url for image thumbnail and edx logo
     """
     if not video.bumper.get("enabled"):
-        return
+        return None
 
     poster = OrderedDict({"url": "", "type": ""})
 
@@ -196,14 +196,20 @@ def load_metadata_from_youtube(video_id, request):
                     if res_json.get('items', []):
                         metadata = res_json
                     else:
-                        logging.warning('Unable to find the items in response. Following response '
-                                        'was received: {res}'.format(res=res.text))
+                        logging.warning(
+                            'Unable to find the items in response. Following response was received: %s',
+                            res.text
+                        )
                 except ValueError:
-                    logging.warning('Unable to decode response to json. Following response '
-                                    'was received: {res}'.format(res=res.text))
+                    logging.warning(
+                        'Unable to decode response to json. Following response was received: %s',
+                        res.text
+                    )
             else:
-                logging.warning('YouTube API request failed with status code={status} - '
-                                'Error message is={message}'.format(status=status_code, message=res.text))
+                logging.warning(
+                    'YouTube API request failed with status code=%s - Error message is=%s',
+                    status_code, res.text
+                )
         except (Timeout, ConnectionError):
             logging.warning('YouTube API request failed because of connection time out or connection error')
     else:
