@@ -7,10 +7,11 @@ import datetime
 
 from xblock.fields import Boolean, DateTime, Dict, Float, List, RelativeTime, Scope, String
 
-# TODO: Review the following _ function
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
-#  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
+
+# Make '_' a no-op so we can scrape strings. Using dummy function instead of
+#  `django.utils.translation.gettext_noop` because Django cannot be imported in this file
+def _(text):
+    return text
 
 
 class VideoFields:
@@ -75,7 +76,7 @@ class VideoFields:
         scope=Scope.settings,
         default=datetime.timedelta(seconds=0)
     )
-    #front-end code of video player checks logical validity of (start_time, end_time) pair.
+    # front-end code of video player checks logical validity of (start_time, end_time) pair.
 
     download_video = Boolean(
         help=_("Allow students to download versions of this video in different formats if they cannot use the edX video"

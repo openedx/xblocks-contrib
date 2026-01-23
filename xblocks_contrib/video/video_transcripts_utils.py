@@ -46,6 +46,7 @@ def get_html5_ids(html5_sources):
     html5_ids = [x.split('/')[-1].rsplit('.', 1)[0] for x in html5_sources]
     return html5_ids
 
+
 def subs_filename(subs_id, lang='en'):
     """
     Generate proper filename for storage.
@@ -55,6 +56,7 @@ def subs_filename(subs_id, lang='en'):
     else:
         return f'{lang}_subs_{subs_id}.srt.sjson'
 
+
 def clean_video_id(edx_video_id):
     """
     Cleans an edx video ID.
@@ -63,6 +65,7 @@ def clean_video_id(edx_video_id):
         edx_video_id(unicode): edx-val's video identifier
     """
     return edx_video_id and edx_video_id.strip()
+
 
 def get_available_transcript_languages(edx_video_id):
     """
@@ -80,6 +83,7 @@ def get_available_transcript_languages(edx_video_id):
         available_languages = edxval_api.get_available_transcript_languages(video_id=edx_video_id)
 
     return available_languages
+
 
 class VideoTranscriptsMixin:
     """Mixin class for transcript functionality.
@@ -163,7 +167,7 @@ def resolve_language_code_to_transcript_code(transcripts, dest_lang):
     """
     Attempts to match the requested dest lang with the existing transcript languages
     """
-    sub, other_lang = transcripts["sub"], transcripts["transcripts"]
+    sub, other_lang = transcripts["sub"], transcripts["transcripts"]  # pylint: disable=unused-variable
     # lang code exists in list of other transcript languages as-is
     if dest_lang in other_lang:
         return dest_lang
@@ -187,6 +191,8 @@ def resolve_language_code_to_transcript_code(transcripts, dest_lang):
         if generic_lang_code in other_lang:
             log.debug("language code %s resolved to generic %s", dest_lang, generic_lang_code)
             return generic_lang_code
+
+    return None
 
 
 def get_endonym_or_label(language_code):
