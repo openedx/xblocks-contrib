@@ -1,17 +1,18 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_utils.py
 """
 Module contains utils specific for video_block but not for transcripts.
 """
 
 
+import json
 import logging
 from collections import OrderedDict
 from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunsplit
 
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from requests.exceptions import Timeout
 
 log = logging.getLogger(__name__)
 

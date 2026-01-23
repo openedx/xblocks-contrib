@@ -1,4 +1,3 @@
-# NOTE: Code has been copied from the source file https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_block.py
 """Video is ungraded Xmodule for support video content.
 It's new improved video block, which support additional feature:
 - Can play non-YouTube video sources via in-browser HTML5 video player.
@@ -13,7 +12,6 @@ Examples of html5 videos for manual testing:
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
 """
 
-
 import copy
 import json
 import logging
@@ -21,48 +19,44 @@ from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
 from django.conf import settings
+from django.utils.translation import gettext_noop as _
 from edx_django_utils.cache import RequestCache
 from lxml import etree
-from opaque_keys.edx.keys import CourseKey
+from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys.edx.locator import AssetLocator
 from web_fragments.fragment import Fragment
 from xblock.completable import XBlockCompletionMode
-from xblock.core import XBlock
-from xblock.fields import ScopeIds
-from xblock.runtime import KvsFieldData
-from xblocks_contrib.video import VideoBlock as _ExtractedVideoBlock
+from xblock.core import Scope, XBlock
+from xblock.fields import ScopeIds, UserScope
 from xblock.utils.resources import ResourceLoader
+from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from common.djangoapps.xblock_django.constants import ATTR_KEY_REQUEST_COUNTRY_CODE, ATTR_KEY_USER_ID
-from openedx.core.lib.cache_utils import request_cached
-from openedx.core.lib.license import LicenseMixin
-from xmodule.contentstore.content import StaticContent
-from xmodule.editing_block import EditingMixin
-from xmodule.exceptions import NotFoundError
-from xmodule.modulestore.inheritance import InheritanceKeyValueStore
-from xmodule.raw_block import EmptyDataRawMixin
-from xmodule.util.builtin_assets import add_css_to_fragment, add_webpack_js_to_fragment
-from xmodule.validation import StudioValidation, StudioValidationMessage
-from xmodule.x_module import (
-    PUBLIC_VIEW, STUDENT_VIEW,
-    ResourceTemplates,
-    XModuleMixin, XModuleToXBlockMixin,
-)
-from xmodule.xml_block import XmlMixin, deserialize_field, is_pointer_tag, name_to_pathname
-from .bumper_utils import bumperize
-from openedx.core.djangoapps.video_config.transcripts_utils import (
-    Transcript,
+from xblocks_contrib.common.xml_utils import LegacyXmlMixin, is_pointer_tag, name_to_pathname
+from xblocks_contrib.video.ajax_handler_mixin import AjaxHandlerMixin
+from xblocks_contrib.video.bumper_utils import bumperize
+from xblocks_contrib.video.cache_utils import request_cached
+from xblocks_contrib.video.constants import ATTR_KEY_REQUEST_COUNTRY_CODE, ATTR_KEY_USER_ID, PUBLIC_VIEW, STUDENT_VIEW
+from xblocks_contrib.video.content import VideoBlockStaticContent
+from xblocks_contrib.video.exceptions import TranscriptNotFoundError
+from xblocks_contrib.video.mixin import LicenseMixin
+from xblocks_contrib.video.studio_metadata_mixin import StudioMetadataMixin
+from xblocks_contrib.video.validation import StudioValidation, StudioValidationMessage
+from xblocks_contrib.video.video_handlers import VideoStudentViewHandlers, VideoStudioViewHandlers
+from xblocks_contrib.video.video_transcripts_utils import (
+    TranscriptExtensions,
     VideoTranscriptsMixin,
     clean_video_id,
     get_endonym_or_label,
-    get_html5_ids,
-    subs_filename
+    subs_filename,
 )
-from .video_handlers import VideoStudentViewHandlers, VideoStudioViewHandlers
-from .video_utils import create_youtube_string, format_xml_exception_message, get_poster, rewrite_video_url
-from .video_xfields import VideoFields
-
-from xblocks_contrib.video.exceptions import TranscriptNotFoundError
+from xblocks_contrib.video.video_utils import (
+    create_youtube_string,
+    deserialize_field,
+    format_xml_exception_message,
+    get_poster,
+    rewrite_video_url,
+)
+from xblocks_contrib.video.video_xfields import VideoFields
 
 # The following import/except block for edxval is temporary measure until
 # edxval is a proper XBlock Runtime Service.
@@ -96,7 +90,7 @@ except ImportError:
     edxval_api = None
 
 log = logging.getLogger(__name__)
-loader = ResourceLoader("lms")
+loader = ResourceLoader(__name__)
 
 # Make '_' a no-op so we can scrape strings. Using lambda instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
@@ -106,12 +100,13 @@ EXPORT_IMPORT_COURSE_DIR = 'course'
 EXPORT_IMPORT_STATIC_DIR = 'static'
 
 
-@XBlock.wants('settings', 'completion', 'i18n', 'request_cache', 'video_config')
-@XBlock.needs('mako', 'user')
-class _BuiltInVideoBlock(
-        VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
-        EmptyDataRawMixin, XmlMixin, EditingMixin, XModuleToXBlockMixin,
-        ResourceTemplates, XModuleMixin, LicenseMixin):
+@XBlock.wants('settings', 'completion', 'request_cache', 'video_config')
+@XBlock.needs('i18n', 'user')
+class VideoBlock(
+    VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
+    StudioEditableXBlockMixin, LegacyXmlMixin, XBlock,
+    AjaxHandlerMixin, StudioMetadataMixin,
+    LicenseMixin):
     """
     XML source example:
         <video show_captions="true"
@@ -123,7 +118,7 @@ class _BuiltInVideoBlock(
             <source src=".../mit-3091x/M-3091X-FA12-L21-3_100.ogv"/>
         </video>
     """
-    is_extracted = False
+    is_extracted = True
     has_custom_completion = True
     completion_mode = XBlockCompletionMode.COMPLETABLE
 
@@ -148,6 +143,52 @@ class _BuiltInVideoBlock(
     js_module_name = "TabsEditingDescriptor"
 
     uses_xmodule_styles_setup = True
+
+    @property
+    def course_id(self):
+        return self.location.course_key
+
+    @property
+    def category(self):
+        return self.scope_ids.block_type
+
+    @property
+    def location(self):
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
+            usage_id=value,
+        )
+
+    @property
+    def url_name(self):
+        return self.location.block_id
+
+    @property
+    def display_name_with_default(self):
+        """
+        Return a display name for the module: use display_name if defined in
+        metadata, otherwise convert the url name.
+        """
+        return (
+            self.display_name if self.display_name is not None
+            else self.location.block_id.replace('_', ' ')
+        )
+
+    @property
+    def xblock_kvs(self):
+        """
+        Retrieves the internal KeyValueStore for this XModule.
+
+        Should only be used by the persistence layer. Use with caution.
+        """
+        # if caller wants kvs, caller's assuming it's up to date; so, decache it
+        self.save()
+        return self._field_data._kvs  # pylint: disable=protected-access
 
     def get_transcripts_for_student(self, transcripts, dest_lang=None):
         """Return transcript information necessary for rendering the XModule student view.
@@ -176,7 +217,7 @@ class _BuiltInVideoBlock(
             try:
                 label = get_endonym_or_label(lang_code)
                 languages[lang_code] = label
-            except NotFoundError:
+            except TranscriptNotFoundError:
                 continue
 
         if not other_lang or (other_lang and sub):
@@ -238,14 +279,16 @@ class _BuiltInVideoBlock(
 
         return False
 
-    def student_view(self, context):
+    def student_view(self, context=None):
         """
         Return the student view.
         """
         fragment = Fragment(self.get_html(context=context))
-        add_css_to_fragment(fragment, 'VideoBlockDisplay.css')
-        add_webpack_js_to_fragment(fragment, 'VideoBlockDisplay')
-        fragment.initialize_js('Video')
+        fragment.add_css(loader.load_unicode("static/css/video.css"))
+        fragment.add_javascript_url(
+            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+        )
+        fragment.initialize_js("Video")
         return fragment
 
     def author_view(self, context):
@@ -265,9 +308,11 @@ class _BuiltInVideoBlock(
             return self.student_view(context)
 
         fragment = Fragment(self.get_html(view=PUBLIC_VIEW, context=context))
-        add_css_to_fragment(fragment, 'VideoBlockDisplay.css')
-        add_webpack_js_to_fragment(fragment, 'VideoBlockMain')
-        fragment.initialize_js('Video')
+        fragment.add_css(loader.load_unicode("static/css/video.css"))
+        fragment.add_javascript_url(
+            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+        )
+        fragment.initialize_js("Video")
         return fragment
 
     def get_html(self, view=STUDENT_VIEW, context=None):  # lint-amnesty, pylint: disable=arguments-differ, too-many-statements
@@ -500,7 +545,7 @@ class _BuiltInVideoBlock(
             video_config_service = self.runtime.service(self, 'video_config')
             feature_enabled = video_config_service.is_transcript_feedback_enabled(
                 self.context_key) if video_config_service else False
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             log.exception(f"Error retrieving course for course ID: {self.context_key}")
             return False
         return feature_enabled
@@ -572,62 +617,6 @@ class _BuiltInVideoBlock(
         self.save()
         self.runtime.modulestore.update_item(self, user_id)
 
-    @property
-    def editable_metadata_fields(self):
-        editable_fields = super().editable_metadata_fields
-
-        settings_service = self.runtime.service(self, 'settings')
-        if settings_service:
-            xb_settings = settings_service.get_settings_bucket(self)
-            if not xb_settings.get("licensing_enabled", False) and "license" in editable_fields:
-                del editable_fields["license"]
-
-        # Default Timed Transcript a.k.a `sub` has been deprecated and end users shall
-        # not be able to modify it.
-        editable_fields.pop('sub')
-
-        languages = [{'label': label, 'code': lang} for lang, label in settings.ALL_LANGUAGES]
-        languages.sort(key=lambda l: l['label'])
-        editable_fields['transcripts']['custom'] = True
-        editable_fields['transcripts']['languages'] = languages
-        editable_fields['transcripts']['type'] = 'VideoTranslations'
-
-        # We need to send ajax requests to show transcript status
-        # whenever edx_video_id changes on frontend. Thats why we
-        # are changing type to `VideoID` so that a specific
-        # Backbonjs view can handle it.
-        editable_fields['edx_video_id']['type'] = 'VideoID'
-
-        # `public_access` is a boolean field and by default backbonejs code render it as a dropdown with 2 options
-        # but in our case we also need to show an input field with dropdown, the input field will show the url to
-        # be shared with leaners. This is not possible with default rendering logic in backbonjs code, that is why
-        # we are setting a new type and then do a custom rendering in backbonejs code to render the desired UI.
-        editable_fields['public_access']['type'] = 'PublicAccess'
-        editable_fields['public_access']['url'] = self.get_public_video_url()
-
-        # construct transcripts info and also find if `en` subs exist
-        transcripts_info = self.get_transcripts_info()
-        possible_sub_ids = [self.sub, self.youtube_id_1_0] + get_html5_ids(self.html5_sources)
-        video_config_service = self.runtime.service(self, 'video_config')
-        if video_config_service:
-            for sub_id in possible_sub_ids:
-                try:
-                    _, sub_id, _ = video_config_service.get_transcript(self, lang='en', output_format=Transcript.TXT)
-                    transcripts_info['transcripts'] = dict(transcripts_info['transcripts'], en=sub_id)
-                    break
-                except TranscriptNotFoundError:
-                    continue
-
-        editable_fields['transcripts']['value'] = transcripts_info['transcripts']
-        editable_fields['transcripts']['urlRoot'] = self.runtime.handler_url(
-            self,
-            'studio_transcript',
-            'translation'
-        ).rstrip('/?')
-        editable_fields['handout']['type'] = 'FileUploader'
-
-        return editable_fields
-
     @classmethod
     def parse_xml_new_runtime(cls, node, runtime, keys):
         """
@@ -660,17 +649,21 @@ class _BuiltInVideoBlock(
             filepath = cls._format_filepath(node.tag, name_to_pathname(url_name))
             node = cls.load_file(filepath, runtime.resources_fs, usage_id)
             aside_children = runtime.parse_asides(node, definition_id, usage_id, runtime.id_generator)
+
+        scope_ids = ScopeIds(None, block_type, definition_id, usage_id)
+        video = runtime.construct_xblock_from_class(cls, scope_ids)
+
         field_data = cls.parse_video_xml(node, runtime.id_generator)
-        kvs = InheritanceKeyValueStore(initial_values=field_data)
-        field_data = KvsFieldData(kvs)
-        video = runtime.construct_xblock_from_class(
-            cls,
-            # We're loading a descriptor, so student_id is meaningless
-            # We also don't have separate notions of definition and usage ids yet,
-            # so we use the location for both
-            ScopeIds(None, block_type, definition_id, usage_id),
-            field_data,
-        )
+
+        for field_name, value in field_data.items():
+            # The 'xml_attributes' field has a special setter logic in its Field class,
+            # so we must handle it carefully to avoid duplicating data.
+            if field_name == "xml_attributes":
+                # The 'filename' attribute is specially handled for git links.
+                # value["filename"] = definition.get("filename", ["", None])
+                video.xml_attributes.update(value)
+            elif field_name in video.fields:
+                setattr(video, field_name, cls.fields[field_name].from_json(value))
 
         # Update VAL with info extracted from `node`
         video.edx_video_id = video.import_video_info_into_val(
@@ -976,10 +969,10 @@ class _BuiltInVideoBlock(
         course_id = getattr(id_generator, 'target_course_id', None)
         # Update the handout location with current course_id
         if 'handout' in field_data and course_id:
-            handout_location = StaticContent.get_location_from_path(field_data['handout'])
+            handout_location = VideoBlockStaticContent.get_location_from_path(field_data['handout'])
             if isinstance(handout_location, AssetLocator):
-                handout_new_location = StaticContent.compute_location(course_id, handout_location.path)
-                field_data['handout'] = StaticContent.serialize_asset_key_with_slash(handout_new_location)
+                handout_new_location = VideoBlockStaticContent.compute_location(course_id, handout_location.path)
+                field_data['handout'] = VideoBlockStaticContent.serialize_asset_key_with_slash(handout_new_location)
 
         # For backwards compatibility: Add `source` if XML doesn't have `download_video`
         # attribute.
@@ -1053,7 +1046,7 @@ class _BuiltInVideoBlock(
             if video_config_service:
                 try:
                     transcript = video_config_service.get_transcript(
-                        self, lang=language, output_format=Transcript.TXT
+                        self, lang=language, output_format=TranscriptExtensions.TXT
                     )[0].replace("\n", " ")
                     transcript_index_name = f"transcript_{language if language else self.transcript_language}"
                     video_body.update({transcript_index_name: transcript})
@@ -1191,10 +1184,80 @@ class _BuiltInVideoBlock(
             )
         return None
 
+    def bind_for_student(self, user_id, wrappers=None):
+        """
+        Set up this XBlock to act as an XModule instead of an XModuleDescriptor.
 
-VideoBlock = (
-    _ExtractedVideoBlock if settings.USE_EXTRACTED_VIDEO_BLOCK
-    else _BuiltInVideoBlock
-)
-VideoBlock.__name__ = "VideoBlock"
+        Arguments:
+            user_id: The user_id to set in scope_ids
+            wrappers: These are a list functions that put a wrapper, such as
+                      LmsFieldData or OverrideFieldData, around the field_data.
+                      Note that the functions will be applied in the order in
+                      which they're listed. So [f1, f2] -> f2(f1(field_data))
+        """
 
+        # Skip rebinding if we're already bound a user, and it's this user.
+        if self.scope_ids.user_id is not None and user_id == self.scope_ids.user_id:
+            if getattr(self.runtime, "position", None):
+                self.position = self.runtime.position  # update the position of the tab
+            return
+
+        # If we are switching users mid-request, save the data from the old user.
+        self.save()
+
+        # Update scope_ids to point to the new user.
+        self.scope_ids = self.scope_ids._replace(user_id=user_id)
+
+        # Clear out any cached instantiated children.
+        self.clear_child_cache()
+
+        # Clear out any cached field data scoped to the old user.
+        for field in self.fields.values():
+            if field.scope in (Scope.parent, Scope.children):
+                continue
+
+            if field.scope.user == UserScope.ONE:
+                field._del_cached_value(self)  # pylint: disable=protected-access
+                # not the most elegant way of doing this, but if we're removing
+                # a field from the module's field_data_cache, we should also
+                # remove it from its _dirty_fields
+                if field in self._dirty_fields:
+                    del self._dirty_fields[field]
+
+        if wrappers:
+            # Put user-specific wrappers around the field-data service for this block.
+            # Note that these are different from modulestore.xblock_field_data_wrappers, which are not user-specific.
+            wrapped_field_data = self.runtime.service(self, "field-data-unbound")
+            for wrapper in wrappers:
+                wrapped_field_data = wrapper(wrapped_field_data)
+            self._bound_field_data = wrapped_field_data
+            if getattr(self.runtime, "uses_deprecated_field_data", False):
+                # This approach is deprecated but OldModuleStoreRuntime still requires it.
+                # For SplitModuleStoreRuntime, don't set ._field_data this way.
+                self._field_data = wrapped_field_data
+
+    @classmethod
+    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+        if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
+            return {"data": ""}, []
+        return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
+
+    @staticmethod
+    def workbench_scenarios():
+        """Create canned scenario for display in the workbench."""
+        return [
+            (
+                "VideoBlock",
+                """<_video_extracted/>
+                """,
+            ),
+            (
+                "Multiple VideoBlock",
+                """<vertical_demo>
+                <_video_extracted/>
+                <_video_extracted/>
+                <_video_extracted/>
+                </vertical_demo>
+                """,
+            ),
+        ]
