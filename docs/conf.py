@@ -80,6 +80,7 @@ extensions = [
 # A list of warning types to suppress arbitrary warning messages.
 suppress_warnings = [
     "image.nonlocal_uri",
+    "intersphinx.external",  # Ignore network failures when fetching intersphinx inventories
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -1,12 +1,16 @@
-"""Video is ungraded Xmodule for support video content.
+"""
+Video is ungraded Xmodule for support video content.
 It's new improved video block, which support additional feature:
-- Can play non-YouTube video sources via in-browser HTML5 video player.
-- YouTube defaults to HTML5 mode from the start.
-- Speed changes in both YouTube and non-YouTube videos happen via
-in-browser HTML5 video method (when in HTML5 mode).
-- Navigational subtitles can be disabled altogether via an attribute
-in XML.
-Examples of html5 videos for manual testing:
+
+* Can play non-YouTube video sources via in-browser HTML5 video player.
+* YouTube defaults to HTML5 mode from the start.
+* Speed changes in both YouTube and non-YouTube videos happen via
+  in-browser HTML5 video method (when in HTML5 mode).
+* Navigational subtitles can be disabled altogether via an attribute
+  in XML.
+
+Examples of html5 videos for manual testing::
+
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.mp4
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.webm
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
@@ -108,7 +112,8 @@ class VideoBlock(
     AjaxHandlerMixin, StudioMetadataMixin,
     LicenseMixin):
     """
-    XML source example:
+    XML source example::
+
         <video show_captions="true"
             youtube="0.75:jNCf2gIqpeE,1.0:ZwkTiUPN0mg,1.25:rsq9auxASqI,1.50:kMyNdzVHHgg"
             url_name="lecture_21_3" display_name="S19V3: Vacancies"

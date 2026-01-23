@@ -48,10 +48,10 @@ def rewrite_video_url(cdn_base_url, original_video_url):
     Re-write rules for country codes are specified via the
     EDX_VIDEO_CDN_URLS configuration structure.
 
-    :param cdn_base_url: The scheme, hostname, port and any relevant path prefix for the alternate CDN,
-    for example: https://mirror.example.cn/edx
-    :param original_video_url: The canonical source for this video, for example:
-    https://cdn.example.com/edx-course-videos/VIDEO101/001.mp4
+    :param cdn_base_url: The scheme, hostname, port and any relevant path prefix
+        for the alternate CDN, for example: https://mirror.example.cn/edx
+    :param original_video_url: The canonical source for this video,
+        for example: https://cdn.example.com/edx-course-videos/VIDEO101/001.mp4
     :return: The re-written URL
     """
 
