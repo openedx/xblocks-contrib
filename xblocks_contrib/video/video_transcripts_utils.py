@@ -1,24 +1,17 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/farhan/remove-unused-video-code/openedx/core/djangoapps/video_config/transcripts_utils.py
 """
-Utility functions for transcripts.
-++++++++++++++++++++++++++++++++++
+Utility functions for video block transcripts.
+++++++++++++++++++++++++++++++++++++++++++++++
 """
+
 
 import copy
-import html
 import logging
-import os
-from functools import wraps
 
-import simplejson as json
 from django.conf import settings
 from django.utils.translation import get_language_info
-from pysrt import SubRipFile, SubRipItem, SubRipTime
-from pysrt.srtexc import Error
 
 from xblocks_contrib.video.bumper_utils import get_bumper_settings
-from xblocks_contrib.video.exceptions import NotFoundError, TranscriptsGenerationException
+from xblocks_contrib.video.exceptions import TranscriptNotFoundError
 
 try:
     from edxval import api as edxval_api
@@ -31,9 +24,9 @@ log = logging.getLogger(__name__)
 NON_EXISTENT_TRANSCRIPT = 'non_existent_dummy_file_name'
 
 
-class Transcript:
+class TranscriptExtensions:
     """
-    Container for transcript methods.
+    Video block transcript extensions.
     """
     SRT = 'srt'
     TXT = 'txt'
@@ -134,7 +127,6 @@ class VideoTranscriptsMixin:
         # TODO: This causes a circular import when imported at the top-level.
         #       This import will be removed as part of the VideoBlock extraction.
         #       https://github.com/openedx/edx-platform/issues/36282
-        from xmodule.video_block.bumper_utils import get_bumper_settings
 
         if is_bumper:
             transcripts = copy.deepcopy(get_bumper_settings(self).get('transcripts', {}))
@@ -238,4 +230,4 @@ def get_endonym_or_label(language_code):
         return potential_generic_label
 
     log.error("A label was requested for language code `%s` but the code is completely unknown", language_code)
-    raise NotFoundError(f"Unknown language `{language_code}`")
+    raise TranscriptNotFoundError(f"Unknown language `{language_code}`")
