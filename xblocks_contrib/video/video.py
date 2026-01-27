@@ -1242,6 +1242,21 @@ class VideoBlock(
             return {"data": ""}, []
         return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
 
+    def get_explicitly_set_fields_by_scope(self, scope=Scope.content):
+        """
+        Get a dictionary of the fields for the given scope which are set explicitly on this xblock. (Including
+        any set to None.)
+        """
+        result = {}
+        for field in self.fields.values():
+            if field.scope == scope and field.is_set_on(self):
+                try:
+                    result[field.name] = field.read_json(self)
+                except TypeError as exception:
+                    exception_message = f"{exception}, Block-location:{self.location}, Field-name:{field.name}"
+                    raise TypeError(exception_message) from exception
+        return result
+
     @staticmethod
     def workbench_scenarios():
         """Create canned scenario for display in the workbench."""
