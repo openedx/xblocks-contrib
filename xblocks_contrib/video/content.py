@@ -1,8 +1,9 @@
-# NOTE: Original code has been copied from the following file: 
-# https://github.com/openedx/edx-platform/blob/farhan/extract-video-xblock/xmodule/contentstore/content.py#L28
+""" Video Block Static Content, class copied from StaticContent class in edx-platform/xmodule/contentstore/content.py """
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import AssetKey
+from opaque_keys.edx.locator import AssetLocator
 
-
-class StaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
+class VideoBlockStaticContent:  # lint-amnesty, pylint: disable=missing-class-docstring
     def __init__(self, loc, name, content_type, data, last_modified_at=None, thumbnail_location=None, import_path=None,
                  length=None, locked=False, content_digest=None):
         self.location = loc
