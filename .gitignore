@@ -71,3 +71,6 @@ requirements/private.txt
 *.mo
 *.pot
 *.po
+
+# Node modules
+node_modules/
