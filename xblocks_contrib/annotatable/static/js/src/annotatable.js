@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 function Annotatable(runtime, element) {
     var _debug = false;
 
@@ -117,11 +118,11 @@ function Annotatable(runtime, element) {
         };
     }
 
-    function onClickToggleAnnotations(e) {
+    function onClickToggleAnnotations() {
         toggleAnnotations();
     }
 
-    function onClickToggleInstructions(e) {
+    function onClickToggleInstructions() {
         toggleInstructions();
     }
 
@@ -133,7 +134,7 @@ function Annotatable(runtime, element) {
         returnFrom(e.currentTarget);
     }
 
-    function onShowTip(event, api) {
+    function onShowTip(event) {
         if (annotationsHidden) {
             event.preventDefault();
         }
@@ -230,7 +231,7 @@ function Annotatable(runtime, element) {
         toggleTips(hide);
     }
 
-    function toggleTips(hide) {
+    function toggleTips() {
         var visible = findVisibleTips();
         hideTips(visible);
     }
@@ -308,7 +309,7 @@ function Annotatable(runtime, element) {
     }
 
     function makeTipContent(el) {
-        return function(api) {
+        return function() {
             var text = $(el).data('comment-body');
             var comment = createComment(text);
             var problemId = getProblemId(el);
@@ -318,7 +319,7 @@ function Annotatable(runtime, element) {
     }
 
     function makeTipTitle(el) {
-        return function(api) {
+        return function() {
             var title = $(el).data('comment-title');
             return title || gettext('Commentary');
         };
