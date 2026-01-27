@@ -1,4 +1,5 @@
 /* Javascript for pdfXBlock. */
+// eslint-disable-next-line no-unused-vars
 function pdfXBlockInitView(runtime, element) {
     /* Weird behaviour :
      * In the LMS, element is the DOM container.

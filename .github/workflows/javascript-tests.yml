@@ -43,5 +43,8 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Run linting
+        run: npm run lint
+
       - name: Run tests
         run: npm run test:ci || echo "⚠️ Tests skipped — no workspaces available"

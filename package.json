@@ -3,7 +3,14 @@
   "workspaces": [
     "xblocks_contrib/*/static"
   ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "globals": "^17.2.0"
+  },
   "scripts": {
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "npm run test --workspaces",
     "test:ci": "npm run test:ci --workspaces"
   }

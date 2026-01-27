@@ -1,4 +1,5 @@
 /* Javascript for pdfXBlock. */
+// eslint-disable-next-line no-unused-vars
 function pdfXBlockInitEdit(runtime, element) {
     $(element).find('.action-cancel').bind('click', function () {
         runtime.notify('cancel', {});
