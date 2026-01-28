@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 function XMLEditingDescriptor(runtime, element) {
     var saveButtonSelector = '.save-button';
     var cancelButtonSelector = '.cancel-button';
@@ -57,10 +58,10 @@ function XMLEditingDescriptor(runtime, element) {
             url: handlerUrl,
             data: JSON.stringify(data),
             dataType: 'json',
-            success: function(response) {
+            success: function() {
                 runtime.notify('save', {state: 'end'});
             }
-        }).fail(function(jqXHR) {
+        }).fail(function() {
             var message = 'There was an issue saving the settings. Please try again.';
             runtime.notify('error', {title: 'Unable to save', message: message});
         });

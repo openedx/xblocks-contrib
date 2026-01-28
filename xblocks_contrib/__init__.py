@@ -4,9 +4,10 @@ from .annotatable import AnnotatableBlock
 from .discussion import DiscussionXBlock
 from .html import HtmlBlock
 from .lti import LTIBlock
+from .pdf import PDFBlock
 from .poll import PollBlock
 from .problem import ProblemBlock
 from .video import VideoBlock
 from .word_cloud import WordCloudBlock
 
-__version__ = "0.10.2"
+__version__ = "0.11.0"
