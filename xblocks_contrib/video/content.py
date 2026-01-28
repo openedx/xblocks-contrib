@@ -8,7 +8,10 @@ from opaque_keys.edx.keys import AssetKey
 from opaque_keys.edx.locator import AssetLocator
 
 
-class VideoBlockStaticContent:  # pylint: disable=missing-class-docstring
+class VideoBlockStaticContent:
+    """
+    Represents static content associated with a video block (such as video files or related assets).
+    """
     def __init__(  # pylint: disable=too-many-positional-arguments
         self, loc, name, content_type, data, last_modified_at=None,
         thumbnail_location=None, import_path=None, length=None, locked=False, content_digest=None
