@@ -62,7 +62,7 @@ def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
 
 
 @XBlock.needs("i18n")
-@XBlock.needs("discussion_config")
+@XBlock.needs("discussion_config_service")
 @XBlock.wants("user")
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
@@ -108,7 +108,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
         Returns discussion service.
         """
-        return self.runtime.service(self, 'discussion_config')
+        return self.runtime.service(self, 'discussion_config_service')
 
     @property
     def course_key(self):
