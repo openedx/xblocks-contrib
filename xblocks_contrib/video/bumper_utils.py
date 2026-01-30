@@ -1,5 +1,3 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/bumper_utils.py
 """
 Utils for video bumper
 """
