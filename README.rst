@@ -37,7 +37,7 @@ The possible XBlock statuses are:
 Additional XBlocks that belong here
 ***********************************
 
-Over time, more XBlocks may be moved here. An XBlock belongs here if and only if:
+Over time, more XBlocks may be moved here. An XBlock belongs here if and only if both of the following are true:
 
 1. **It needs to be part of the out-of-the-box Open edX experience, as agreed upon by the
    Product Working Group.** Otherwise, perhaps the block belongs in `xblocks-extra <https://github.com/openedx/xblocks-extra>`_,
