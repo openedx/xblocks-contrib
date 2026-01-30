@@ -139,7 +139,6 @@ class VideoBlock(
         }
     ]
 
-    mako_template = "widgets/tabs-aggregator.html"
     js_module_name = "TabsEditingDescriptor"
 
     uses_xmodule_styles_setup = True
