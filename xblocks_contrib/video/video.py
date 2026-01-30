@@ -31,7 +31,7 @@ from xblock.fields import ScopeIds, UserScope
 from xblock.utils.resources import ResourceLoader
 from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from xblocks_contrib.common.xml_utils import LegacyXmlMixin, is_pointer_tag, name_to_pathname
+from xblocks_contrib.common.xml_utils import EdxJSONEncoder, LegacyXmlMixin, is_pointer_tag, name_to_pathname
 from xblocks_contrib.video.ajax_handler_mixin import AjaxHandlerMixin
 from xblocks_contrib.video.bumper_utils import bumperize
 from xblocks_contrib.video.cache_utils import request_cached
@@ -104,7 +104,7 @@ EXPORT_IMPORT_STATIC_DIR = 'static'
 @XBlock.needs('i18n', 'user')
 class VideoBlock(
     VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
-    StudioEditableXBlockMixin, LegacyXmlMixin, XBlock,
+    LegacyXmlMixin, XBlock,
     AjaxHandlerMixin, StudioMetadataMixin,
     LicenseMixin):
     """
@@ -278,6 +278,21 @@ class VideoBlock(
             return self.youtube_deprecated
 
         return False
+
+    def studio_view(self, context):  # pylint: disable=unused-argument
+        """
+        Returns a fragment having ``data-metadata`` attribute containing 
+        ``editable_metadata_fields`` as JSON. The authoring MFE (frontend-app-authoring) 
+        reads this attribute from the block's HTML to power the video editor UI 
+        (e.g. transcript parsing via ``parseTranscripts``and related thunk actions).
+        See: https://github.com/openedx/frontend-app-authoring/blob/master/src/editors/data/redux/thunkActions/video.js#L163
+
+        This matches the contract of the built-in video block: 
+        edx-platform's ``mako_block.studio_view`` (xmodule/mako_block.py) uses
+        cms/templates/widgets/metadata-edit.html, which also serializes
+        ``editable_metadata_fields`` to JSON in a ``data-metadata`` attribute.
+        """
+        return Fragment(f'<div data-metadata="{json.dumps(self.editable_metadata_fields, cls=EdxJSONEncoder)}"></div>')
 
     def student_view(self, context=None):
         """
