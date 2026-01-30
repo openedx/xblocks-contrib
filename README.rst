@@ -2,8 +2,8 @@
 xblocks-contrib
 ===============
 
-This repository is the new home for XBlocks, a core component of the Open edX ecosystem.
-This project involves the extraction of XBlocks from the edx-platform.
+This repository is the new home for XBlocks which are part of the base openedx-platform
+installation.
 
 Project Overview
 =======================
@@ -33,6 +33,19 @@ The possible XBlock statuses are:
 * Ready to Use: You can try this on your site using the Waffle flag.
 * Done The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
 
+
+Additional XBlocks that belong here
+***********************************
+
+Over time, more XBlocks may be moved here. An XBlock belongs here if and only if both of the following are true:
+
+1. **It needs to be part of the out-of-the-box Open edX experience, as agreed upon by the
+   Product Working Group.** Otherwise, perhaps the block belongs in `xblocks-extra <https://github.com/openedx/xblocks-extra>`_,
+   or it belongs in a community repository outside of the openedx GitHub organization.
+
+2. **The maintainers of this repository have capacity to maintain the additional block.**
+   Otherwise, perhaps the block belongs in its own repository with a separate dedicated maintainer,
+   such as `ora2 <https://github.com/openedx/edx-ora2>`_.
 
 Developing a new XBlock
 =======================
