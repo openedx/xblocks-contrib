@@ -39,9 +39,6 @@ def test_stringify_again():
     xml = etree.fromstring(html)
     out = stringify_children(xml)
 
-    print("output:")
-    print(out)
-
     # Tracking strange content repeating bug
     # Should appear once
     assert out.count("But it is ") == 1

@@ -11,7 +11,6 @@ import requests
 from django.conf import settings
 from django.urls import reverse
 from opaque_keys.edx.keys import CourseKey
-from openedx.core.djangoapps.waffle_utils import CourseWaffleFlag
 from requests.auth import HTTPBasicAuth
 
 from xblocks_contrib.problem.capa.xqueue_submission import XQueueInterfaceSubmission
@@ -29,33 +28,43 @@ XQUEUE_TIMEOUT = 35  # seconds
 CONNECT_TIMEOUT = 3.05  # seconds
 READ_TIMEOUT = 10  # seconds
 
-# .. toggle_name: send_to_submission_course.enable
-# .. toggle_implementation: CourseWaffleFlag
-# .. toggle_description: Enables use of the submissions service instead of legacy xqueue for course problem submissions.
-# .. toggle_default: False
-# .. toggle_use_cases: opt_in
-# .. toggle_creation_date: 2024-04-03
-# .. toggle_expiration_date: 2025-08-12
-# .. toggle_will_remain_in_codebase: True
-# .. toggle_tickets: none
-# .. toggle_status: supported
-SEND_TO_SUBMISSION_COURSE_FLAG = CourseWaffleFlag("send_to_submission_course.enable", __name__)
+try:
+    from openedx.core.djangoapps.waffle_utils import CourseWaffleFlag
 
+    # .. toggle_name: send_to_submission_course.enable
+    # .. toggle_implementation: CourseWaffleFlag
+    # .. toggle_description: Enables use of the submissions service instead of legacy xqueue for course problem submissions.
+    # .. toggle_default: False
+    # .. toggle_use_cases: opt_in
+    # .. toggle_creation_date: 2024-04-03
+    # .. toggle_expiration_date: 2025-08-12
+    # .. toggle_will_remain_in_codebase: True
+    # .. toggle_tickets: none
+    # .. toggle_status: supported
+    SEND_TO_SUBMISSION_COURSE_FLAG = CourseWaffleFlag("send_to_submission_course.enable", __name__)
 
-def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
-    """
-    Determines whether edx-submissions should be used instead of legacy XQueue.
+    def use_edx_submissions_for_xqueue(course_key: CourseKey | None = None) -> bool:
+        """
+        Determines whether edx-submissions should be used instead of legacy XQueue.
 
-    This helper abstracts the toggle logic so that the rest of the codebase is not tied
-    to specific feature flag mechanics or rollout strategies.
+        This helper abstracts the toggle logic so that the rest of the codebase is not tied
+        to specific feature flag mechanics or rollout strategies.
 
-    Args:
-        course_key (CourseKey | None): Optional course key. If None, fallback to site-level toggle.
+        Args:
+            course_key (CourseKey | None): Optional course key. If None, fallback to site-level toggle.
 
-    Returns:
-        bool: True if edx-submissions should be used, False otherwise.
-    """
-    return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+        Returns:
+            bool: True if edx-submissions should be used, False otherwise.
+        """
+        return SEND_TO_SUBMISSION_COURSE_FLAG.is_enabled(course_key)
+
+except ImportError:
+
+    def use_edx_submissions_for_xqueue(course_key=None) -> bool:  # pylint: disable=unused-argument
+        """
+        Outside of edx-platform, always return False.
+        """
+        return False
 
 
 def make_hashkey(seed):

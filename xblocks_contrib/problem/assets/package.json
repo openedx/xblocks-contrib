@@ -1,0 +1,32 @@
+{
+  "name": "problem-xblock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CAPA Problem XBlock.",
+  "scripts": {
+    "build": "webpack --config=webpack.config.js",
+    "test": "karma start karma.conf.js"
+  },
+  "dependencies": {
+    "edx-ui-toolkit": "1.8.7",
+    "exports-loader": "^0.6",
+    "imports-loader": "^0.8",
+    "requirejs": "^2",
+    "jquery": "2.2.4",
+    "underscore": "^1"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "13.0.1",
+    "jasmine-core": "2.6.4",
+    "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
+    "karma": "^0.13",
+    "karma-coverage": "^2",
+    "karma-firefox-launcher": "^2",
+    "karma-jasmine": "^0.3",
+    "karma-requirejs": "^1",
+    "karma-sourcemap-loader": "^0.4",
+    "karma-spec-reporter": "0.0.20",
+    "string-replace-loader": "^3",
+    "webpack-cli": "^5"
+  }
+}
