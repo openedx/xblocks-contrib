@@ -30,14 +30,14 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
 
     def build_xml(self, **kwargs):  # pylint: disable=too-many-locals
         """Construct an XML string for a capa response
-        based on **kwargs.
+        based on ``**kwargs``.
 
-        **kwargs is a dictionary that will be passed
+        ``**kwargs`` is a dictionary that will be passed
         to create_response_element() and create_input_element().
         See the subclasses below for other keyword arguments
         you can specify.
 
-        For all response types, **kwargs can contain:
+        For all response types, ``**kwargs`` can contain:
 
         *question_text*: The text of the question to display,
             wrapped in <label> tags.
@@ -108,7 +108,7 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
     def textline_input_xml(**kwargs):
         """Create a <textline/> XML element
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *math_display*: If True, then includes a MathJax display of user input
 
@@ -135,7 +135,7 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
     def choicegroup_input_xml(**kwargs):
         """Create a <choicegroup> XML element
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *choice_type*: Can be "checkbox", "radio", or "multiple"
 
@@ -145,7 +145,7 @@ class ResponseXMLFactory(six.with_metaclass(ABCMeta, object)):
                             to be marked correct.
                             DEFAULT: [True]
 
-        *choice_names": List of strings identifying the choices.
+        *choice_names*: List of strings identifying the choices.
                         If specified, you must ensure that
                         len(choice_names) == len(choices)
 
@@ -199,7 +199,7 @@ class NumericalResponseXMLFactory(ResponseXMLFactory):
 
     def create_response_element(self, **kwargs):
         """Create a <numericalresponse> XML element.
-        Uses **kwarg keys:
+        Uses ``**kwarg`` keys:
 
         *answer*: The correct answer (e.g. "5")
 
@@ -271,11 +271,9 @@ class CustomResponseXMLFactory(ResponseXMLFactory):
 
     def create_response_element(self, **kwargs):
         """Create a <customresponse> XML element.
+        Uses ``**kwargs``:
 
-        Uses **kwargs:
-
-        *cfn*: the Python code to run.  Can be inline code,
-        or the name of a function defined in earlier <script> tags.
+        *cfn*: the Python code to run.  Can be inline code, or the name of a function defined in earlier <script> tags.
 
         Should have the form: cfn(expect, answer_given, student_answers)
         where expect is a value (see below),
@@ -375,7 +373,7 @@ class CodeResponseXMLFactory(ResponseXMLFactory):
         """
         Create a <coderesponse> XML element.
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *initial_display*: The code that initially appears in the textbox
                             [DEFAULT: "Enter code here"]
@@ -564,7 +562,7 @@ class ImageResponseXMLFactory(ResponseXMLFactory):
     def create_input_element(self, **kwargs):
         """Create the <imageinput> element.
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *src*: URL for the image file [DEFAULT: "/static/image.jpg"]
 
@@ -582,8 +580,7 @@ class ImageResponseXMLFactory(ResponseXMLFactory):
 
         *regions*: String representing the regions a user can select
 
-                    Take the form "[ [[x1,y1], [x2,y2], [x3,y3]],
-                                    [[x1,y1], [x2,y2], [x3,y3]] ]"
+                    Take the form "[ [[x1,y1], [x2,y2], [x3,y3]], [[x1,y1], [x2,y2], [x3,y3]] ]"
                     (Defines two regions, each with 3 points)
 
         REQUIRED: Either *rectangle* or *region* (or both)
@@ -661,10 +658,9 @@ class OptionResponseXMLFactory(ResponseXMLFactory):
     def create_input_element(self, **kwargs):
         """Create the <optioninput> element.
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
-        *options*: a list of possible options the user can choose from [REQUIRED]
-                    You must specify at least 2 options.
+        *options*: a list of possible options the user can choose from [REQUIRED] You must specify at least 2 options.
         *correct_option*: the correct choice from the list of options [REQUIRED]
         """
 
@@ -696,7 +692,7 @@ class StringResponseXMLFactory(ResponseXMLFactory):
     def create_response_element(self, **kwargs):  # pylint: disable=too-many-locals
         """Create a <stringresponse> XML element.
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *answer*: The correct answer (a string) [REQUIRED]
 
@@ -816,7 +812,7 @@ class SymbolicResponseXMLFactory(ResponseXMLFactory):
     def create_response_element(self, **kwargs):
         """Build the <symbolicresponse> XML element.
 
-        Uses **kwargs:
+        Uses ``**kwargs``:
 
         *expect*: The correct answer (a sympy string)
 

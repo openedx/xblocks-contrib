@@ -62,9 +62,12 @@ registry = TagRegistry()
 CorrectMap = correctmap.CorrectMap
 CORRECTMAP_PY = None
 
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
+
+# Make '_' a no-op so we can scrape strings. Using function instead of
 #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
+def _(text):
+    return text
+
 
 QUESTION_HINT_CORRECT_STYLE = "feedback-hint-correct"
 QUESTION_HINT_INCORRECT_STYLE = "feedback-hint-incorrect"
@@ -123,7 +126,7 @@ class StudentInputError(Exception):
 # Main base class for CAPA responsetypes
 
 
-class LoncapaResponse(six.with_metaclass(abc.ABCMeta)):  # pylint: disable=too-many-instance-attributes
+class LoncapaResponse(six.with_metaclass(abc.ABCMeta)):
     """
     Base class for CAPA responsetypes.  Each response type (ie a capa question,
     which is part of a capa problem) is represented as a subclass,
@@ -627,15 +630,14 @@ class LoncapaResponse(six.with_metaclass(abc.ABCMeta)):  # pylint: disable=too-m
 # -----------------------------------------------------------------------------
 @registry.register
 class ChoiceResponse(LoncapaResponse):
-    """
-    This response type is used when the student chooses from a discrete set of
+    """This response type is used when the student chooses from a discrete set of
     choices. Currently, to be marked correct, all "correct" choices must be
     supplied by the student, and no extraneous choices may be included.
 
     This response type allows for two inputtypes: radiogroups and checkbox
-    groups. radiogroups are used when the student should select a single answer,
+    groups. Radiogroups are used when the student should select a single answer,
     and checkbox groups are used when the student may supply 0+ answers.
-    Note: it is suggested to include a "None of the above" choice when no
+    Note: It is suggested to include a "None of the above" choice when no
     answer is correct for a checkboxgroup inputtype; this ensures that a student
     must actively mark something to get credit.
 
@@ -645,33 +647,32 @@ class ChoiceResponse(LoncapaResponse):
     TODO: Allow for marking choices as 'optional' and 'required', which would
     not penalize a student for including optional answers and would also allow
     for questions in which the student can supply one out of a set of correct
-    answers.This would also allow for survey-style questions in which all
+    answers. This would also allow for survey-style questions in which all
     answers are correct.
 
-    Example:
+    Example::
 
-    <choiceresponse>
-        <radiogroup>
-            <choice correct="false">
-                <text>This is a wrong answer.</text>
-            </choice>
-            <choice correct="true">
-                <text>This is the right answer.</text>
-            </choice>
-            <choice correct="false">
-                <text>This is another wrong answer.</text>
-            </choice>
-        </radiogroup>
-    </choiceresponse>
+        <choiceresponse>
+            <radiogroup>
+                <choice correct="false">
+                    <text>This is a wrong answer.</text>
+                </choice>
+                <choice correct="true">
+                    <text>This is the right answer.</text>
+                </choice>
+                <choice correct="false">
+                    <text>This is another wrong answer.</text>
+                </choice>
+            </radiogroup>
+        </choiceresponse>
 
-    In the above example, radiogroup can be replaced with checkboxgroup to allow
+    In the above example, `radiogroup` can be replaced with `checkboxgroup` to allow
     the student to select more than one choice.
 
     TODO: In order for the inputtypes to render properly, this response type
-    must run setup_response prior to the input type rendering. Specifically, the
+    must run `setup_response` prior to the input type rendering. Specifically, the
     choices must be given names. This behavior seems like a leaky abstraction,
     and it'd be nice to change this at some point.
-
     """
 
     human_name = _("Checkboxes")
@@ -866,15 +867,20 @@ class ChoiceResponse(LoncapaResponse):
 
     def get_extended_hints(self, student_answers, new_cmap):  # pylint: disable=too-many-locals
         """
-        Extract compound and extended hint information from the xml based on the student_answers.
-        The hint information goes into the msg= in new_cmap for display.
-        Each choice in the checkboxgroup can have 2 extended hints, matching the
-        case that the student has or has not selected that choice:
-          <checkboxgroup label="Select the best snack">
-             <choice correct="true">Donut
-               <choicehint selected="tRuE">A Hint!</choicehint>
-               <choicehint selected="false">Another hint!</choicehint>
-             </choice>
+        Extract compound and extended hint information from the XML
+        based on the student_answers.
+
+        The hint information goes into the `msg=` in `new_cmap` for display.
+
+        Each choice in the checkboxgroup can have two extended hints, matching the
+        case that the student has or has not selected that choice::
+
+            <checkboxgroup label="Select the best snack">
+                <choice correct="true">Donut
+                    <choicehint selected="tRuE">A Hint!</choicehint>
+                    <choicehint selected="false">Another hint!</choicehint>
+                </choice>
+            </checkboxgroup>
         """
         # Tricky: student_answers may be *empty* here. That is the representation that
         # no checkboxes were selected. For typical responsetypes, you look at
@@ -1014,8 +1020,7 @@ class MultipleChoiceResponse(LoncapaResponse):
 
         correct_choices is a list of the correct choices.
         partial_choices is a list of the partially-correct choices.
-        partial_values is a list of the scores that go with those
-          choices, defaulting to 0.5 if no value is specified.
+        partial_values is a list of the scores that go with those choices, defaulting to 0.5 if no value is specified.
         """
         # call secondary setup for MultipleChoice questions, to set name
         # attributes
@@ -1047,12 +1052,17 @@ class MultipleChoiceResponse(LoncapaResponse):
 
     def get_extended_hints(self, student_answers, new_cmap):
         """
-        Extract any hints in a <choicegroup> matching the student's answers
-        <choicegroup label="What is your favorite color?" type="MultipleChoice">
-          <choice correct="false">Red
-            <choicehint>No, Blue!</choicehint>
-          </choice>
-          ...
+        Extract any hints in a <choicegroup> matching the student's answers.
+
+        Example::
+
+            <choicegroup label="What is your favorite color?" type="MultipleChoice">
+              <choice correct="false">Red
+                <choicehint>No, Blue!</choicehint>
+              </choice>
+              ...
+            </choicegroup>
+
         Any hint text is installed in the new_cmap.
         """
         if self.answer_id in student_answers:
@@ -1487,8 +1497,8 @@ class OptionResponse(LoncapaResponse):
     def get_extended_hints(self, student_answers, new_cmap):
         """
         Extract optioninput extended hint, e.g.
-        <optioninput>
-          <option correct="True">Donut <optionhint>Of course</optionhint> </option>
+
+        <optioninput><option correct="True">Donut <optionhint>Of course</optionhint> </option>
         """
         answer_id = self.answer_ids[0]  # Note *not* self.answer_id
         if answer_id in student_answers:
@@ -1831,7 +1841,8 @@ class StringResponse(LoncapaResponse):
     Additional answers are added by `additional_answer` tag.
     If `regexp` is in `type` attribute, then answers and hints are treated as regular expressions.
 
-    Examples:
+    Examples::
+
         <stringresponse answer="Michigan">
             <textline size="20" />
         </stringresponse >
@@ -1912,14 +1923,16 @@ class StringResponse(LoncapaResponse):
         """
         Find and install extended hints in new_cmap depending on the student answers.
         StringResponse is probably the most complicated form we have.
-        The forms show below match in the order given, and the first matching one stops the matching.
-        <stringresponse answer="A" type="ci">
-          <correcthint>hint1</correcthint>                         <!-- hint for correct answer -->
-          <additional_answer answer="B">hint2</additional_answer>  <!-- additional_answer with its own hint -->
-          <stringequalhint answer="C">hint3</stringequalhint>      <!-- string matcher/hint for an incorrect answer -->
-          <regexphint answer="FG+">hint4</regexphint>              <!-- regex matcher/hint for an incorrect answer -->
-          <textline size="20"/>
-        </stringresponse>
+        The forms show below match in the order given, and the first matching one stops the matching.::
+
+            <stringresponse answer="A" type="ci">
+            <correcthint>hint1</correcthint>                         <!-- hint for correct answer -->
+            <additional_answer answer="B">hint2</additional_answer>  <!-- additional_answer with its own hint -->
+            <stringequalhint answer="C">hint3</stringequalhint>      <!-- string matcher/hint for an incorrect answer-->
+            <regexphint answer="FG+">hint4</regexphint>              <!-- regex matcher/hint for an incorrect answer -->
+            <textline size="20"/>
+            </stringresponse>
+
         The "ci" and "regexp" options are inherited from the parent stringresponse as appropriate.
         """
         if self.answer_id in student_answers:
@@ -3278,7 +3291,7 @@ class ImageResponse(LoncapaResponse):
 
     If there is only one region in the list, simpler notation can be used:
     regions="[[10,10], [30,30], [10, 30], [30, 10]]" (without explicitly
-        setting outer list)
+    setting outer list)
 
     Returns:
         True, if click is inside any region or rectangle. Otherwise False.
@@ -3367,6 +3380,7 @@ class ImageResponse(LoncapaResponse):
 
         Input:
             None
+
         Returns:
             tuple (dict, dict) -
                 rectangles (dict) - a map of inputs to the defined rectangle for that input
@@ -3385,9 +3399,9 @@ class ImageResponse(LoncapaResponse):
 
         Input:
             None
+
         Returns:
-            dict (str, (str, str)) - a map of inputs to a tuple of their rectangle
-                and their regions
+            dict (str, (str, str)) - a map of inputs to a tuple of their rectangle and their regions
         """
         answers = {}
         for ielt in self.ielements:
@@ -3551,12 +3565,11 @@ class ChoiceTextResponse(LoncapaResponse):
         `correct_inputs`: These are the numerical/string answers for required
         inputs.
         `answer_values`: This is a dict, keyed by the name of the binary choice
-            which contains the correct answers for the text inputs separated by
-            commas e.g. "1, 0.5"
+        which contains the correct answers for the text inputs separated by
+        commas e.g. "1, 0.5"
 
         `correct_choices` and `correct_inputs` are used for grading the problem
         and `answer_values` is used for displaying correct answers.
-
         """
         _ = self.capa_system.i18n.gettext
         context = self.context
@@ -3603,35 +3616,37 @@ class ChoiceTextResponse(LoncapaResponse):
         Initialize name attributes in <choice> and <numtolerance_input> tags
         for this response.
 
-        Example:
-        Assuming for simplicity that `self.answer_id` = '1_2_1'
+        Example
+        -------
+        Assuming for simplicity that `self.answer_id` = '1_2_1'.
 
-        Before the function is called `self.xml` =
-        <radiotextgroup>
-            <choice correct = "true">
-                The number
-                    <numtolerance_input answer="5"/>
-                Is the mean of the list.
-            </choice>
-            <choice correct = "false">
-                False demonstration choice
-            </choice>
-        </radiotextgroup>
+        Before the function is called `self.xml`::
 
-        After this is called the choices and numtolerance_inputs will have a name
-        attribute initialized and self.xml will be:
+            <radiotextgroup>
+                <choice correct="true">
+                    The number
+                        <numtolerance_input answer="5"/>
+                    Is the mean of the list.
+                </choice>
+                <choice correct="false">
+                    False demonstration choice
+                </choice>
+            </radiotextgroup>
 
-        <radiotextgroup>
-        <choice correct = "true" name ="1_2_1_choiceinput_0bc">
-            The number
-                <numtolerance_input name = "1_2_1_choiceinput0_numtolerance_input_0"
-                 answer="5"/>
-            Is the mean of the list.
-        </choice>
-        <choice correct = "false" name = "1_2_1_choiceinput_1bc>
-            False demonstration choice
-        </choice>
-        </radiotextgroup>
+        After this is called, the choices and numtolerance_inputs will have a
+        name attribute initialized and `self.xml` will be::
+
+            <radiotextgroup>
+                <choice correct="true" name="1_2_1_choiceinput_0bc">
+                    The number
+                        <numtolerance_input name="1_2_1_choiceinput0_numtolerance_input_0"
+                        answer="5"/>
+                    Is the mean of the list.
+                </choice>
+                <choice correct="false" name="1_2_1_choiceinput_1bc">
+                    False demonstration choice
+                </choice>
+            </radiotextgroup>
         """
 
         choices = self.xml.xpath("//*[@id=$id]//choice", id=self.xml.get("id"))

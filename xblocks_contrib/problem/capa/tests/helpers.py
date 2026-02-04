@@ -38,7 +38,7 @@ def tst_render_template(template, context):  # pylint: disable=unused-argument
     return f"<div>{saxutils.escape(repr(context))}</div>"
 
 
-class StubXQueueService:  # pylint: disable=too-few-public-methods
+class StubXQueueService:
     """
     Stubs out the XQueueService for Capa problem tests.
     """

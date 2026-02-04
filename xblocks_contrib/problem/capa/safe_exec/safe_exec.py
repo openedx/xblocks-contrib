@@ -106,8 +106,9 @@ def update_hash(hasher, obj):
         hasher.update(repr(obj).encode())
 
 
+# pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-positional-arguments,too-many-statements
 @function_trace("safe_exec")
-def safe_exec(  # pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-positional-arguments,too-many-statements
+def safe_exec(
     code,
     globals_dict,
     random_seed=None,
@@ -210,7 +211,7 @@ def safe_exec(  # pylint: disable=too-many-arguments,too-many-branches,too-many-
                     limit_overrides_context=limit_overrides_context,
                     slug=slug,
                 )
-        except BaseException as e:  # pylint: disable=broad-exception-caught
+        except BaseException as e:
             # Saving SafeExecException e in exception to be used later.
             exception = e
             emsg = str(e)
@@ -263,7 +264,7 @@ def safe_exec(  # pylint: disable=too-many-arguments,too-many-branches,too-many-
                     # SafeExecException wrapped around emsg (if present).
                     remote_emsg, _ = get_remote_exec(data)
                     remote_exception = None
-            except BaseException as e:  # pragma: no cover  # pylint: disable=broad-exception-caught
+            except BaseException as e:
                 # Swallow all exceptions and log it in monitoring so that dark launch doesn't cause issues during
                 # deploy.
                 remote_emsg = None
@@ -282,7 +283,7 @@ def safe_exec(  # pylint: disable=too-many-arguments,too-many-branches,too-many-
                     emsg_remote=remote_emsg,
                     unexpected_exc_remote=remote_exception,
                 )
-            except BaseException:  # pragma: no cover  # pylint: disable=broad-exception-caught
+            except BaseException:
                 log.exception("Error occurred while trying to report codejail darklaunch data.")
                 record_exception()
 
@@ -376,7 +377,7 @@ def emsg_normalizers():
     custom_setting = getattr(settings, "CODEJAIL_DARKLAUNCH_EMSG_NORMALIZERS", [])
     try:
         custom_normalizers = _compile_normalizers(custom_setting)
-    except BaseException:  # pylint: disable=broad-exception-caught
+    except BaseException:
         log.error("Could not load custom codejail darklaunch emsg normalizers")
         record_exception()
         return default_normalizers

@@ -6,7 +6,7 @@ import unittest
 from xblocks_contrib.problem.capa.safe_exec.lazymod import LazyModule
 
 
-class ModuleIsolation:  # pylint: disable=too-few-public-methods
+class ModuleIsolation:
     """
     Manage changes to sys.modules so that we can roll back imported modules.
 

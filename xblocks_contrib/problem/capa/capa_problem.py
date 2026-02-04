@@ -81,7 +81,7 @@ log = logging.getLogger(__name__)
 # main class for this module
 
 
-class LoncapaSystem:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
+class LoncapaSystem:
     """
     An encapsulation of resources needed from the outside.
 
@@ -127,7 +127,7 @@ class LoncapaSystem:  # pylint: disable=too-few-public-methods,too-many-instance
         self.matlab_api_key = matlab_api_key
 
 
-class LoncapaProblem:  # pylint: disable=too-many-public-methods,too-many-instance-attributes
+class LoncapaProblem:
     """
     Main class for capa Problems.
     """
@@ -239,7 +239,7 @@ class LoncapaProblem:  # pylint: disable=too-many-public-methods,too-many-instan
             # Run response late_transforms last (see MultipleChoiceResponse)
             # Sort the responses to be in *_1 *_2 ... order.
             responses = list(self.responders.values())
-            responses = sorted(responses, key=lambda resp: int(resp.id[resp.id.rindex("_") + 1 :]))
+            responses = sorted(responses, key=lambda resp: int(resp.id[resp.id.rindex("_") + 1:]))
             for response in responses:
                 if hasattr(response, "late_transforms"):
                     response.late_transforms(self)
@@ -251,21 +251,35 @@ class LoncapaProblem:  # pylint: disable=too-many-public-methods,too-many-instan
         """
         Adjust tree xml in-place for compatibility before creating
         a problem from it.
+
         The idea here is to provide a central point for XML translation,
         for example, supporting an old XML format. At present, there just two translations.
 
         1. <additional_answer> compatibility translation:
-        old:    <additional_answer>ANSWER</additional_answer>
-        convert to
-        new:    <additional_answer answer="ANSWER">OPTIONAL-HINT</addional_answer>
+
+           old::
+
+               <additional_answer>ANSWER</additional_answer>
+
+           convert to
+
+           new::
+
+               <additional_answer answer="ANSWER">OPTIONAL-HINT</addional_answer>
 
         2. <optioninput> compatibility translation:
-        optioninput works like this internally:
-            <optioninput options="('yellow','blue','green')" correct="blue" />
-        With extended hints there is a new <option> tag, like this
-            <option correct="True">blue <optionhint>sky color</optionhint> </option>
-        This translation takes in the new format and synthesizes the old option= attribute
-        so all downstream logic works unchanged with the new <option> tag format.
+
+           optioninput works like this internally::
+
+               <optioninput options="('yellow','blue','green')" correct="blue" />
+
+           With extended hints there is a new <option> tag, like this::
+
+               <option correct="True">blue <optionhint>sky color</optionhint></option>
+
+           This translation takes in the new format and synthesizes the old
+           ``option=`` attribute so all downstream logic works unchanged with
+           the new <option> tag format.
         """
 
         def is_optioninput_valid(optioninput):
@@ -362,8 +376,7 @@ class LoncapaProblem:  # pylint: disable=too-many-public-methods,too-many-instan
     def calculate_score(self, correct_map=None):
         """
         Compute score for this problem.  The score is the number of points awarded.
-        Returns a dictionary {'score': integer, from 0 to get_max_score(),
-                              'total': get_max_score()}.
+        Returns a dictionary {'score': integer, from 0 to get_max_score(), 'total': get_max_score()}.
 
         Takes an optional correctness map for use in the rescore workflow.
         """
@@ -957,7 +970,7 @@ class LoncapaProblem:  # pylint: disable=too-many-public-methods,too-many-instan
 
     def _extract_html(  # private
         self, problemtree
-    ):  # pylint: disable=too-many-statements,too-many-locals,too-many-branches,too-many-return-statements
+    ):  # pylint: disable=too-many-locals,too-many-branches,too-many-return-statements
         """
         Main (private) function which converts Problem XML tree to HTML.
         Calls itself recursively.

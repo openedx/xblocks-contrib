@@ -121,7 +121,7 @@ class Status:
         return hash(str(self))
 
 
-class Attribute:  # pylint: disable=too-few-public-methods
+class Attribute:
     """
     Allows specifying required and optional attributes for input types.
     """
@@ -178,7 +178,7 @@ class Attribute:  # pylint: disable=too-few-public-methods
         return val
 
 
-class InputTypeBase:  # pylint: disable=too-many-instance-attributes
+class InputTypeBase:
     """
     Abstract base class for input types.
     """
@@ -451,24 +451,24 @@ class OptionInput(InputTypeBase):
 @registry.register
 class ChoiceGroup(InputTypeBase):
     """
-    Radio button or checkbox inputs: multiple choice or true/false
+    Radio button or checkbox inputs: multiple choice or true/false.
 
-    TODO: allow order of choices to be randomized, following lon-capa spec.  Use
-    "location" attribute, ie random, top, bottom.
+    TODO: allow order of choices to be randomized, following lon-capa spec.
+    Use the "location" attribute, e.g., random, top, bottom.
 
-    Example:
+    Example::
 
-    <choicegroup>
-      <choice correct="false" name="foil1">
-        <text>This is foil One.</text>
-      </choice>
-      <choice correct="false" name="foil2">
-        <text>This is foil Two.</text>
-      </choice>
-      <choice correct="true" name="foil3">
-        <text>This is foil Three.</text>
-      </choice>
-    </choicegroup>
+        <choicegroup>
+        <choice correct="false" name="foil1">
+            <text>This is foil One.</text>
+        </choice>
+        <choice correct="false" name="foil2">
+            <text>This is foil Two.</text>
+        </choice>
+        <choice correct="true" name="foil3">
+            <text>This is foil Three.</text>
+        </choice>
+        </choicegroup>
     """
 
     template = "choicegroup.html"
@@ -500,9 +500,11 @@ class ChoiceGroup(InputTypeBase):
 
     @classmethod
     def get_attributes(cls):
-        # Make '_' a no-op so we can scrape strings. Using lambda instead of
+        # Make '_' a no-op so we can scrape strings. Using function instead of
         #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-        _ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
+        def _(text):
+            return text
+
         return [Attribute("show_correctness", "always"), Attribute("submitted_message", _("Answer received."))]
 
     def _extra_context(self):
@@ -570,7 +572,7 @@ class JSInput(InputTypeBase):
 
     This in turn means that the iframe cannot directly access the top-level
     window elements.
-      Example:
+    Example:
 
         <jsinput html_file="/static/test.html"
                  gradefn="grade"
@@ -828,10 +830,12 @@ class MatlabInput(CodeInput):
     """
     InputType for handling Matlab code input
 
-    Example:
-     <matlabinput rows="10" cols="80" tabsize="4">
-        Initial Text
-     </matlabinput>
+    Example::
+
+        <matlabinput rows="10" cols="80" tabsize="4">
+            Initial Text
+        </matlabinput>
+
     """
 
     template = "matlabinput.html"
@@ -896,7 +900,8 @@ class MatlabInput(CodeInput):
 
         Args:
             - queue_msg (str) - message returned from the queue. The message to be rendered
-            - queuekey (str) - a key passed to the queue. Will be matched up to verify that this is the response we're waiting for  # lint-amnesty, pylint: disable=line-too-long
+            - queuekey (str) - a key passed to the queue. Will be matched up to verify that
+                            this is the response we're waiting for
 
         Returns:
             nothing
@@ -1196,11 +1201,13 @@ class ChemicalEquationInput(InputTypeBase):
         Render an html preview of a chemical formula or equation.  get should
         contain a key 'formula' and value 'some formula string'.
 
-        Returns a json dictionary:
-        {
-           'preview' : 'the-preview-html' or ''
-           'error' : 'the-error' or ''
-        }
+        Returns a json dictionary::
+
+            {
+                'preview' : 'the-preview-html' or ''
+                'error' : 'the-error' or ''
+            }
+
         """
 
         _ = self.capa_system.i18n.gettext
@@ -1275,15 +1282,16 @@ class FormulaEquationInput(InputTypeBase):
 
     def preview_formcalc(self, get):
         """
-        Render an preview of a formula or equation. `get` should
+        Render a preview of a formula or equation. `get` should
         contain a key 'formula' with a math expression.
 
-        Returns a json dictionary:
-        {
-           'preview' : '<some latex>' or ''
-           'error' : 'the-error' or ''
-           'request_start' : <time sent with request>
-        }
+        Returns a JSON dictionary::
+
+            {
+               'preview' : '<some latex>' or '',
+               'error' : 'the-error' or '',
+               'request_start' : <time sent with request>
+            }
         """
         _ = self.capa_system.i18n.gettext
         result = {"preview": "", "error": ""}
@@ -1496,12 +1504,13 @@ class EditAGeneInput(InputTypeBase):
 
 
 @registry.register
-class AnnotationInput(InputTypeBase):  # pylint: disable=too-many-instance-attributes
-    """
-    Input type for annotations: students can enter some notes or other text
-    (currently ungraded), and then choose from a set of tags/optoins, which are graded.
+class AnnotationInput(InputTypeBase):
+    """Input type for annotations.
 
-    Example:
+    Students can enter some notes or other text (currently ungraded), and
+    then choose from a set of tags/options, which are graded.
+
+    Example::
 
         <annotationinput>
             <title>Annotation Exercise</title>
@@ -1509,7 +1518,8 @@ class AnnotationInput(InputTypeBase):  # pylint: disable=too-many-instance-attri
                 They are the ones who, at the public assembly, had put savage derangement [ate] into my thinking
                 [phrenes] |89 on that day when I myself deprived Achilles of his honorific portion [geras]
             </text>
-            <comment>Agamemnon says that ate or 'derangement' was the cause of his actions: why could Zeus say the same thing?</comment>  # lint-amnesty, pylint: disable=line-too-long
+            <comment>Agamemnon says that ate or 'derangement' was the cause of his actions:
+            why could Zeus say the same thing?</comment>
             <comment_prompt>Type a commentary below:</comment_prompt>
             <tag_prompt>Select one tag:</tag_prompt>
             <options>
@@ -1602,61 +1612,65 @@ class AnnotationInput(InputTypeBase):  # pylint: disable=too-many-instance-attri
 
 @registry.register
 class ChoiceTextGroup(InputTypeBase):
-    r"""
-    Groups of radiobutton/checkboxes with text inputs.
+    r"""Groups of radiobutton/checkboxes with text inputs.
 
-    Examples:
-    RadioButton problem
-    <problem>
-      <startouttext/>
-        A person rolls a standard die 100 times and records the results.
-        On the first roll they received a "1". Given this information
-        select the correct choice and fill in numbers to make it accurate.
-      <endouttext/>
-      <choicetextresponse>
-        <radiotextgroup>
-          <choice correct="false">The lowest number rolled was:
-            <decoy_input/> and the highest number rolled was:
-            <decoy_input/> .</choice>
-          <choice correct="true">The lowest number rolled was <numtolerance_input answer="1"/>
-            and there is not enough information to determine the highest number rolled.
-          </choice>
-          <choice correct="false">There is not enough information to determine the lowest
-          number rolled, and the highest number rolled was:
-          <decoy_input/> .
-          </choice>
-        </radiotextgroup>
-      </choicetextresponse>
-    </problem>
+    Examples
+    --------
+    **RadioButton Problem**::
 
-    CheckboxProblem:
-    <problem>
-      <startouttext/>
-        A person randomly selects 100 times, with replacement, from the list of numbers \(\sqrt{2}\), 2, 3, 4, 5, 6
-        and records the results. The first number they pick is \(\sqrt{2}\) Given this information
-        select the correct choices and fill in numbers to make them accurate.
-      <endouttext/>
-      <choicetextresponse>
-        <checkboxtextgroup>
-             <choice correct="true">
-                The lowest number selected was <numtolerance_input answer="1.4142" tolerance="0.01"/>
-             </choice>
-             <choice correct="false">
-                The highest number selected was <decoy_input/> .
-            </choice>
-            <choice correct="true">There is not enough information given to determine the highest number
-                which was selected.
-            </choice>
-            <choice correct="false">There is not enough information given to determine the lowest number
-                selected.
-            </choice>
-        </checkboxtextgroup>
-      </choicetextresponse>
-    </problem>
+        <problem>
+            <startouttext/>
+            A person rolls a standard die 100 times and records the results.
+            On the first roll they received a "1". Given this information
+            select the correct choice and fill in numbers to make it accurate.
+            <endouttext/>
+            <choicetextresponse>
+                <radiotextgroup>
+                    <choice correct="false">The lowest number rolled was:
+                        <decoy_input/> and the highest number rolled was:
+                        <decoy_input/> .
+                    </choice>
+                    <choice correct="true">The lowest number rolled was <numtolerance_input answer="1"/>
+                        and there is not enough information to determine the highest number rolled.
+                    </choice>
+                    <choice correct="false">There is not enough information to determine the lowest
+                        number rolled, and the highest number rolled was:
+                        <decoy_input/> .
+                    </choice>
+                </radiotextgroup>
+            </choicetextresponse>
+        </problem>
 
-    In the preceding examples the <decoy_input/> is used to generate a textinput html element
-    in the problem's display. Since it is inside of an incorrect choice, no answer given
-    for it will be correct, and thus specifying an answer for it is not needed.
+    **Checkbox Problem**::
+
+        <problem>
+            <startouttext/>
+            A person randomly selects 100 times, with replacement, from the list of numbers \(\sqrt{2}\), 2, 3, 4, 5, 6
+            and records the results. The first number they pick is \(\sqrt{2}\). Given this information
+            select the correct choices and fill in numbers to make them accurate.
+            <endouttext/>
+            <choicetextresponse>
+                <checkboxtextgroup>
+                    <choice correct="true">
+                        The lowest number selected was <numtolerance_input answer="1.4142" tolerance="0.01"/>
+                    </choice>
+                    <choice correct="false">
+                        The highest number selected was <decoy_input/> .
+                    </choice>
+                    <choice correct="true">There is not enough information given to determine the highest number
+                        which was selected.
+                    </choice>
+                    <choice correct="false">There is not enough information given to determine the lowest number
+                        selected.
+                    </choice>
+                </checkboxtextgroup>
+            </choicetextresponse>
+        </problem>
+
+    .. note::
+        In the preceding examples the <decoy_input/> is used to generate a textinput html element
+        in the problem's display. Since it is inside of an incorrect choice, no answer given
+        for it will be correct, and thus specifying an answer for it is not needed.
     """
 
     template = "choicetext.html"
@@ -1696,9 +1710,12 @@ class ChoiceTextGroup(InputTypeBase):
         """
         Returns a list of `Attribute` for this problem type
         """
-        # Make '_' a no-op so we can scrape strings. Using lambda instead of
+
+        # Make '_' a no-op so we can scrape strings. Using function instead of
         #  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-        _ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
+        def _(text):
+            return text
+
         return [
             Attribute("show_correctness", "always"),
             Attribute("submitted_message", _("Answer received.")),
@@ -1715,43 +1732,45 @@ class ChoiceTextGroup(InputTypeBase):
 
     @staticmethod
     def extract_choices(element, i18n):
-        """
-        Extracts choices from the xml for this problem type.
-        If we have xml that is as follows(choice names will have been assigned
-        by now)
-        <radiotextgroup>
-        <choice correct = "true" name ="1_2_1_choiceinput_0bc">
-            The number
-                <numtolerance_input name = "1_2_1_choiceinput0_numtolerance_input_0" answer="5"/>
-            Is the mean of the list.
-        </choice>
-        <choice correct = "false" name = "1_2_1_choiceinput_1bc>
-            False demonstration choice
-        </choice>
-        </radiotextgroup>
+        """Extracts choices from the xml for this problem type.
 
-        Choices are used for rendering the problem properly
-        The function will setup choices as follows:
-        choices =[
-            ("1_2_1_choiceinput_0bc",
-                [{'type': 'text', 'contents': "The number", 'tail_text': '',
-                  'value': ''
-                  },
-                  {'type': 'textinput',
-                   'contents': "1_2_1_choiceinput0_numtolerance_input_0",
-                   'tail_text': 'Is the mean of the list',
-                   'value': ''
-                   }
-                ]
-             ),
-            ("1_2_1_choiceinput_1bc",
-                [{'type': 'text', 'contents': "False demonstration choice",
-                 'tail_text': '',
-                  'value': ''
-                  }
-                ]
-            )
-        ]
+        If we have xml that is as follows(choice names will have been assigned
+        by now)::
+
+            <radiotextgroup>
+                <choice correct="true" name="1_2_1_choiceinput_0bc">
+                    The number
+                    <numtolerance_input name="1_2_1_choiceinput0_numtolerance_input_0" answer="5"/>
+                    Is the mean of the list.
+                </choice>
+                <choice correct="false" name="1_2_1_choiceinput_1bc">
+                    False demonstration choice
+                </choice>
+            </radiotextgroup>
+
+        Choices are used for rendering the problem properly. The function
+        will set up choices as follows::
+
+            choices = [
+                ("1_2_1_choiceinput_0bc",
+                    [{'type': 'text', 'contents': "The number", 'tail_text': '',
+                      'value': ''
+                     },
+                     {'type': 'textinput',
+                      'contents': "1_2_1_choiceinput0_numtolerance_input_0",
+                      'tail_text': 'Is the mean of the list',
+                      'value': ''
+                     }
+                    ]
+                ),
+                ("1_2_1_choiceinput_1bc",
+                    [{'type': 'text', 'contents': "False demonstration choice",
+                      'tail_text': '',
+                      'value': ''
+                     }
+                    ]
+                )
+            ]
         """
 
         _ = i18n.gettext
