@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from setuptools import find_packages, setup
+from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
 
@@ -148,6 +149,14 @@ def build_js():
         print(f"NPM build failed: {e}", file=sys.stderr)
 
 
+class NPMSdist(sdist):
+    def run(self):
+        # Run the NPM build first so files exist on disk
+        build_js()
+        # Then let sdist do its normal work (reading MANIFEST.in)
+        super().run()
+
+
 class NPMBuild(build_py):
     def run(self):
         build_js()
@@ -218,5 +227,6 @@ setup(
     cmdclass={
         "build_py": NPMBuild,
         "develop": NPMDevelop,
+        "sdist": NPMSdist,
     },
 )
