@@ -142,11 +142,21 @@ def package_data(pkg, sub_roots):
 
 
 def build_js():
+    # Check if npm exists before attempting build
     try:
-        subprocess.check_call(["npm", "install"])
-        subprocess.check_call(["npm", "run", "build"])
-    except Exception as e:
-        print(f"NPM build failed: {e}", file=sys.stderr)
+        subprocess.check_call(["npm", "--version"], stdout=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        raise RuntimeError(
+            "NPM is required to build xblocks-contrib frontend assets, but was not found. "
+            "Please install Node.js and NPM before installing this package."
+        )
+
+    # Run build commands. 
+    # Removing the try/except block here ensures that if these fail, 
+    # the entire pip install command returns a non-zero exit code.
+    print("Building xblocks-contrib frontend assets...")
+    subprocess.check_call(["npm", "install"])
+    subprocess.check_call(["npm", "run", "build"])
 
 
 class NPMSdist(sdist):
@@ -160,6 +170,11 @@ class NPMSdist(sdist):
 class NPMBuild(build_py):
     def run(self):
         build_js()
+        # Verify the build actually produced the folder
+        public_dir = os.path.join("xblocks_contrib", "problem", "public")
+        if not os.path.exists(public_dir):
+            raise RuntimeError(f"Build finished but {public_dir} was not created!")
+            
         new_data = package_data("xblocks_contrib", ["static", "public", "templates", "assets"])
         self.distribution.package_data = new_data
         self.package_data = new_data
