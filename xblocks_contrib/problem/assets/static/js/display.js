@@ -21,7 +21,7 @@
     };
 
   this.Problem = function () {
-    function Problem(element) {
+    function Problem(runtime, element) {
       var that = this;
       this.hint_button = function () {
         return Problem.prototype.hint_button.apply(that, arguments);

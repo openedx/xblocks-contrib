@@ -4,9 +4,13 @@ Package metadata for xblocks-contrib.
 """
 import os
 import re
+import subprocess
 import sys
 
 from setuptools import find_packages, setup
+from setuptools.command.build_py import build_py
+from setuptools.command.develop import develop
+from setuptools.command.sdist import sdist
 
 
 def get_version(*file_paths):
@@ -151,6 +155,42 @@ def package_data(pkg, sub_roots):
     return {pkg: data}
 
 
+def build_js():
+    try:
+        subprocess.check_call(["npm", "--version"], stdout=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        raise RuntimeError("NPM is required to build xblocks-contrib frontend assets.")
+
+    print("Building xblocks-contrib frontend assets...")
+    subprocess.check_call(["npm", "install"])
+    subprocess.check_call(["npm", "run", "build"])
+
+
+class NPMSdist(sdist):
+    def run(self):
+        build_js()
+        super().run()
+
+
+class NPMBuild(build_py):
+    def run(self):
+        build_js()
+        public_dir = os.path.join("xblocks_contrib", "problem", "public")
+        if not os.path.exists(public_dir):
+            raise RuntimeError(f"Build finished but {public_dir} was not created!")
+
+        new_data = package_data("xblocks_contrib", ["static", "public", "templates", "assets"])
+        self.distribution.package_data = new_data
+        self.package_data = new_data
+        super().run()
+
+
+class NPMDevelop(develop):
+    def run(self):
+        build_js()
+        super().run()
+
+
 VERSION = get_version("xblocks_contrib", "__init__.py")
 
 if sys.argv[-1] == "tag":
@@ -206,5 +246,10 @@ setup(
             "_word_cloud_extracted = xblocks_contrib:WordCloudBlock",
         ]
     },
-    package_data=package_data("xblocks_contrib", ["static", "public", "templates"]),
+    package_data=package_data("xblocks_contrib", ["static", "public", "templates", "assets"]),
+    cmdclass={
+        "build_py": NPMBuild,
+        "develop": NPMDevelop,
+        "sdist": NPMSdist,
+    },
 )
