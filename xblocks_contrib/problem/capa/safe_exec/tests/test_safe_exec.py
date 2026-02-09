@@ -109,7 +109,7 @@ class TestSafeOrNot(unittest.TestCase):
         are encouraged to run this test locally with CodeJail configured.
 
         See setup instructions:
-        * in-platform setup: https://github.com/openedx/edx-platform/blob/master/xmodule/capa/safe_exec/README.rst
+        * in-platform setup: https://github.com/openedx/xblocks-contrib/blob/main/xblocks_contrib/problem/capa/safe_exec/README.rst
         * remote setup (using Tutor): https://github.com/eduNEXT/tutor-contrib-codejail
         """
         # If in-platform codejail isn't configured...

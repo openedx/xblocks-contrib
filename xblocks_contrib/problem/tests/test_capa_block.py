@@ -1,6 +1,6 @@
 # pylint: disable=too-many-lines
 """
-Tests of the Capa XModule
+Tests of the Capa XBlock
 """
 
 import datetime
@@ -2096,7 +2096,7 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
     @ddt.data(RANDOMIZATION.ALWAYS, "true")
     def test_save_problem_submitted_with_randomize(self, rerandomize):
         """Verify saving fails when problem is submitted and rerandomization is enabled."""
-        # Capa XModule treats 'always' and 'true' equivalently
+        # Capa XBlock treats 'always' and 'true' equivalently
         block = CapaFactory.create(rerandomize=rerandomize, done=True)
 
         # Try to save

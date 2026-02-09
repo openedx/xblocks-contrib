@@ -1,5 +1,5 @@
 """
-Tests stringify functions used in xmodule html
+Tests stringify functions
 """
 
 from lxml import etree

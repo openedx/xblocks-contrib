@@ -170,7 +170,6 @@ def get_test_system(  # pylint: disable=too-many-arguments,too-many-positional-a
 ):
     """
     Construct a test system instance for the Problem XBlock.
-    Designed to be call-compatible with xmodule.tests.get_test_system.
     """
 
     if not user:

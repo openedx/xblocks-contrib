@@ -200,7 +200,7 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
     An XBlock representing a "problem".
 
     A problem contains zero or more respondable items, such as multiple choice,
-    numeric response, true/false, etc. See xmodule/capa/responsetypes.py
+    numeric response, true/false, etc. See xblocks_contrib/problem/capa/responsetypes.py
     for the full ensemble.
 
     The rendering logic of a problem is largely encapsulated within
@@ -424,7 +424,7 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
     @property
     def xblock_kvs(self):
         """
-        Retrieves the internal KeyValueStore for this XModule.
+        Retrieves the internal KeyValueStore for this XBlock.
 
         Should only be used by the persistence layer. Use with caution.
         """
