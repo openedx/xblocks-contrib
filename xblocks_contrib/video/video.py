@@ -301,7 +301,7 @@ class VideoBlock(
         fragment = Fragment(self.get_html(context=context))
         fragment.add_css(loader.load_unicode("static/css/video.css"))
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+            self.runtime.local_resource_url(self, "video/public/js/video-xblock.js")
         )
         fragment.initialize_js("Video")
         return fragment
@@ -325,7 +325,7 @@ class VideoBlock(
         fragment = Fragment(self.get_html(view=PUBLIC_VIEW, context=context))
         fragment.add_css(loader.load_unicode("static/css/video.css"))
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, "public/js/video-xblock.js")
+            self.runtime.local_resource_url(self, "video/public/js/video-xblock.js")
         )
         fragment.initialize_js("Video")
         return fragment
