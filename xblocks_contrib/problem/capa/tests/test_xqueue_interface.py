@@ -8,14 +8,12 @@ import pytest
 from django.conf import settings
 from django.test.utils import override_settings
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
-from openedx.core.djangolib.testing.utils import skip_unless_lms
 from xblock.fields import ScopeIds
 
 from xblocks_contrib.problem.capa.xqueue_interface import XQueueInterface, XQueueService
 
 
 @pytest.mark.django_db
-@skip_unless_lms
 class XQueueServiceTest(TestCase):
     """Test the XQueue service methods."""
 

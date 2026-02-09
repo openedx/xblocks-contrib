@@ -1,0 +1,186 @@
+/* eslint-env node */
+var path = require('path');
+var webpack = require('webpack');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+
+var defineHeader = /\(function ?\(((define|require|requirejs|\$)(, )?)+\) ?\{/;
+var defineCallFooter = /\}\)\.call\(this, ((define|require)( \|\| RequireJS\.(define|require))?(, )?)+?\);/;
+var defineDirectFooter = /\}\(((window\.)?(RequireJS\.)?(requirejs|define|require|jQuery)(, )?)+\)\);/;
+var defineFancyFooter = /\}\).call\(\s*this(\s|.)*define(\s|.)*\);/;
+var defineFooter = new RegExp('(' + defineCallFooter.source + ')|('
+                             + defineDirectFooter.source + ')|('
+                             + defineFancyFooter.source + ')', 'm');
+
+module.exports = {
+    context: __dirname,
+
+    entry: {
+        ProblemBlockDisplay: [
+            './static/js/xmodule.js',
+            './static/js/javascript_loader.js',
+            './static/js/display.js',
+            './static/js/collapsible.js',
+            './static/js/imageinput.js',
+            './static/js/schematic.js'
+        ]
+    },
+
+    output: {
+        filename: '[name].js',
+        path: path.resolve(__dirname, '../public/js'),
+        library: {
+            type: 'window'
+        }
+    },
+
+    externals: {
+        jquery: 'jQuery',
+        underscore: '_',
+        $: 'jQuery',
+        gettext: 'gettext'
+    },
+
+    resolve: {
+        extensions: ['.js', '.jsx', '.json'],
+        alias: {
+            'codemirror': path.resolve(__dirname, './static/js/vendor/codemirror-compressed.js'),
+            'edx-ui-toolkit': path.resolve(__dirname, '../../../node_modules/edx-ui-toolkit/src/')
+        }
+    },
+
+    plugins: [
+        new webpack.ProvidePlugin({
+            _: 'underscore',
+            $: 'jquery',
+            jQuery: 'jquery',
+            'window.jQuery': 'jquery',
+            CodeMirror: 'codemirror',
+            'edx.HtmlUtils': 'edx-ui-toolkit/js/utils/html-utils'
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: './static/css/ProblemBlockDisplay.css',
+                    to: path.resolve(__dirname, '../public/css')
+                }
+            ]
+        })
+    ],
+
+    module: {
+        noParse: [
+                /\/codemirror-compressed\.js/
+            ],
+        rules: [
+            {
+                test: /\/static\/js\//,
+                loader: 'string-replace-loader',
+                options: {
+                    multiple: [
+                        { search: defineHeader, replace: '' },
+                        { search: defineFooter, replace: '' },
+                        {
+                            search: /(\/\* RequireJS) \*\//g,
+                            replace(match, p1, offset, string) {
+                                return p1;
+                            }
+                        },
+                        {
+                            search: /\/\* Webpack/g,
+                            replace(match, p1, offset, string) {
+                                return match + ' */';
+                            }
+                        },
+                        {
+                            search: /text!(.*?\.underscore)/g,
+                            replace(match, p1, offset, string) {
+                                return p1;
+                            }
+                        },
+                        { search: /RequireJS.require/g, replace: 'require' }
+                    ]
+                }
+            },
+            {
+                test: /\.(js|jsx)$/,
+                exclude: [
+                    /node_modules/,
+                    /\/static\/js\//
+                ],
+                use: 'babel-loader'
+            },
+            {
+                test: /static\/js\/display.js/,
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /static\/js\/imageinput.js/,
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /static\/js\/schematic.js/,
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /static\/js\/collapsible.js/,
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /static\/js\/javascript_loader.js/,
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /static\/js\/xmodule.js/,
+                use: [
+                    {
+                        loader: 'exports-loader',
+                        options: 'window.XModule'
+                    },
+                    {
+                        loader: 'imports-loader',
+                        options: 'this=>window'
+                    }
+                ]
+            },
+            {
+                test: /codemirror/,
+                use: [
+                    {
+                        loader: 'exports-loader',
+                        options: 'window.CodeMirror'
+                    }
+                ]
+            }
+        ]
+    },
+    optimization: {
+        minimize: false
+    },
+    mode: 'development',
+    devtool: 'source-map'
+};
