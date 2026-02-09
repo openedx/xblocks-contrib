@@ -5,6 +5,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
+    "build:dev": "npm run build:dev --workspaces",
+    "test": "npm run test --workspaces",
+    "test:ci": "npm run test:ci --workspaces"
   }
 }
