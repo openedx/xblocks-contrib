@@ -8,7 +8,7 @@ in the public domain.
 import sys
 
 
-class LazyModule:  # pylint: disable=too-few-public-methods
+class LazyModule:
     """A lazy module proxy."""
 
     def __init__(self, modname):

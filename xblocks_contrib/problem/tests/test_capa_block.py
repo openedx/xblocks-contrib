@@ -30,11 +30,7 @@ from xblock.scorable import Score
 
 from xblocks_contrib.problem.capa import responsetypes
 from xblocks_contrib.problem.capa.correctmap import CorrectMap
-from xblocks_contrib.problem.capa.responsetypes import (
-    LoncapaProblemError,
-    ResponseError,
-    StudentInputError,
-)
+from xblocks_contrib.problem.capa.responsetypes import LoncapaProblemError, ResponseError, StudentInputError
 from xblocks_contrib.problem.capa.tests.test_util import UseUnsafeCodejail
 from xblocks_contrib.problem.capa.xqueue_interface import XQueueInterface
 from xblocks_contrib.problem.capa_block import ComplexEncoder, ProblemBlock
@@ -68,7 +64,7 @@ class XBlockUserState(namedtuple("_XBlockUserState", ["username", "block_key", "
     __slots__ = ()
 
     def __repr__(self):
-        return "{}{!r}".format(self.__class__.__name__, tuple(self))  # pylint: disable=consider-using-f-string
+        return "{}{!r}".format(self.__class__.__name__, tuple(self))
 
 
 class CapaFactory:
@@ -224,7 +220,7 @@ if submission[0] == '':
 
 
 @ddt.ddt
-class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-methods
+class ProblemBlockTest(unittest.TestCase):
     """Tests for various problem types in XBlocks."""
 
     def setUp(self):
@@ -794,10 +790,10 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
 
         # Expect that we get a dict with "input" stripped from key names
         # and that we get the same values back
-        for key in result:
+        for key, value in result.items():
             original_key = "input_" + key
             assert original_key in valid_get_dict, f"Output dict should have key {original_key}"
-            assert valid_get_dict[original_key] == result[key]
+            assert valid_get_dict[original_key] == value
 
         # Valid GET param dict with list keys
         # Each tuple represents a single parameter in the query string
@@ -2431,8 +2427,10 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
             </multiplechoiceresponse>
             <demandhint>
               <hint>
-                <img src="/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-clipart-high-quality-free-_1200-1386.jpeg"> </img>
-                You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.</hint>
+                <img src="/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-\
+                    clipart-high-quality-free-_1200-1386.jpeg"> </img>
+                You can add an optional hint like this. Problems that have a hint include a hint button,
+                and this text appears the first time learners select the button.</hint>
             </demandhint>
             </problem>"""
         render_template.return_value = "<div>Test Template HTML</div>"

@@ -218,7 +218,7 @@ class TestCodeJailDarkLaunch(unittest.TestCase):
                     limit_overrides_context="course-v1:org+course+run",
                     slug="hw1",
                 )
-            except BaseException as e:  # pylint: disable=broad-exception-caught
+            except BaseException as e:
                 safe_exec_e = e
             else:
                 safe_exec_e = None
@@ -310,7 +310,7 @@ class TestCodeJailDarkLaunch(unittest.TestCase):
 
         def local_exec(code, globals_dict, **kwargs):
             # Raise something other than a SafeExecException.
-            raise expected_error  # pylint: disable=broad-exception-raised
+            raise expected_error
 
         def remote_exec(data):  # pylint: disable=unused-argument
             return (None, None)

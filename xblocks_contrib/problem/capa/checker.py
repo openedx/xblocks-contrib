@@ -17,7 +17,7 @@ logging.basicConfig(format="%(levelname)s %(message)s")
 log = logging.getLogger("capa.checker")
 
 
-class DemoSystem:  # pylint: disable=too-few-public-methods
+class DemoSystem:
     """Render templates using Django's template engine."""
 
     def __init__(self):
@@ -114,12 +114,15 @@ def check_that_blanks_fail(problem):
 
 
 def check_that_suggested_answers_work(problem):
-    """Split this up so that we're only used for formula/numeric answers.
+    """
+    Split this up so that we're only used for formula/numeric answers.
 
     Examples of where this fails:
+
     * Displayed answers use units but acceptable ones do not.
       - L1e0.xml
       - Presents itself as UndefinedVariable (when it tries to pass to calc)
+
     * "a or d" is what's displayed, but only "a" or "d" is accepted, not the
       string "a or d".
       - L1-e00.xml

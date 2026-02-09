@@ -7,8 +7,11 @@ def stringify_children(node):
     """
     Return all contents of an xml tree, without the outside tags.
     e.g. if node is parse of
+
         "<html a="b" foo="bar">Hi <div>there <span>Bruce</span><b>!</b></div><html>"
+
     should return
+
         "Hi <div>there <span>Bruce</span><b>!</b></div>"
 
     fixed from

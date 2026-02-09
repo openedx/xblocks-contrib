@@ -33,7 +33,8 @@ try:
 
     # .. toggle_name: send_to_submission_course.enable
     # .. toggle_implementation: CourseWaffleFlag
-    # .. toggle_description: Enables use of the submissions service instead of legacy xqueue for course problem submissions.
+    # .. toggle_description: Enables use of the submissions service instead of legacy xqueue
+    # for course problem submissions.
     # .. toggle_default: False
     # .. toggle_use_cases: opt_in
     # .. toggle_creation_date: 2024-04-03
@@ -80,18 +81,21 @@ def make_xheader(lms_callback_url, lms_key, queue_name):
     """
     Generate header for delivery and reply of queue request.
 
-    Xqueue header is a JSON-serialized dict:
+    Xqueue header is a JSON-serialized dict::
+
         { 'lms_callback_url': url to which xqueue will return the request (string),
           'lms_key': secret key used by LMS to protect its state (string),
           'queue_name': designate a specific queue within xqueue server, e.g. 'MITx-6.00x' (string)
         }
+
     """
     return json.dumps({"lms_callback_url": lms_callback_url, "lms_key": lms_key, "queue_name": queue_name})
 
 
 def parse_xreply(xreply):
     """
-    Parse the reply from xqueue. Messages are JSON-serialized dict:
+    Parse the reply from xqueue. Messages are JSON-serialized dict::
+
         { 'return_code': 0 (success), 1 (fail)
           'content': Message from xqueue (string)
         }
@@ -108,7 +112,7 @@ def parse_xreply(xreply):
     return (return_code, content)
 
 
-class XQueueInterface:  # pylint: disable=too-few-public-methods
+class XQueueInterface:
     """Initializes the XQueue interface."""
 
     def __init__(
@@ -195,7 +199,7 @@ class XQueueInterface:  # pylint: disable=too-few-public-methods
 
         course_key = self.block.scope_ids.usage_id.context_key
         header_info = json.loads(header)
-        queue_key = header_info["lms_key"]  # pylint: disable=unused-variable
+        queue_key = header_info["lms_key"]
 
         if use_edx_submissions_for_xqueue(course_key):
             submission = self.submission.send_to_submission(  # pylint: disable=unused-variable

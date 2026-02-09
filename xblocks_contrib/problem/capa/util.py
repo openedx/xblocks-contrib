@@ -49,11 +49,14 @@ def compare_with_tolerance(student_complex, instructor_complex, tolerance=DEFAUL
      Default tolerance is relative, as the acceptable difference between two
      floats depends on the magnitude of the floats.
      (http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/)
-     Examples:
+
+     Examples::
+
         In [183]: 0.000016 - 1.6*10**-5
         Out[183]: -3.3881317890172014e-21
         In [212]: 1.9e24 - 1.9*10**24
         Out[212]: 268435456.0
+
     """
     if isinstance(tolerance, str):
         if tolerance == DEFAULT_TOLERANCE:
