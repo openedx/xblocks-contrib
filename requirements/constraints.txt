@@ -10,3 +10,9 @@
 
 # Common constraints for edx repos
 -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+
+# Date: 2026-02-10
+# setuptools >=80.9.0 has breaking tests. More details
+# https://github.com/openedx/openedx-platform/pull/37991
+# we will unpin setuptools once the issue is resolved and the tests are passing.
+setuptools<=80.9.0
