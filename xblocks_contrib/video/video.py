@@ -294,6 +294,22 @@ class VideoBlock(
         """
         return Fragment(f'<div data-metadata="{json.dumps(self.editable_metadata_fields, cls=EdxJSONEncoder)}"></div>')
 
+    @staticmethod
+    def _video_js_resource_path():
+        """
+        Returns the URL for the local resource.
+
+        Note: when running with the full Django pipeline, the file will be accessed
+        as a static asset which will use a CDN in production.
+
+        For more details, see platform's xblock_local_resource_url() define in:
+        https://github.com/openedx/openedx-platform/blob/farhan/enable-video-block-4/openedx/core/lib/xblock_utils/__init__.py
+        """
+        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
+            return "video/public/js/video-xblock.js"
+        else:
+            return "public/js/video-xblock.js"
+
     def student_view(self, context=None):
         """
         Return the student view.
@@ -301,7 +317,7 @@ class VideoBlock(
         fragment = Fragment(self.get_html(context=context))
         fragment.add_css(loader.load_unicode("static/css/video.css"))
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, "video/public/js/video-xblock.js")
+            self.runtime.local_resource_url(self, self._video_js_resource_path())
         )
         fragment.initialize_js("Video")
         return fragment
@@ -325,7 +341,7 @@ class VideoBlock(
         fragment = Fragment(self.get_html(view=PUBLIC_VIEW, context=context))
         fragment.add_css(loader.load_unicode("static/css/video.css"))
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, "video/public/js/video-xblock.js")
+            self.runtime.local_resource_url(self, self._video_js_resource_path())
         )
         fragment.initialize_js("Video")
         return fragment
