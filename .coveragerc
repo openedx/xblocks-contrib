@@ -1,3 +1,5 @@
 [run]
 branch = True
-source = xblocks_contrib
+source =
+    xblocks_contrib
+    xblock_pdf

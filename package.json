@@ -1,7 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "xblocks_contrib/*/static"
+    "xblocks_contrib/*/static",
+    "xblock_pdf/*/static"
   ],
   "scripts": {
     "test": "npm run test --workspaces",
