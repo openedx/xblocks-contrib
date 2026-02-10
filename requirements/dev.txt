@@ -48,18 +48,26 @@ cachetools==7.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
+    #   edxval
     #   tox
 certifi==2026.1.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   requests
+cffi==2.0.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   cryptography
+    #   pynacl
 chardet==5.2.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   binaryornot
     #   diff-cover
+    #   pysrt
     #   tox
 charset-normalizer==3.4.4
     # via
@@ -74,6 +82,7 @@ click==8.3.1
     #   click-log
     #   code-annotations
     #   cookiecutter
+    #   edx-django-utils
     #   edx-lint
     #   pip-tools
 click-log==0.4.0
@@ -85,6 +94,7 @@ code-annotations==2.3.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-lint
+    #   edx-toggles
 colorama==0.4.6
     # via
     #   -r requirements/quality.txt
@@ -100,6 +110,11 @@ coverage[toml]==7.13.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   pytest-cov
+cryptography==46.0.4
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   pyjwt
 ddt==1.7.2
     # via
     #   -r requirements/quality.txt
@@ -121,8 +136,19 @@ django==5.2.11
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   django-appconf
+    #   django-crum
+    #   django-model-utils
     #   django-statici18n
+    #   django-storages
+    #   django-waffle
+    #   djangorestframework
+    #   drf-jwt
+    #   edx-django-release-util
+    #   edx-django-utils
+    #   edx-drf-extensions
     #   edx-i18n-tools
+    #   edx-toggles
+    #   edxval
     #   openedx-django-pyfs
     #   xblock-sdk
 django-appconf==1.2.0
@@ -130,15 +156,65 @@ django-appconf==1.2.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   django-statici18n
+django-crum==0.7.9
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-django-utils
+    #   edx-toggles
+django-model-utils==5.0.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
 django-statici18n==2.6.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
+django-storages==1.14.6
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
+django-waffle==5.0.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-django-utils
+    #   edx-drf-extensions
+    #   edx-toggles
+djangorestframework==3.16.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   drf-jwt
+    #   edx-drf-extensions
 dnspython==2.8.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   pymongo
+drf-jwt==1.19.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-drf-extensions
+edx-django-release-util==1.5.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
+edx-django-utils==8.0.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-drf-extensions
+    #   edx-toggles
+edx-drf-extensions==10.6.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
 edx-i18n-tools==1.9.0
     # via
     #   -r requirements/dev.in
@@ -147,6 +223,16 @@ edx-i18n-tools==1.9.0
 edx-lint==5.6.0
     # via -r requirements/quality.txt
 edx-opaque-keys==3.0.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-drf-extensions
+edx-toggles==5.4.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
+edxval==3.2.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -201,6 +287,7 @@ lxml[html-clean]==6.0.2
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-i18n-tools
+    #   edxval
     #   lxml-html-clean
     #   xblock
     #   xblock-sdk
@@ -262,6 +349,11 @@ path==16.16.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-i18n-tools
+pillow==12.1.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
 pip-tools==7.5.2
     # via -r requirements/pip-tools.txt
 platformdirs==4.5.1
@@ -284,8 +376,18 @@ polib==1.2.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-i18n-tools
+psutil==7.2.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-django-utils
 pycodestyle==2.14.0
     # via -r requirements/quality.txt
+pycparser==3.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.txt
 pygments==2.19.2
@@ -295,6 +397,12 @@ pygments==2.19.2
     #   diff-cover
     #   pytest
     #   rich
+pyjwt[crypto]==2.11.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   drf-jwt
+    #   edx-drf-extensions
 pylint==4.0.4
     # via
     #   -r requirements/quality.txt
@@ -320,6 +428,11 @@ pymongo==4.16.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-opaque-keys
+pynacl==1.6.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-django-utils
 pypng==0.20220715.0
     # via
     #   -r requirements/quality.txt
@@ -335,6 +448,11 @@ pyproject-hooks==1.2.0
     #   -r requirements/pip-tools.txt
     #   build
     #   pip-tools
+pysrt==1.1.2
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edxval
 pytest==9.0.2
     # via
     #   -r requirements/quality.txt
@@ -373,6 +491,7 @@ pyyaml==6.0.3
     #   -r requirements/test.txt
     #   code-annotations
     #   cookiecutter
+    #   edx-django-release-util
     #   edx-i18n-tools
     #   xblock
 requests==2.32.5
@@ -380,6 +499,7 @@ requests==2.32.5
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
+    #   edx-drf-extensions
     #   xblock-sdk
 rich==14.3.2
     # via
@@ -391,6 +511,11 @@ s3transfer==0.16.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   boto3
+semantic-version==2.10.0
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
+    #   edx-drf-extensions
 simplejson==3.20.2
     # via
     #   -r requirements/quality.txt
@@ -401,6 +526,7 @@ six==1.17.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
+    #   edx-django-release-util
     #   edx-lint
     #   fs
     #   fs-s3fs
@@ -419,6 +545,7 @@ stevedore==5.6.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   code-annotations
+    #   edx-django-utils
     #   edx-opaque-keys
 text-unidecode==1.3
     # via
@@ -470,6 +597,10 @@ wheel==0.46.3
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
+wrapt==2.1.1
+    # via
+    #   -r requirements/quality.txt
+    #   -r requirements/test.txt
 xblock==5.3.0
     # via
     #   -r requirements/quality.txt
