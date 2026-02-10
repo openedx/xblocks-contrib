@@ -14,18 +14,17 @@ the course, section, subsection, unit, etc.
 
 
 import datetime
-import json
 import shutil
 import unittest
 from tempfile import mkdtemp
-from uuid import uuid4
 from unittest.mock import ANY, MagicMock, Mock, patch
+from uuid import uuid4
 
+from django.test.utils import override_settings
 import pytest
 import ddt
 from django.conf import settings
 from django.test import TestCase
-from django.test.utils import override_settings
 from fs.osfs import OSFS
 from lxml import etree
 from opaque_keys.edx.keys import CourseKey
@@ -33,14 +32,18 @@ from opaque_keys.edx.locator import CourseLocator
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 
-from xmodule.tests import get_test_descriptor_system
-from xmodule.validation import StudioValidationMessage
-from xmodule.video_block import EXPORT_IMPORT_STATIC_DIR, VideoBlock, create_youtube_string
-from openedx.core.djangoapps.video_config.transcripts_utils import save_to_store
+from xblocks_contrib.video.tests.test_utils import (
+    VALIDATION_MESSAGE_WARNING,
+    AsideTestType,
+    DummyRuntime,
+)
+from xblocks_contrib.video.video import (
+    EXPORT_IMPORT_STATIC_DIR,
+    VideoBlock,
+    create_youtube_string,
+)
 from xblock.core import XBlockAside
-from xmodule.modulestore.tests.test_asides import AsideTestType
 
-from .test_import import DummyModuleStoreRuntime
 
 SRT_FILEDATA = '''
 0
@@ -82,15 +85,6 @@ ALL_LANGUAGES = (
     ["ur", "Urdu"]
 )
 
-if settings.USE_EXTRACTED_VIDEO_BLOCK:
-    get_available_transcript_languages_path = (
-        'xblocks_contrib.video.video_transcripts_utils.get_available_transcript_languages'
-    )
-else:
-    get_available_transcript_languages_path = (
-        'openedx.core.djangoapps.video_config.transcripts_utils.get_available_transcript_languages'
-    )
-
 
 def instantiate_block(**field_data):
     """
@@ -98,7 +92,7 @@ def instantiate_block(**field_data):
     """
     if field_data.get('data', None):
         field_data = VideoBlock.parse_video_xml(field_data['data'])
-    system = get_test_descriptor_system()
+    system = DummyRuntime()
     course_key = CourseLocator('org', 'course', 'run')
     usage_key = course_key.make_usage_key('video', 'SampleProblem')
     return system.construct_xblock_from_class(
@@ -108,7 +102,7 @@ def instantiate_block(**field_data):
     )
 
 
-# Because of the way xmodule.video_block.video_block imports edxval.api, we
+# Because of the way xblocks_contrib.video.video imports edxval.api, we
 # must mock the entire module, which requires making mock exception classes.
 
 class _MockValVideoNotFoundError(Exception):
@@ -292,7 +286,7 @@ class VideoBlockImportTestCase(TestCase):
         })
 
     def test_parse_xml(self):
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '''
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,0.75:izygArpw-Qo,1.25:1EeWXzPdhSA,1.5:rABDYkeK0x8"
@@ -328,12 +322,12 @@ class VideoBlockImportTestCase(TestCase):
         })
 
     @XBlockAside.register_temp_plugin(AsideTestType, "test_aside")
-    @patch('xmodule.video_block.video_block.VideoBlock.load_file')
-    @patch(f'{VideoBlock.__module__}.is_pointer_tag')
+    @patch('xblocks_contrib.video.video.VideoBlock.load_file')
+    @patch('xblocks_contrib.video.video.is_pointer_tag')
     @ddt.data(True, False)
     def test_parse_xml_with_asides(self, video_xml_has_aside, mock_is_pointer_tag, mock_load_file):
         """Test that `parse_xml` parses asides from the video xml"""
-        runtime = DummyModuleStoreRuntime(load_error_blocks=True)
+        runtime = DummyRuntime(load_error_blocks=True)
         if video_xml_has_aside:
             xml_data = '''
                 <video url_name="a16643fa63234fef8f6ebbc1902e2253">
@@ -367,7 +361,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Test that if handout link is course_asset then it will contain targeted course_id in handout link.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         course_id = CourseKey.from_string(course_id_string)
         xml_data = '''
             <video display_name="Test Video"
@@ -410,7 +404,7 @@ class VideoBlockImportTestCase(TestCase):
         Ensure that attributes have the right values if they aren't
         explicitly set in XML.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '''
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,1.25:1EeWXzPdhSA"
@@ -441,7 +435,7 @@ class VideoBlockImportTestCase(TestCase):
         Ensure that attributes have the right values if they aren't
         explicitly set in XML.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '''
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,1.25:1EeWXzPdhSA"
@@ -472,7 +466,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Make sure settings are correct if none are explicitly set in XML.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '<video></video>'
         xml_object = etree.fromstring(xml_data)
         output = VideoBlock.parse_xml(xml_object, module_system, None)
@@ -498,7 +492,7 @@ class VideoBlockImportTestCase(TestCase):
         Make sure we can handle the double-quoted string format (which was used for exporting for
         a few weeks).
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '''
             <video display_name="&quot;display_name&quot;"
                 html5_sources="[&quot;source_1&quot;, &quot;source_2&quot;]"
@@ -533,7 +527,7 @@ class VideoBlockImportTestCase(TestCase):
         })
 
     def test_parse_xml_double_quote_concatenated_youtube(self):
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = '''
             <video display_name="Test Video"
                    youtube="1.0:&quot;p2Q6BrNhdh8&quot;,1.25:&quot;1EeWXzPdhSA&quot;">
@@ -561,7 +555,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Test backwards compatibility with VideoBlock's XML format.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = """
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,0.75:izygArpw-Qo,1.25:1EeWXzPdhSA,1.5:rABDYkeK0x8"
@@ -593,7 +587,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Ensure that Video is able to read VideoBlock's model data.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = """
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,0.75:izygArpw-Qo,1.25:1EeWXzPdhSA,1.5:rABDYkeK0x8"
@@ -624,7 +618,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Ensure that Video is able to read VideoBlock's model data.
         """
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
         xml_data = """
             <video display_name="Test Video"
                    youtube="1.0:p2Q6BrNhdh8,0.75:izygArpw-Qo,1.25:1EeWXzPdhSA,1.5:rABDYkeK0x8"
@@ -651,7 +645,7 @@ class VideoBlockImportTestCase(TestCase):
             'data': ''
         })
 
-    @patch(f'{VideoBlock.__module__}.edxval_api')
+    @patch('xblocks_contrib.video.video.edxval_api')
     def test_import_val_data(self, mock_val_api):
         """
         Test that `parse_xml` works method works as expected.
@@ -669,7 +663,7 @@ class VideoBlockImportTestCase(TestCase):
 
         edx_video_id = 'test_edx_video_id'
         mock_val_api.import_from_xml = Mock(wraps=mock_val_import)
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
 
         # Create static directory in import file system and place transcript files inside it.
         module_system.resources_fs.makedirs(EXPORT_IMPORT_STATIC_DIR, recreate=True)
@@ -696,11 +690,11 @@ class VideoBlockImportTestCase(TestCase):
             course_id='test_course_id'
         )
 
-    @patch(f'{VideoBlock.__module__}.edxval_api')
+    @patch('xblocks_contrib.video.video.edxval_api')
     def test_import_val_data_invalid(self, mock_val_api):
         mock_val_api.ValCannotCreateError = _MockValCannotCreateError
         mock_val_api.import_from_xml = Mock(side_effect=mock_val_api.ValCannotCreateError)
-        module_system = DummyModuleStoreRuntime(load_error_blocks=True)
+        module_system = DummyRuntime(load_error_blocks=True)
 
         # Negative duration is invalid
         xml_data = """
@@ -724,7 +718,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         self.file_system = OSFS(self.temp_dir)
         self.addCleanup(shutil.rmtree, self.temp_dir)
 
-    @patch(f'{VideoBlock.__module__}.edxval_api')
+    @patch('xblocks_contrib.video.video.edxval_api')
     def test_export_to_xml(self, mock_val_api):
         """
         Test that we write the correct XML on export.
@@ -824,7 +818,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch(f'{VideoBlock.__module__}.edxval_api')
+    @patch('xblocks_contrib.video.video.edxval_api')
     def test_export_to_xml_val_error(self, mock_val_api):
         # Export should succeed without VAL data if video does not exist
         mock_val_api.ValVideoNotFoundError = _MockValVideoNotFoundError
@@ -837,7 +831,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch('xmodule.video_block.video_block.edxval_api', None)
+    @patch('xblocks_contrib.video.video.edxval_api', None)
     def test_export_to_xml_empty_end_time(self):
         """
         Test that we write the correct XML on export.
@@ -866,7 +860,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch('xmodule.video_block.video_block.edxval_api', None)
+    @patch('xblocks_contrib.video.video.edxval_api', None)
     def test_export_to_xml_empty_parameters(self):
         """
         Test XML export with defaults.
@@ -876,7 +870,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = '<video youtube="1.00:3_yD_cEKoCk" url_name="SampleProblem"/>\n'
         assert expected == etree.tostring(xml, pretty_print=True).decode('utf-8')
 
-    @patch('xmodule.video_block.video_block.edxval_api', None)
+    @patch('xblocks_contrib.video.video.edxval_api', None)
     def test_export_to_xml_with_transcripts_as_none(self):
         """
         Test XML export with transcripts being overridden to None.
@@ -886,7 +880,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = b'<video youtube="1.00:3_yD_cEKoCk" url_name="SampleProblem"/>\n'
         assert expected == etree.tostring(xml, pretty_print=True)
 
-    @patch('xmodule.video_block.video_block.edxval_api', None)
+    @patch('xblocks_contrib.video.video.edxval_api', None)
     def test_export_to_xml_invalid_characters_in_attributes(self):
         """
         Test XML export will *not* raise TypeError by lxml library if contains illegal characters.
@@ -896,7 +890,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         xml = self.block.definition_to_xml(self.file_system)
         assert xml.get('display_name') == 'DisplayName'
 
-    @patch('xmodule.video_block.video_block.edxval_api', None)
+    @patch('xblocks_contrib.video.video.edxval_api', None)
     def test_export_to_xml_unicode_characters(self):
         """
         Test XML export handles the unicode characters.
@@ -954,14 +948,13 @@ class VideoBlockStudentViewDataTestCase(unittest.TestCase):
         assert student_view_data == expected_student_view_data
 
     @patch(
-        'openedx.core.djangoapps.video_config.services.VideoConfigService.is_hls_playback_enabled',
+        'xblocks_contrib.video.video.VideoBlock.is_hls_playback_enabled',
         Mock(return_value=True)
     )
-    @patch(get_available_transcript_languages_path, Mock(return_value=['es']))
+    @patch('xblocks_contrib.video.video_transcripts_utils.get_available_transcript_languages', Mock(return_value=['es']))
     @patch('edxval.api.get_video_info_for_course_and_profiles', Mock(return_value={}))
-    @patch('openedx.core.djangoapps.video_config.transcripts_utils.get_video_transcript_content')
     @patch('edxval.api.get_video_info')
-    def test_student_view_data_with_hls_flag(self, mock_get_video_info, mock_get_video_transcript_content):
+    def test_student_view_data_with_hls_flag(self, mock_get_video_info):
         mock_get_video_info.return_value = {
             'url': '/edxval/video/example',
             'edx_video_id': 'example_id',
@@ -975,15 +968,6 @@ class VideoBlockStudentViewDataTestCase(unittest.TestCase):
                     'profile': 'hls'
                 }
             ]
-        }
-
-        mock_get_video_transcript_content.return_value = {
-            'content': json.dumps({
-                "start": [10],
-                "end": [100],
-                "text": ["Hi, welcome to Edx."],
-            }),
-            'file_name': 'edx.sjson'
         }
 
         block = instantiate_block(edx_video_id='example_id', only_on_web=False)
@@ -1079,57 +1063,18 @@ class VideoBlockIndexingTestCase(unittest.TestCase):
               <transcript language="hr" src="subs_croatian1.srt" />
             </video>
         '''
-
+        _TRANSCRIPT_TEXT_BY_LANG = {
+            'ge': 'sprechen sie deutsch? Ja, ich spreche Deutsch',
+            'hr': 'Dobar dan! Kako ste danas?',
+        }
         block = instantiate_block(data=xml_data_transcripts)
-        save_to_store(SRT_FILEDATA, "subs_grmtran1.srt", 'text/srt', block.location)
-        save_to_store(CRO_SRT_FILEDATA, "subs_croatian1.srt", 'text/srt', block.location)
+        video_config_service = block.runtime.service(block, 'video_config')
+        # Mock the get_transcript method of the video_config service to return the transcript text for the given language.
+        video_config_service.get_transcript = lambda block, lang=None, output_format=None: (_TRANSCRIPT_TEXT_BY_LANG.get(lang, ''),)
         assert block.index_dictionary() ==\
                {'content': {'display_name': 'Test Video',
                             'transcript_ge': 'sprechen sie deutsch? Ja, ich spreche Deutsch',
                             'transcript_hr': 'Dobar dan! Kako ste danas?'}, 'content_type': 'Video'}
-
-    def test_video_with_multiple_transcripts_translation_retrieval(self):
-        """
-        Test translation retrieval of a video block with
-        multiple transcripts uploaded by a user.
-        """
-        xml_data_transcripts = '''
-            <video display_name="Test Video"
-                   youtube="1.0:p2Q6BrNhdh8,0.75:izygArpw-Qo,1.25:1EeWXzPdhSA,1.5:rABDYkeK0x8"
-                   show_captions="false"
-                   download_track="false"
-                   start_time="00:00:01"
-                   download_video="false"
-                   end_time="00:01:00">
-              <source src="http://www.example.com/source.mp4"/>
-              <track src="http://www.example.com/track"/>
-              <handout src="http://www.example.com/handout"/>
-              <transcript language="ge" src="subs_grmtran1.srt" />
-              <transcript language="hr" src="subs_croatian1.srt" />
-            </video>
-        '''
-
-        block = instantiate_block(data=xml_data_transcripts)
-        video_config_service = block.runtime.service(block, 'video_config')
-        translations = video_config_service.available_translations(block, block.get_transcripts_info())
-        assert sorted(translations) == sorted(['hr', 'ge'])
-
-    def test_video_with_no_transcripts_translation_retrieval(self):
-        """
-        Test translation retrieval of a video block with
-        no transcripts uploaded by a user- ie, that retrieval
-        does not throw an exception.
-        """
-        block = instantiate_block(data=None)
-        video_config_service = block.runtime.service(block, 'video_config')
-        translations_with_fallback = video_config_service.available_translations(block, block.get_transcripts_info())
-        assert translations_with_fallback == ['en']
-
-        with patch.dict(settings.FEATURES, FALLBACK_TO_ENGLISH_TRANSCRIPTS=False):
-            # Some organizations don't have English transcripts for all videos
-            # This feature makes it configurable
-            translations_no_fallback = video_config_service.available_translations(block, block.get_transcripts_info())
-            assert translations_no_fallback == []
 
     @override_settings(ALL_LANGUAGES=ALL_LANGUAGES)
     def test_video_with_language_do_not_have_transcripts_translation(self):
@@ -1171,7 +1116,7 @@ class VideoBlockIndexingTestCase(unittest.TestCase):
         assert not validation.empty
         # Validation contains some warning/message
         assert validation.summary
-        assert StudioValidationMessage.WARNING == validation.summary.type
+        assert VALIDATION_MESSAGE_WARNING == validation.summary.type
         assert expected_msg in validation.summary.text.replace('Urdu, Esperanto', 'Esperanto, Urdu')
 
     @ddt.data(
