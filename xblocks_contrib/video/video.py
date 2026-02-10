@@ -303,7 +303,7 @@ class VideoBlock(
         as a static asset which will use a CDN in production.
 
         For more details, see platform's xblock_local_resource_url() define in:
-        https://github.com/openedx/openedx-platform/blob/farhan/enable-video-block-4/openedx/core/lib/xblock_utils/__init__.py
+        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
         """
         if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
             return "video/public/js/video-xblock.js"
