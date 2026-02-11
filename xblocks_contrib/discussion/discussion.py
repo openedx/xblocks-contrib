@@ -137,6 +137,22 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         else:
             return 'public/js/discussion_bundle.js'
 
+    @staticmethod
+    def _discussion_js_resource_path():
+        """
+        Returns the URL for the local resource.
+
+        Note: when running with the full Django pipeline, the file will be accessed
+        as a static asset which will use a CDN in production.
+
+        For more details, see platform's xblock_local_resource_url() define in:
+        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
+        """
+        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
+            return 'discussion/public/js/discussion_bundle.js'
+        else:
+            return 'public/js/discussion_bundle.js'
+
     @property
     def django_user(self):
         """
