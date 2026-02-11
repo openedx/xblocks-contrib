@@ -205,7 +205,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
 
     @property
     def url_name(self):
-        return self.location.block_id
+        return self.scope_ids.usage_id.block_id
 
     @property
     def xblock_kvs(self):
@@ -324,7 +324,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
             "module": self,
             "editable_metadata_fields": self.editable_metadata_fields,  # pylint: disable=no-member
             "data": self.data,
-            "base_asset_url": self.get_base_url_path_for_course_assets(self.location.course_key),
+            "base_asset_url": self.get_base_url_path_for_course_assets(self.scope_ids.usage_id.course_key),
             "enable_latex_compiler": self.use_latex_compiler,
             "editor": self.editor,
         }
@@ -545,8 +545,8 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
         """
 
         # Write html to file, return an empty tag
-        pathname = name_to_pathname(self.url_name)
-        filepath = "{category}/{pathname}.html".format(category=self.category, pathname=pathname)
+        pathname = name_to_pathname(self.scope_ids.usage_id.block_id)
+        filepath = "{category}/{pathname}.html".format(category=self.scope_ids.block_type, pathname=pathname)
 
         resource_fs.makedirs(os.path.dirname(filepath), recreate=True)
         with resource_fs.open(filepath, "wb") as filestream:
