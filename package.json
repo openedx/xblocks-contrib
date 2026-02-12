@@ -1,9 +1,11 @@
 {
   "private": true,
   "workspaces": [
-    "xblocks_contrib/*/static"
+    "xblocks_contrib/*/*"
   ],
   "scripts": {
+    "build": "npm run build --workspaces",
+    "build:dev": "npm run build:dev --workspaces",
     "test": "npm run test --workspaces",
     "test:ci": "npm run test:ci --workspaces"
   }

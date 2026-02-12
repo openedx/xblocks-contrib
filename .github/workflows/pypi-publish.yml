@@ -9,22 +9,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
 
-    - name: Install dependencies
-      run: pip install -r requirements/pip.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
 
-    - name: Build package
-      run: python setup.py sdist bdist_wheel
+      - name: Build JavaScript bundles
+        run: |
+          npm install
+          npm run build
 
-    - name: Publish to PyPi
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
+      - name: Install dependencies
+        run: pip install -r requirements/pip.txt
+
+      - name: Build package
+        run: python setup.py sdist bdist_wheel
+
+      - name: Publish to PyPi
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
