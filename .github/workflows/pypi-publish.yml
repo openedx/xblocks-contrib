@@ -24,7 +24,7 @@ jobs:
 
       - name: Build JavaScript bundles
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Install dependencies
