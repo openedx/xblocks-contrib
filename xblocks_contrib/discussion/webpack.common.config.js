@@ -1,0 +1,74 @@
+const path = require('path');
+
+const discussionRoot = __dirname;
+const staticJs = path.join(discussionRoot, 'static', 'js');
+
+const config = {
+  context: discussionRoot,
+  entry: './static/js/discussion_main.js',
+  output: {
+    path: path.join(__dirname, 'public', 'js'),
+    filename: 'discussion_bundle.js',
+  },
+  resolve: {
+    modules: [staticJs, 'node_modules'],
+  },
+  module: {
+    rules: [
+      {
+        test: /Markdown\.Converter\.js$/,
+        use: [
+          {
+            loader: 'append-prepend-loader',
+            options: {
+              append: '\n;window.Markdown=exports;',
+            },
+          },
+        ],
+      },
+      {
+        test: /Markdown\.Sanitizer\.js$/,
+        use: [
+          {
+            loader: 'append-prepend-loader',
+            options: {
+              append: '\n;window.Markdown.getSanitizingConverter=exports.getSanitizingConverter;',
+            },
+          },
+        ],
+      },
+      // Legacy IIFE code expects this===window; imports-loader wrapper (edx-platform pattern)
+      // Exclude discussion_main.js (has top-level import/export).
+      {
+        test: /\.js$/,
+        include: [
+          path.join(staticJs, 'common'),
+          path.join(staticJs, 'vendor'),
+          path.join(staticJs, 'mathjax_accessible.js'),
+          path.join(staticJs, 'mathjax_delay_renderer.js'),
+          path.join(staticJs, 'customwmd.js'),
+        ],
+        exclude: [path.join(staticJs, 'discussion_main.js')],
+        use: [
+          {
+            loader: 'imports-loader',
+            options: { wrapper: 'window' },
+          },
+        ],
+      },
+      {
+        test: /split\.js$/,
+        use: [
+          {
+            loader: 'append-prepend-loader',
+            options: {
+              append: '\n;window._split=_split;',
+            },
+          },
+        ],
+      },
+    ],
+  },
+};
+
+module.exports = config
