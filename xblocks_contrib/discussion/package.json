@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.prod.config.js",
+    "build-dev": "webpack --config webpack.dev.config.js"
+  },
+  "devDependencies": {
+    "append-prepend-loader": "^1.0.0",
+    "imports-loader": "^5.0.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
