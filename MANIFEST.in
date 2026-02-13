@@ -3,4 +3,16 @@ include LICENSE.txt
 include README.rst
 include requirements/base.in
 include requirements/constraints.txt
-recursive-include xblocks_contrib *.html *.png *.gif *.js *.css *.jpg *.jpeg *.svg
+recursive-include xblocks_contrib *.html *.yaml *.png *.gif *.jpg *.jpeg *.svg
+recursive-include xblocks_contrib/*/public *.js *.css
+recursive-include xblocks_contrib/*/static *.js *.css
+
+# --- EXCLUSIONS ---
+prune xblocks_contrib/*/assets
+prune xblocks_contrib/*/node_modules
+prune */tests
+prune */spec
+global-exclude webpack*.config.js
+global-exclude karma*.js
+global-exclude package*.json
+global-exclude .gitignore
