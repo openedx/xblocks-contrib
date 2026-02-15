@@ -9,6 +9,7 @@ __pycache__
 *.so
 
 # Packages
+node_modules/
 *.egg
 *.egg-info
 /dist
