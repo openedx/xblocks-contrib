@@ -29,9 +29,15 @@ from xblock.completable import XBlockCompletionMode
 from xblock.core import Scope, XBlock
 from xblock.fields import ScopeIds, UserScope
 from xblock.utils.resources import ResourceLoader
-from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
-from xblocks_contrib.common.xml_utils import EdxJSONEncoder, LegacyXmlMixin, is_pointer_tag, name_to_pathname
+from xblocks_contrib.common.utils import get_static_resource_path
+from xblocks_contrib.common.xml_utils import (
+    EdxJSONEncoder,
+    LegacyXmlMixin,
+    deserialize_field,
+    is_pointer_tag,
+    name_to_pathname,
+)
 from xblocks_contrib.video.ajax_handler_mixin import AjaxHandlerMixin
 from xblocks_contrib.video.bumper_utils import bumperize
 from xblocks_contrib.video.cache_utils import request_cached
@@ -51,7 +57,6 @@ from xblocks_contrib.video.video_transcripts_utils import (
 )
 from xblocks_contrib.video.video_utils import (
     create_youtube_string,
-    deserialize_field,
     format_xml_exception_message,
     get_poster,
     rewrite_video_url,
@@ -294,30 +299,22 @@ class VideoBlock(
         """
         return Fragment(f'<div data-metadata="{json.dumps(self.editable_metadata_fields, cls=EdxJSONEncoder)}"></div>')
 
-    @staticmethod
-    def _video_js_resource_path():
-        """
-        Returns the URL for the local resource.
-
-        Note: when running with the full Django pipeline, the file will be accessed
-        as a static asset which will use a CDN in production.
-
-        For more details, see platform's xblock_local_resource_url() define in:
-        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
-        """
-        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
-            return "video/public/js/video-xblock.js"
-        else:
-            return "public/js/video-xblock.js"
-
     def student_view(self, context=None):
         """
         Return the student view.
         """
         fragment = Fragment(self.get_html(context=context))
-        fragment.add_css(loader.load_unicode("static/css/video.css"))
+        fragment.add_css_url(
+            self.runtime.local_resource_url(
+                self,
+                get_static_resource_path("video/public/css/video.css", "public/css/video.css")
+            )
+        )
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, self._video_js_resource_path())
+            self.runtime.local_resource_url(
+                self,
+                get_static_resource_path("video/public/js/video-xblock.js", "public/js/video-xblock.js")
+            )
         )
         fragment.initialize_js("Video")
         return fragment
@@ -339,9 +336,17 @@ class VideoBlock(
             return self.student_view(context)
 
         fragment = Fragment(self.get_html(view=PUBLIC_VIEW, context=context))
-        fragment.add_css(loader.load_unicode("static/css/video.css"))
+        fragment.add_css_url(
+            self.runtime.local_resource_url(
+                self,
+                get_static_resource_path("video/public/css/video.css", "public/css/video.css")
+            )
+        )
         fragment.add_javascript_url(
-            self.runtime.local_resource_url(self, self._video_js_resource_path())
+            self.runtime.local_resource_url(
+                self,
+                get_static_resource_path("video/public/js/video-xblock.js", "public/js/video-xblock.js")
+            )
         )
         fragment.initialize_js("Video")
         return fragment
