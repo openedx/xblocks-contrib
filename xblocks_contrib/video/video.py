@@ -123,7 +123,6 @@ class VideoBlock(
             <source src=".../mit-3091x/M-3091X-FA12-L21-3_100.ogv"/>
         </video>
     """
-    # resources_dir = 'public'
     is_extracted = True
     has_custom_completion = True
     completion_mode = XBlockCompletionMode.COMPLETABLE

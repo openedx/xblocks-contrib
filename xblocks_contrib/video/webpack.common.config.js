@@ -1,11 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
-const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 const config = {
     entry: {
-        'video-xblock': path.resolve(process.cwd(), 'static/js/src/10_main.js'),
+        'video-xblock': path.resolve(__dirname, 'static/js/src/10_main.js'),
     },
     output: {
         path: path.resolve(__dirname, 'public/js'),
