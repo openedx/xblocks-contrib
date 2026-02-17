@@ -3,7 +3,7 @@ include LICENSE.txt
 include README.rst
 include requirements/base.in
 include requirements/constraints.txt
-recursive-include xblocks_contrib *.html *.yaml *.png *.gif *.jpg *.jpeg *.svg
+recursive-include xblocks_contrib *.html *.png *.gif *.jpg *.jpeg *.svg
 recursive-include xblocks_contrib/*/public *.js *.css
 recursive-include xblocks_contrib/*/static *.js *.css
 
