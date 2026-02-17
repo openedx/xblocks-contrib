@@ -22,11 +22,6 @@ jobs:
         with:
           node-version: 24
 
-      - name: Build JavaScript bundles
-        run: |
-          npm ci
-          npm run build
-
       - name: Install dependencies
         run: pip install -r requirements/pip.txt
 

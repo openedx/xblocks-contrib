@@ -160,7 +160,7 @@ JS_BUILD_DONE = False
 
 
 def build_js(dist=None):
-    """Run npm install & build once. Updates package_data if run."""
+    """Run npm ci & build once. Updates package_data if run."""
     global JS_BUILD_DONE
     if JS_BUILD_DONE:
         return
@@ -174,7 +174,7 @@ def build_js(dist=None):
 
     try:
         print("Building JS assets...")
-        subprocess.check_call(["npm", "install"])
+        subprocess.check_call(["npm", "ci"])
         subprocess.check_call(["npm", "run", "build"])
         # Refresh package data to include new assets
         if dist:
