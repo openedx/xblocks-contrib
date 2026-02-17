@@ -16,67 +16,59 @@ arrow==1.4.0
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-asgiref==3.11.1
+asgiref==3.10.0
     # via
     #   -r requirements/test.txt
     #   django
-babel==2.18.0
+babel==2.17.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.14.3
+beautifulsoup4==4.14.2
     # via pydata-sphinx-theme
 binaryornot==0.4.4
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.42.45
+boto3==1.40.50
     # via
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.42.45
+botocore==1.40.50
     # via
     #   -r requirements/test.txt
     #   boto3
     #   s3transfer
-build==1.4.0
+build==1.3.0
     # via -r requirements/doc.in
-cachetools==7.0.0
+cachetools==6.2.1
     # via
     #   -r requirements/test.txt
-    #   edxval
     #   tox
-certifi==2026.1.4
+certifi==2025.10.5
     # via
     #   -r requirements/test.txt
     #   requests
 cffi==2.0.0
-    # via
-    #   -r requirements/test.txt
-    #   cryptography
-    #   pynacl
+    # via cryptography
 chardet==5.2.0
     # via
     #   -r requirements/test.txt
     #   binaryornot
-    #   pysrt
     #   tox
 charset-normalizer==3.4.4
     # via
     #   -r requirements/test.txt
     #   requests
-click==8.3.1
+click==8.3.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
     #   cookiecutter
-    #   edx-django-utils
 code-annotations==2.3.0
-    # via
-    #   -r requirements/test.txt
-    #   edx-toggles
+    # via -r requirements/test.txt
 colorama==0.4.6
     # via
     #   -r requirements/test.txt
@@ -85,70 +77,33 @@ cookiecutter==2.6.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
-coverage[toml]==7.13.4
+coverage[toml]==7.11.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.4
-    # via
-    #   -r requirements/test.txt
-    #   pyjwt
+cryptography==46.0.3
+    # via secretstorage
 ddt==1.7.2
     # via -r requirements/test.txt
 distlib==0.4.0
     # via
     #   -r requirements/test.txt
     #   virtualenv
-django==5.2.11
+django==4.2.25
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-appconf
-    #   django-crum
-    #   django-model-utils
     #   django-statici18n
-    #   django-storages
-    #   django-waffle
-    #   djangorestframework
-    #   drf-jwt
-    #   edx-django-release-util
-    #   edx-django-utils
-    #   edx-drf-extensions
     #   edx-i18n-tools
-    #   edx-toggles
-    #   edxval
     #   openedx-django-pyfs
     #   xblock-sdk
-django-appconf==1.2.0
+django-appconf==1.1.0
     # via
     #   -r requirements/test.txt
     #   django-statici18n
-django-crum==0.7.9
-    # via
-    #   -r requirements/test.txt
-    #   edx-django-utils
-    #   edx-toggles
-django-model-utils==5.0.0
-    # via
-    #   -r requirements/test.txt
-    #   edxval
 django-statici18n==2.6.0
     # via -r requirements/test.txt
-django-storages==1.14.6
-    # via
-    #   -r requirements/test.txt
-    #   edxval
-django-waffle==5.0.0
-    # via
-    #   -r requirements/test.txt
-    #   edx-django-utils
-    #   edx-drf-extensions
-    #   edx-toggles
-djangorestframework==3.16.1
-    # via
-    #   -r requirements/test.txt
-    #   drf-jwt
-    #   edx-drf-extensions
 dnspython==2.8.0
     # via
     #   -r requirements/test.txt
@@ -162,36 +117,11 @@ docutils==0.21.2
     #   readme-renderer
     #   restructuredtext-lint
     #   sphinx
-drf-jwt==1.19.2
-    # via
-    #   -r requirements/test.txt
-    #   edx-drf-extensions
-edx-django-release-util==1.5.0
-    # via
-    #   -r requirements/test.txt
-    #   edxval
-edx-django-utils==8.0.1
-    # via
-    #   -r requirements/test.txt
-    #   edx-drf-extensions
-    #   edx-toggles
-edx-drf-extensions==10.6.0
-    # via
-    #   -r requirements/test.txt
-    #   edxval
 edx-i18n-tools==1.9.0
     # via -r requirements/test.txt
 edx-opaque-keys==3.0.0
-    # via
-    #   -r requirements/test.txt
-    #   edx-drf-extensions
-edx-toggles==5.4.1
-    # via
-    #   -r requirements/test.txt
-    #   edxval
-edxval==3.2.0
     # via -r requirements/test.txt
-filelock==3.20.3
+filelock==3.20.0
     # via
     #   -r requirements/test.txt
     #   tox
@@ -207,7 +137,7 @@ fs-s3fs==1.1.1
     #   -r requirements/test.txt
     #   openedx-django-pyfs
     #   xblock-sdk
-id==1.6.1
+id==1.5.0
     # via twine
 idna==3.11
     # via
@@ -215,7 +145,7 @@ idna==3.11
     #   requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==8.7.1
+importlib-metadata==8.7.0
     # via keyring
 iniconfig==2.3.0
     # via
@@ -223,28 +153,31 @@ iniconfig==2.3.0
     #   pytest
 jaraco-classes==3.4.0
     # via keyring
-jaraco-context==6.1.0
+jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.4.0
+jaraco-functools==4.3.0
     # via keyring
+jeepney==0.9.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.6
     # via
     #   -r requirements/test.txt
     #   code-annotations
     #   cookiecutter
     #   sphinx
-jmespath==1.1.0
+jmespath==1.0.1
     # via
     #   -r requirements/test.txt
     #   boto3
     #   botocore
-keyring==25.7.0
+keyring==25.6.0
     # via twine
 lxml[html-clean]==6.0.2
     # via
     #   -r requirements/test.txt
     #   edx-i18n-tools
-    #   edxval
     #   lxml-html-clean
     #   xblock
     #   xblock-sdk
@@ -274,7 +207,7 @@ more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.3.2
+nh3==0.3.1
     # via
     #   -r requirements/test.txt
     #   readme-renderer
@@ -282,7 +215,7 @@ oauthlib==3.3.1
     # via -r requirements/test.txt
 openedx-django-pyfs==3.8.0
     # via -r requirements/test.txt
-packaging==26.0
+packaging==25.0
     # via
     #   -r requirements/test.txt
     #   build
@@ -296,11 +229,7 @@ path==16.16.0
     # via
     #   -r requirements/test.txt
     #   edx-i18n-tools
-pillow==12.1.0
-    # via
-    #   -r requirements/test.txt
-    #   edxval
-platformdirs==4.5.1
+platformdirs==4.5.0
     # via
     #   -r requirements/test.txt
     #   tox
@@ -315,14 +244,8 @@ polib==1.2.0
     # via
     #   -r requirements/test.txt
     #   edx-i18n-tools
-psutil==7.2.2
-    # via
-    #   -r requirements/test.txt
-    #   edx-django-utils
-pycparser==3.0
-    # via
-    #   -r requirements/test.txt
-    #   cffi
+pycparser==2.23
+    # via cffi
 pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
 pygments==2.19.2
@@ -335,19 +258,10 @@ pygments==2.19.2
     #   readme-renderer
     #   rich
     #   sphinx
-pyjwt[crypto]==2.11.0
-    # via
-    #   -r requirements/test.txt
-    #   drf-jwt
-    #   edx-drf-extensions
-pymongo==4.16.0
+pymongo==4.15.3
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
-pynacl==1.6.2
-    # via
-    #   -r requirements/test.txt
-    #   edx-django-utils
 pypng==0.20220715.0
     # via
     #   -r requirements/test.txt
@@ -358,11 +272,7 @@ pyproject-api==1.10.0
     #   tox
 pyproject-hooks==1.2.0
     # via build
-pysrt==1.1.2
-    # via
-    #   -r requirements/test.txt
-    #   edxval
-pytest==9.0.2
+pytest==8.4.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -391,7 +301,6 @@ pyyaml==6.0.3
     #   -r requirements/test.txt
     #   code-annotations
     #   cookiecutter
-    #   edx-django-release-util
     #   edx-i18n-tools
     #   xblock
 readme-renderer==44.0
@@ -400,32 +309,30 @@ requests==2.32.5
     # via
     #   -r requirements/test.txt
     #   cookiecutter
-    #   edx-drf-extensions
+    #   id
     #   requests-toolbelt
     #   sphinx
     #   twine
     #   xblock-sdk
 requests-toolbelt==1.0.0
     # via twine
-restructuredtext-lint==2.0.2
+restructuredtext-lint==1.4.0
     # via doc8
 rfc3986==2.0.0
     # via twine
-rich==14.3.2
+rich==14.2.0
     # via
     #   -r requirements/test.txt
     #   cookiecutter
     #   twine
-roman-numerals==4.1.0
+roman-numerals-py==3.1.0
     # via sphinx
-s3transfer==0.16.0
+s3transfer==0.14.0
     # via
     #   -r requirements/test.txt
     #   boto3
-semantic-version==2.10.0
-    # via
-    #   -r requirements/test.txt
-    #   edx-drf-extensions
+secretstorage==3.4.0
+    # via keyring
 simplejson==3.20.2
     # via
     #   -r requirements/test.txt
@@ -434,15 +341,14 @@ simplejson==3.20.2
 six==1.17.0
     # via
     #   -r requirements/test.txt
-    #   edx-django-release-util
     #   fs
     #   fs-s3fs
     #   python-dateutil
 snowballstemmer==3.0.1
     # via sphinx
-soupsieve==2.8.3
+soupsieve==2.8
     # via beautifulsoup4
-sphinx==9.0.4
+sphinx==8.2.3
     # via
     #   -r requirements/doc.in
     #   pydata-sphinx-theme
@@ -461,43 +367,45 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-sqlparse==0.5.5
+sqlparse==0.5.3
     # via
     #   -r requirements/test.txt
     #   django
-stevedore==5.6.0
+stevedore==5.5.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
     #   doc8
-    #   edx-django-utils
     #   edx-opaque-keys
 text-unidecode==1.3
     # via
     #   -r requirements/test.txt
     #   python-slugify
-tox==4.34.1
+tox==4.31.0
     # via -r requirements/test.txt
 twine==6.2.0
     # via -r requirements/doc.in
+types-python-dateutil==2.9.0.20251008
+    # via
+    #   -r requirements/test.txt
+    #   arrow
 typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt
     #   beautifulsoup4
     #   edx-opaque-keys
     #   pydata-sphinx-theme
-tzdata==2025.3
+tzdata==2025.2
     # via
     #   -r requirements/test.txt
     #   arrow
-urllib3==2.6.3
+urllib3==2.5.0
     # via
     #   -r requirements/test.txt
     #   botocore
-    #   id
     #   requests
     #   twine
-virtualenv==20.36.1
+virtualenv==20.35.3
     # via
     #   -r requirements/test.txt
     #   tox
@@ -511,9 +419,7 @@ webob==1.8.9
     #   -r requirements/test.txt
     #   xblock
     #   xblock-sdk
-wrapt==2.1.1
-    # via -r requirements/test.txt
-xblock==5.3.0
+xblock==5.2.0
     # via
     #   -r requirements/test.txt
     #   xblock-sdk
