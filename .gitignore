@@ -72,3 +72,6 @@ requirements/private.txt
 *.mo
 *.pot
 *.po
+
+# Installation artifacts
+node_modules/
