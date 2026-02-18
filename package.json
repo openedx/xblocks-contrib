@@ -7,6 +7,6 @@
     "build": "npm run build --workspaces --if-present",
     "build-dev": "npm run build-dev --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:ci": "npm run test:ci --workspaces --if-present"
+    "test-ci": "npm run test-ci --workspaces --if-present"
   }
 }

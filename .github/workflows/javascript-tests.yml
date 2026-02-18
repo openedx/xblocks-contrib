@@ -44,4 +44,4 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test:ci || echo "⚠️ Tests skipped — no workspaces available"
+        run: npm run test-ci || echo "⚠️ Tests skipped — no workspaces available"
