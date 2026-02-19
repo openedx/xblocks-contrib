@@ -241,7 +241,6 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     def student_view_data(self):
         """
         Returns a JSON representation of the student_view of this XBlock.
-        Returns a JSON representation of the student_view of this XBlock.
         """
         return {'topic_id': self.discussion_id}
 
@@ -289,47 +288,3 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
             if field_name in block.fields:
                 setattr(block, field_name, value)
         return {'topic_id': cls.discussion_id}
-
-    @classmethod
-    def parse_xml(cls, node, runtime, keys):
-        """
-        Parses OLX into XBlock.
-
-        This method is overridden here to allow parsing legacy OLX, coming from discussion XModule.
-        XBlock stores all the associated data, fields and children in a XML element inlined into vertical XML file
-        XModule stored only minimal data on the element included into vertical XML and used a dedicated "discussion"
-        folder in OLX to store fields and children. Also, some info was put into "policy.json" file.
-
-        If no external data sources are found (file in "discussion" folder), it is exactly equivalent to base method
-        XBlock.parse_xml. Otherwise this method parses file in "discussion" folder (known as definition_xml), applies
-        policy.json and updates fields accordingly.
-        """
-        block = super().parse_xml(node, runtime, keys)
-
-        cls._apply_metadata_and_policy(block, node, runtime)
-
-        return block
-
-    @classmethod
-    def _apply_metadata_and_policy(cls, block, node, runtime):
-        """
-        Attempt to load definition XML from "discussion" folder in OLX, than parse it and update block fields
-        """
-        if node.get('url_name') is None:
-            return  # Newer/XBlock XML format - no need to load an additional file.
-        try:
-            definition_xml, _ = cls.load_definition_xml(node, runtime, block.scope_ids.def_id)
-        except Exception as err:  # pylint: disable=broad-except
-            log.info(
-                "Exception %s when trying to load definition xml for block %s - assuming XBlock export format",
-                err,
-                block
-            )
-            return
-
-        metadata = cls.load_metadata(definition_xml)
-        cls.apply_policy(metadata, runtime.get_policy(block.scope_ids.usage_id))
-
-        for field_name, value in metadata.items():
-            if field_name in block.fields:
-                setattr(block, field_name, value)
