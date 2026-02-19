@@ -287,4 +287,3 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         for field_name, value in metadata.items():
             if field_name in block.fields:
                 setattr(block, field_name, value)
-        return {'topic_id': cls.discussion_id}
