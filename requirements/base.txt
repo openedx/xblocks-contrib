@@ -8,9 +8,9 @@ appdirs==1.4.4
     # via fs
 asgiref==3.11.1
     # via django
-boto3==1.42.45
+boto3==1.42.49
     # via fs-s3fs
-botocore==1.42.45
+botocore==1.42.49
     # via
     #   boto3
     #   s3transfer
@@ -55,7 +55,7 @@ markupsafe==3.0.3
     # via
     #   mako
     #   xblock
-nh3==0.3.2
+nh3==0.3.3
     # via -r requirements/base.in
 oauthlib==3.3.1
     # via -r requirements/base.in
