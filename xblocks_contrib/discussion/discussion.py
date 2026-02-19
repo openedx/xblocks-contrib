@@ -1,6 +1,9 @@
 """
 Discussion XBlock
 """
+"""
+Discussion XBlock
+"""
 
 import logging
 import urllib
@@ -10,7 +13,16 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import get_language_bidi
+import logging
+import urllib
+
+import markupsafe
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.translation import get_language_bidi
 from web_fragments.fragment import Fragment
+from xblock.completable import XBlockCompletionMode
 from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
 from xblock.fields import UNIQUE_ID, Scope, String
@@ -61,7 +73,59 @@ def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
     return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
 
 
+from xblock.utils.studio_editable import StudioEditableXBlockMixin
+
+from xblocks_contrib.common.xml_utils import LegacyXmlMixin
+
+log = logging.getLogger(__name__)
+loader = ResourceLoader(__name__)
+Text = markupsafe.escape                        # pylint: disable=invalid-name
+
+
+def _(text):
+    """
+    A noop underscore function that marks strings for extraction.
+    """
+    return text
+
+
+def HTML(html):                                 # pylint: disable=invalid-name
+    """
+    Mark a string as already HTML, so that it won't be escaped before output.
+
+    Use this function when formatting HTML into other strings.  It must be
+    used in conjunction with ``Text()``, and both ``HTML()`` and ``Text()``
+    must be closed before any calls to ``format()``::
+
+        <%page expression_filter="h"/>
+        <%!
+        from django.utils.translation import gettext as _
+
+        from openedx.core.djangolib.markup import HTML, Text
+        %>
+        ${Text(_("Write & send {start}email{end}")).format(
+            start=HTML("<a href='mailto:{}'>").format(user.email),
+            end=HTML("</a>"),
+        )}
+
+    """
+    return markupsafe.Markup(html)
+
+
+def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
+    """
+    Return True if discussions are enabled; else False
+    """
+    return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
+
+
 @XBlock.needs("i18n")
+@XBlock.wants("user")
+# pylint: disable=abstract-method
+class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
+    """
+    Provides a discussion forum that is inline with other content in the courseware.
+    """
 @XBlock.wants("user")
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
@@ -116,6 +180,22 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         # return provider.provider_type == Provider.LEGACY
         return True
 
+    @staticmethod
+    def _discussion_js_resource_path():
+        """
+        Returns the URL for the local resource.
+
+        Note: when running with the full Django pipeline, the file will be accessed
+        as a static asset which will use a CDN in production.
+
+        For more details, see platform's xblock_local_resource_url() define in:
+        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
+        """
+        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
+            return 'discussion/public/js/discussion_bundle.js'
+        else:
+            return 'public/js/discussion_bundle.js'
+
     @property
     def django_user(self):
         """
@@ -127,67 +207,21 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
             return None
         return user_service._django_user  # pylint: disable=protected-access
 
-    def get_all_js_files(self):
-        """
-        Returns list of all JS files in the correct dependency order.
-        """
-        return [
-            # Vendor files (load first as dependencies)
-            'static/js/vendor/Markdown.Converter.js',
-            'static/js/vendor/Markdown.Sanitizer.js',
-            'static/js/vendor/Markdown.Editor.js',
-            'static/js/vendor/jquery.ajaxfileupload.js',
-            'static/js/vendor/jquery.timeago.js',
-            'static/js/vendor/jquery.timeago.locale.js',
-            'static/js/vendor/jquery.truncate.js',
-            'static/js/vendor/split.js',
-            # MathJax utilities
-            'static/js/mathjax_accessible.js',
-            'static/js/mathjax_delay_renderer.js',
-            # Core utilities and models
-            'static/js/common/utils.js',
-            'static/js/common/models/discussion_course_settings.js',
-            'static/js/common/models/discussion_user.js',
-            # Core discussion functionality
-            # content.js must come before discussion.js because discussion.js uses Thread
-            'static/js/common/content.js',
-            'static/js/common/discussion.js',
-            'static/js/common/mathjax_include.js',
-            # Custom WMD editor
-            'static/js/customwmd.js',
-            # Views (depend on core discussion and models)
-            'static/js/common/views/discussion_content_view.js',
-            'static/js/common/views/discussion_inline_view.js',
-            'static/js/common/views/discussion_thread_edit_view.js',
-            'static/js/common/views/discussion_thread_list_view.js',
-            'static/js/common/views/discussion_thread_profile_view.js',
-            'static/js/common/views/discussion_thread_show_view.js',
-            'static/js/common/views/discussion_thread_view.js',
-            'static/js/common/views/discussion_topic_menu_view.js',
-            'static/js/common/views/new_post_view.js',
-            'static/js/common/views/response_comment_edit_view.js',
-            'static/js/common/views/response_comment_show_view.js',
-            'static/js/common/views/response_comment_view.js',
-            'static/js/common/views/thread_response_edit_view.js',
-            'static/js/common/views/thread_response_show_view.js',
-            'static/js/common/views/thread_response_view.js',
-        ]
-
     def add_resource_urls(self, fragment):
         """
         Adds URLs for JS and CSS resources that this XBlock depends on to `fragment`.
         """
 
         css_file_path = (
-            'static/css/inline-discussion-rtl.css'
+            'public/css/inline-discussion-rtl.css'
             if get_language_bidi()
-            else 'static/css/inline-discussion.css'
+            else 'public/css/inline-discussion.css'
         )
-        fragment.add_css(loader.load_unicode(css_file_path))
+        fragment.add_css_url(self.runtime.local_resource_url(self, css_file_path))
 
-        # Load all JS files individually in the correct order
-        for js_file in self.get_all_js_files():
-            fragment.add_javascript(loader.load_unicode(js_file))
+        bundle_path = self._discussion_js_resource_path()
+        bundle_url = self.runtime.local_resource_url(self, bundle_path)
+        fragment.add_resource_url(bundle_url, 'application/javascript')
 
     def has_permission(self, permission):  # pylint: disable=unused-argument
         """
@@ -270,9 +304,121 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
 
     def student_view_data(self):
         """
+        Renders student view for LMS.
+        """
+
+        fragment = Fragment()
+
+        if not self.is_visible:
+            return fragment
+
+        self.add_resource_urls(fragment)
+        login_msg = ''
+
+        if not self.django_user.is_authenticated:
+            qs = urllib.parse.urlencode({
+                'course_id': self.course_key,
+                'enrollment_action': 'enroll',
+                'email_opt_in': False,
+            })
+            login_msg = Text(_("You are not signed in. To view the discussion content, {sign_in_link} or "
+                               "{register_link}, and enroll in this course.")).format(
+                sign_in_link=HTML('<a href="{url}">{sign_in_label}</a>').format(
+                    sign_in_label=_('sign in'),
+                    url='{}?{}'.format(reverse('signin_user'), qs),
+                ),
+                register_link=HTML('<a href="/{url}">{register_label}</a>').format(
+                    register_label=_('register'),
+                    url='{}?{}'.format(reverse('register_user'), qs),
+                ),
+            )
+
+        if is_discussion_enabled(self.course_key):
+            context = {
+                'discussion_id': self.discussion_id,
+                'display_name': self.display_name if self.display_name else _("Discussion"),
+                'user': self.django_user,
+                'course_id': self.course_key,
+                'discussion_category': self.discussion_category,
+                'discussion_target': self.discussion_target,
+                'can_create_thread': self.has_permission("create_thread"),
+                'can_create_comment': self.has_permission("create_comment"),
+                'can_create_subcomment': self.has_permission("create_sub_comment"),
+                'login_msg': login_msg,
+            }
+            fragment.add_content(
+                render_to_string('discussion/_discussion_inline.html', context)
+            )
+
+        fragment.initialize_js('DiscussionInlineBlock')
+
+        return fragment
+
+    def author_view(self, context=None):
+        """
+        Renders author view for Studio.
+        """
+        fragment = Fragment()
+        context = {
+            'discussion_id': self.discussion_id,
+            'is_visible': self.is_visible,
+        }
+        fragment.add_content(
+            loader.render_django_template('templates/_discussion_inline_studio.html', context)
+        )
+        return fragment
+
+    def student_view_data(self):
+        """
+        Returns a JSON representation of the student_view of this XBlock.
         Returns a JSON representation of the student_view of this XBlock.
         """
         return {'topic_id': self.discussion_id}
+
+    @classmethod
+    def parse_xml(cls, node, runtime, keys):
+        """
+        Parses OLX into XBlock.
+
+        This method is overridden here to allow parsing legacy OLX, coming from discussion XModule.
+        XBlock stores all the associated data, fields and children in a XML element inlined into vertical XML file
+        XModule stored only minimal data on the element included into vertical XML and used a dedicated "discussion"
+        folder in OLX to store fields and children. Also, some info was put into "policy.json" file.
+
+        If no external data sources are found (file in "discussion" folder), it is exactly equivalent to base method
+        XBlock.parse_xml. Otherwise this method parses file in "discussion" folder (known as definition_xml), applies
+        policy.json and updates fields accordingly.
+        """
+        block = super().parse_xml(node, runtime, keys)
+
+        cls._apply_metadata_and_policy(block, node, runtime)
+
+        return block
+
+    @classmethod
+    def _apply_metadata_and_policy(cls, block, node, runtime):
+        """
+        Attempt to load definition XML from "discussion" folder in OLX, than parse it and update block fields
+        """
+        if node.get('url_name') is None:
+            return  # Newer/XBlock XML format - no need to load an additional file.
+        try:
+            definition_xml, _ = cls.load_definition_xml(node, runtime, block.scope_ids.def_id)
+        except Exception as err:  # pylint: disable=broad-except
+            log.info(
+                "Exception %s when trying to load definition xml for block %s - assuming XBlock export format",
+                err,
+                block
+            )
+            return
+
+        metadata = cls.load_metadata(definition_xml)
+        cls.apply_policy(metadata, runtime.get_policy(block.scope_ids.usage_id))
+
+        for field_name, value in metadata.items():
+            if field_name in block.fields:
+                setattr(block, field_name, value)
+        return {'topic_id': cls.discussion_id}
 
     @classmethod
     def parse_xml(cls, node, runtime, keys):
