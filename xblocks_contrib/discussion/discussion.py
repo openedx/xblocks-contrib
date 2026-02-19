@@ -1,18 +1,7 @@
 """
 Discussion XBlock
 """
-"""
-Discussion XBlock
-"""
 
-import logging
-import urllib
-
-import markupsafe
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.urls import reverse
-from django.utils.translation import get_language_bidi
 import logging
 import urllib
 
@@ -22,7 +11,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import get_language_bidi
 from web_fragments.fragment import Fragment
-from xblock.completable import XBlockCompletionMode
 from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
 from xblock.fields import UNIQUE_ID, Scope, String
@@ -73,59 +61,7 @@ def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
     return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
 
 
-from xblock.utils.studio_editable import StudioEditableXBlockMixin
-
-from xblocks_contrib.common.xml_utils import LegacyXmlMixin
-
-log = logging.getLogger(__name__)
-loader = ResourceLoader(__name__)
-Text = markupsafe.escape                        # pylint: disable=invalid-name
-
-
-def _(text):
-    """
-    A noop underscore function that marks strings for extraction.
-    """
-    return text
-
-
-def HTML(html):                                 # pylint: disable=invalid-name
-    """
-    Mark a string as already HTML, so that it won't be escaped before output.
-
-    Use this function when formatting HTML into other strings.  It must be
-    used in conjunction with ``Text()``, and both ``HTML()`` and ``Text()``
-    must be closed before any calls to ``format()``::
-
-        <%page expression_filter="h"/>
-        <%!
-        from django.utils.translation import gettext as _
-
-        from openedx.core.djangolib.markup import HTML, Text
-        %>
-        ${Text(_("Write & send {start}email{end}")).format(
-            start=HTML("<a href='mailto:{}'>").format(user.email),
-            end=HTML("</a>"),
-        )}
-
-    """
-    return markupsafe.Markup(html)
-
-
-def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
-    """
-    Return True if discussions are enabled; else False
-    """
-    return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
-
-
 @XBlock.needs("i18n")
-@XBlock.wants("user")
-# pylint: disable=abstract-method
-class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
-    """
-    Provides a discussion forum that is inline with other content in the courseware.
-    """
 @XBlock.wants("user")
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
@@ -237,72 +173,6 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         return True
 
     def student_view(self, context=None):
-        """
-        Renders student view for LMS.
-        """
-
-        fragment = Fragment()
-
-        if not self.is_visible:
-            return fragment
-
-        self.add_resource_urls(fragment)
-        login_msg = ''
-
-        if not self.django_user.is_authenticated:
-            qs = urllib.parse.urlencode({
-                'course_id': self.course_key,
-                'enrollment_action': 'enroll',
-                'email_opt_in': False,
-            })
-            login_msg = Text(_("You are not signed in. To view the discussion content, {sign_in_link} or "
-                               "{register_link}, and enroll in this course.")).format(
-                sign_in_link=HTML('<a href="{url}">{sign_in_label}</a>').format(
-                    sign_in_label=_('sign in'),
-                    url='{}?{}'.format(reverse('signin_user'), qs),
-                ),
-                register_link=HTML('<a href="/{url}">{register_label}</a>').format(
-                    register_label=_('register'),
-                    url='{}?{}'.format(reverse('register_user'), qs),
-                ),
-            )
-
-        if is_discussion_enabled(self.course_key):
-            context = {
-                'discussion_id': self.discussion_id,
-                'display_name': self.display_name if self.display_name else _("Discussion"),
-                'user': self.django_user,
-                'course_id': self.course_key,
-                'discussion_category': self.discussion_category,
-                'discussion_target': self.discussion_target,
-                'can_create_thread': self.has_permission("create_thread"),
-                'can_create_comment': self.has_permission("create_comment"),
-                'can_create_subcomment': self.has_permission("create_sub_comment"),
-                'login_msg': login_msg,
-            }
-            fragment.add_content(
-                render_to_string('discussion/_discussion_inline.html', context)
-            )
-
-        fragment.initialize_js('DiscussionInlineBlock')
-
-        return fragment
-
-    def author_view(self, context=None):
-        """
-        Renders author view for Studio.
-        """
-        fragment = Fragment()
-        context = {
-            'discussion_id': self.discussion_id,
-            'is_visible': self.is_visible,
-        }
-        fragment.add_content(
-            loader.render_django_template('templates/_discussion_inline_studio.html', context)
-        )
-        return fragment
-
-    def student_view_data(self):
         """
         Renders student view for LMS.
         """
