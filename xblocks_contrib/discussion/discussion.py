@@ -62,6 +62,7 @@ def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
 
 
 @XBlock.needs("i18n")
+@XBlock.wants("discussion_config_service")
 @XBlock.wants("user")
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
@@ -103,6 +104,13 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     has_author_view = True  # Tells Studio to use author_view
 
     @property
+    def discussion_config(self):
+        """
+        Returns discussion service.
+        """
+        return self.runtime.service(self, 'discussion_config_service')
+
+    @property
     def course_key(self):
         return getattr(self.scope_ids.usage_id, 'course_key', None)
 
@@ -111,10 +119,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
         Discussion Xblock does not support new OPEN_EDX provider
         """
-        # TO-DO: Need to fix import issues
-        # provider = DiscussionsConfiguration.get(self.course_key)
-        # return provider.provider_type == Provider.LEGACY
-        return True
+        return self.discussion_config.is_discussion_visible(self.course_key)
 
     @property
     def django_user(self):
@@ -198,9 +203,10 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         :param str permission: Permission
         :rtype: bool
         """
-        # TO-DO: Need to fix import issues
-        # return has_permission(self.django_user, permission, self.course_key)
-        return True
+        if self.discussion_config:
+            return self.discussion_config.has_permission(self.django_user, permission, self.course_key)
+        else:
+            return False
 
     def student_view(self, context=None):
         """
@@ -233,7 +239,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 ),
             )
 
-        if is_discussion_enabled(self.course_key):
+        if self.discussion_config.is_discussion_enabled:
             context = {
                 'discussion_id': self.discussion_id,
                 'display_name': self.display_name if self.display_name else _("Discussion"),
