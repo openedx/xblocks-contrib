@@ -18,18 +18,15 @@ import traceback
 from zoneinfo import ZoneInfo
 
 import nh3
-from common.djangoapps.xblock_django.constants import (
-    ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID,
-    ATTR_KEY_USER_ID,
-    ATTR_KEY_USER_IS_STAFF,
-)
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_str
 from django.utils.functional import cached_property
 from lxml import etree
+from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
+from webob import Response
+from webob.multidict import MultiDict
 from xblock.core import XBlock
 from xblock.exceptions import NotFoundError, ProcessingError
 from xblock.fields import (
@@ -41,19 +38,18 @@ from xblock.fields import (
     List,
     ListScoreField,
     Scope,
+    ScopeIds,
     ScoreField,
     String,
     Timedelta,
+    UserScope,
     XMLString,
 )
 from xblock.progress import Progress
+from xblock.runtime import DictKeyValueStore, KvsFieldData
 from xblock.scorable import ScorableXBlockMixin, Score, ShowCorrectness
-from xmodule.raw_block import RawMixin
-from xmodule.util.builtin_assets import add_css_to_fragment, add_webpack_js_to_fragment
-from xmodule.x_module import XModuleMixin, XModuleToXBlockMixin, shim_xmodule_js
-from xmodule.xml_block import XmlMixin
 
-from xblocks_contrib.problem import ProblemBlock as _ExtractedProblemBlock
+from xblocks_contrib.common.xml_utils import LegacyXmlMixin, is_pointer_tag
 from xblocks_contrib.problem.capa import responsetypes
 from xblocks_contrib.problem.capa.capa_problem import LoncapaProblem, LoncapaSystem
 from xblocks_contrib.problem.capa.inputtypes import Status
@@ -67,16 +63,367 @@ log = logging.getLogger("edx.courseware")
 #  `django.utils.translation.gettext_noop` because Django cannot be imported in this file
 _ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
 
+# The global (course-agnostic) anonymous user ID for the user.
+ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_id"
+# The personally identifiable user ID.
+ATTR_KEY_USER_ID = "edx-platform.user_id"
+# Whether the user is a course team member with 'Staff' or 'Admin' access.
+ATTR_KEY_USER_IS_STAFF = "edx-platform.user_is_staff"
+
 # Generate this many different variants of problems with rerandomize=per_student
 NUM_RANDOMIZATION_BINS = 20
 # Never produce more than this many different seeds, no matter what.
 MAX_RANDOMIZATION_BINS = 1000
 
+DEFAULT_PUBLIC_VIEW_MESSAGE = (
+    "This content is only accessible to enrolled learners. "
+    "Sign in or register, and enroll in this course to view it."
+)
 
-try:
-    FEATURES = getattr(settings, "FEATURES", {})
-except ImproperlyConfigured:
-    FEATURES = {}
+
+class SerializationError(Exception):
+    """
+    Thrown when a module cannot be exported to XML
+    """
+    def __init__(self, location, msg):
+        super().__init__(msg)
+        self.location = location
+
+
+class RawMixin:
+    """
+    Common code between RawDescriptor and XBlocks converted from XModules.
+    """
+
+    resources_dir = None
+
+    data = String(help="XML data for the block", default="", scope=Scope.content)
+
+    @classmethod
+    def definition_from_xml(cls, xml_object, system):  # pylint: disable=unused-argument
+        """Convert XML node into a dictionary with 'data' key for XBlock."""
+        return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
+
+    def definition_to_xml(self, resource_fs):  # pylint: disable=unused-argument
+        """
+        Return an Element if we've kept the import OLX, or None otherwise.
+        """
+        # If there's no self.data, it means that an XBlock/XModule originally
+        # existed for this data at the time of import/editing, but was later
+        # uninstalled. RawDescriptor therefore never got to preserve the
+        # original OLX that came in, and we have no idea how it should be
+        # serialized for export. It's possible that we could do some smarter
+        # fallback here and attempt to extract the data, but it's reasonable
+        # and simpler to just skip this node altogether.
+        if not self.data:
+            log.warning(
+                "Could not serialize %s: No XBlock installed for '%s' tag.",
+                self.location,
+                self.location.block_type,
+            )
+            return None
+
+        # Normal case: Just echo back the original OLX we saved.
+        try:
+            return etree.fromstring(self.data)
+        except etree.XMLSyntaxError as err:
+            # Can't recover here, so just add some info and
+            # re-raise
+            lines = self.data.split("\n")
+            line, offset = err.position
+            msg = (
+                f"Unable to create xml for block {self.location}. "
+                f"Context: '{lines[line - 1][offset - 40: offset + 40]}'"
+            )
+            raise SerializationError(self.location, msg) from err
+
+    @classmethod
+    def parse_xml_new_runtime(cls, node, runtime, keys):
+        """
+        Interpret the parsed XML in `node`, creating a new instance of this
+        module.
+        """
+        # In the new/learning-core-based runtime, XModule parsing (from
+        # XmlMixin) is disabled, so definition_from_xml will not be
+        # called, and instead the "normal" XBlock parse_xml will be used.
+        # However, it's not compatible with RawMixin, so we implement
+        # support here.
+        data_field_value = cls.definition_from_xml(node, None)[0]["data"]
+        for child in node.getchildren():
+            node.remove(child)
+        # Get attributes, if any, via normal parse_xml.
+        try:
+            block = super().parse_xml_new_runtime(node, runtime, keys)
+        except AttributeError:
+            block = super().parse_xml(node, runtime, keys)
+        block.data = data_field_value
+        return block
+
+
+class XModuleMixin(XBlock):
+    """
+    Fields and methods used by XModules internally.
+
+    Adding this Mixin to an :class:`XBlock` allows it to cooperate with old-style :class:`XModules`
+    """
+
+    @property
+    def category(self):
+        """Return the block type/category."""
+        return self.scope_ids.block_type
+
+    @property
+    def location(self):
+        """Return the usage key identifying this block instance."""
+        return self.scope_ids.usage_id
+
+    @location.setter
+    def location(self, value):
+        assert isinstance(value, UsageKey)
+        self.scope_ids = self.scope_ids._replace(
+            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
+            usage_id=value,
+        )
+
+    @property
+    def url_name(self):
+        return self.location.block_id
+
+    @property
+    def xblock_kvs(self):
+        """
+        Retrieves the internal KeyValueStore for this XBlock.
+
+        Should only be used by the persistence layer. Use with caution.
+        """
+        # if caller wants kvs, caller's assuming it's up to date; so, decache it
+        self.save()
+        return self._field_data._kvs  # pylint: disable=protected-access
+
+    def bind_for_student(self, user_id, wrappers=None):
+        """
+        Set up this XBlock to act as an XModule instead of an XModuleDescriptor.
+
+        Arguments:
+            user_id: The user_id to set in scope_ids
+            wrappers: These are a list functions that put a wrapper, such as
+                      LmsFieldData or OverrideFieldData, around the field_data.
+                      Note that the functions will be applied in the order in
+                      which they're listed. So [f1, f2] -> f2(f1(field_data))
+        """
+
+        # Skip rebinding if we're already bound a user, and it's this user.
+        if self.scope_ids.user_id is not None and user_id == self.scope_ids.user_id:
+            if getattr(self.runtime, "position", None):
+                # pylint: disable=attribute-defined-outside-init
+                self.position = self.runtime.position  # update the position of the tab
+            return
+
+        # If we are switching users mid-request, save the data from the old user.
+        self.save()
+
+        # Update scope_ids to point to the new user.
+        self.scope_ids = self.scope_ids._replace(user_id=user_id)
+
+        # Clear out any cached instantiated children.
+        self.clear_child_cache()
+
+        # Clear out any cached field data scoped to the old user.
+        for field in self.fields.values():
+            if field.scope in (Scope.parent, Scope.children):
+                continue
+
+            if field.scope.user == UserScope.ONE:
+                field._del_cached_value(self)  # pylint: disable=protected-access
+                # not the most elegant way of doing this, but if we're removing
+                # a field from the module's field_data_cache, we should also
+                # remove it from its _dirty_fields
+                if field in self._dirty_fields:
+                    del self._dirty_fields[field]
+
+        if wrappers:
+            # Put user-specific wrappers around the field-data service for this block.
+            # Note that these are different from modulestore.xblock_field_data_wrappers, which are not user-specific.
+            wrapped_field_data = self.runtime.service(self, "field-data-unbound")
+            for wrapper in wrappers:
+                wrapped_field_data = wrapper(wrapped_field_data)
+            self._bound_field_data = wrapped_field_data  # pylint: disable=attribute-defined-outside-init
+            if getattr(self.runtime, "uses_deprecated_field_data", False):
+                # This approach is deprecated but OldModuleStoreRuntime still requires it.
+                # For SplitModuleStoreRuntime, don't set ._field_data this way.
+                self._field_data = wrapped_field_data
+
+        # Capa was an XModule. When bind_for_student() was called on it with a new runtime, a new CapaModule object
+        # was initialized when XModuleDescriptor._xmodule() was called next. self.lcp was constructed in CapaModule
+        # init(). To keep the same behaviour, we delete self.lcp in bind_for_student().
+        if "lcp" in self.__dict__:
+            del self.__dict__["lcp"]
+
+    @property
+    def non_editable_metadata_fields(self):
+        """
+        Return the list of fields that should not be editable in Studio.
+
+        When overriding, be sure to append to the superclasses' list.
+        """
+        # We are not allowing editing of xblock tag and name fields at this time (for any component).
+        return [XBlock.tags, XBlock.name]
+
+    def public_view(self, _context):
+        """
+        Default message for blocks that don't implement public_view
+        """
+        alert_html = HTML(
+            '<div class="page-banner"><div class="alert alert-warning">'
+            '<span class="icon icon-alert fa fa fa-warning" aria-hidden="true"></span>'
+            '<div class="message-content">{}</div></div></div>'
+        )
+
+        if self.display_name:
+            display_text = _(
+                "{display_name} is only accessible to enrolled learners. "
+                "Sign in or register, and enroll in this course to view it."
+            ).format(display_name=self.display_name)
+        else:
+            display_text = _(DEFAULT_PUBLIC_VIEW_MESSAGE)  # pylint: disable=translation-of-non-string
+
+        return Fragment(alert_html.format(display_text))
+
+
+class XModuleToXBlockMixin:
+    """
+    Common code needed by XModule and XBlocks converted from XModules.
+    """
+
+    @property
+    def ajax_url(self):
+        """
+        Returns the URL for the ajax handler.
+        """
+        return self.runtime.handler_url(self, "xmodule_handler", "", "").rstrip("/?")
+
+    @XBlock.handler
+    def xmodule_handler(self, request, suffix=None):
+        """
+        XBlock handler that wraps `handle_ajax`
+        """
+
+        class FileObjForWebobFiles:  # pylint: disable=too-few-public-methods
+            """
+            Turn Webob cgi.FieldStorage uploaded files into pure file objects.
+
+            Webob represents uploaded files as cgi.FieldStorage objects, which
+            have a .file attribute.  We wrap the FieldStorage object, delegating
+            attribute access to the .file attribute.  But the files have no
+            name, so we carry the FieldStorage .filename attribute as the .name.
+
+            """
+
+            def __init__(self, webob_file):
+                self.file = webob_file.file
+                self.name = webob_file.filename
+
+            def __getattr__(self, name):
+                return getattr(self.file, name)
+
+        # WebOb requests have multiple entries for uploaded files.  handle_ajax
+        # expects a single entry as a list.
+        request_post = MultiDict(request.POST)
+        for key in set(request.POST.keys()):
+            if hasattr(request.POST[key], "file"):
+                request_post[key] = list(map(FileObjForWebobFiles, request.POST.getall(key)))
+
+        response_data = self.handle_ajax(suffix, request_post)
+        return Response(response_data, content_type="application/json", charset="UTF-8")
+
+
+class XmlMixin(LegacyXmlMixin):
+    @classmethod
+    def parse_xml(cls, node, runtime, keys):
+        """
+        Use `node` to construct a new block.
+
+        Arguments:
+            node (etree.Element): The xml node to parse into an xblock.
+
+            runtime (:class:`.Runtime`): The runtime to use while parsing.
+
+            keys (:class:`.ScopeIds`): The keys identifying where this block
+                will store its data.
+
+        Returns (XBlock): The newly parsed XBlock
+
+        """
+        if keys is None:
+            # Passing keys=None is against the XBlock API but some platform tests do it.
+            def_id = runtime.id_generator.create_definition(node.tag, node.get("url_name"))
+            keys = ScopeIds(None, node.tag, def_id, runtime.id_generator.create_usage(def_id))
+        aside_children = []
+
+        # VS[compat]
+        # In 2012, when the platform didn't have CMS, and all courses were handwritten XML files, problem tags
+        # contained XML problem descriptions withing themselves. Later, when Studio has been created, and "pointer" tags
+        # became the preferred problem format, edX has to add this compatibility code to 1) support both pre- and
+        # post-Studio course formats simulteneously, and 2) be able to migrate 2012-fall courses to Studio. Old style
+        # support supposed to be removed, but the deprecation process have never been initiated, so this
+        # compatibility must stay, probably forever.
+        if is_pointer_tag(node):
+            # new style:
+            # read the actual definition file--named using url_name.replace(':','/')
+            definition_xml, filepath = cls.load_definition_xml(node, runtime, keys.def_id)
+            aside_children = runtime.parse_asides(definition_xml, keys.def_id, keys.usage_id, runtime.id_generator)
+        else:
+            filepath = None
+            definition_xml = node
+
+        # Note: removes metadata.
+        definition, children = cls.load_definition(definition_xml, runtime, keys.def_id, runtime.id_generator)
+
+        # VS[compat]
+        # Make Ike's github preview links work in both old and new file layouts.
+        if is_pointer_tag(node):
+            # new style -- contents actually at filepath
+            definition["filename"] = [filepath, filepath]
+
+        metadata = cls.load_metadata(definition_xml)
+
+        # move definition metadata into dict
+        dmdata = definition.get("definition_metadata", "")
+        if dmdata:
+            metadata["definition_metadata_raw"] = dmdata
+            try:
+                metadata.update(json.loads(dmdata))
+            except Exception as err:
+                log.debug("Error in loading metadata %r", dmdata, exc_info=True)
+                metadata["definition_metadata_err"] = str(err)
+
+        definition_aside_children = definition.pop("aside_children", None)
+        if definition_aside_children:
+            aside_children.extend(definition_aside_children)
+
+        # Set/override any metadata specified by policy
+        cls.apply_policy(metadata, runtime.get_policy(keys.usage_id))
+
+        field_data = {**metadata, **definition}
+
+        if "xml_attributes" in field_data:
+            field_data["xml_attributes"]["filename"] = definition.get("filename", ["", None])
+
+        kvs = DictKeyValueStore()
+
+        for field_name, value in field_data.items():
+            if field_name in cls.fields:
+                kvs.set(cls.fields[field_name], value)
+
+        field_data_store = KvsFieldData(kvs)
+        xblock = runtime.construct_xblock_from_class(cls, keys, field_data_store)
+
+        xblock.children = children
+
+        if aside_children:
+            cls.add_applicable_asides_to_block(xblock, runtime, aside_children)
+
+        return xblock
 
 
 class SHOWANSWER:  # pylint: disable=too-few-public-methods
@@ -145,7 +492,7 @@ class Randomization(String):  # pylint: disable=too-few-public-methods
 @XBlock.needs("xqueue")
 @XBlock.needs("replace_urls")
 @XBlock.wants("call_to_action")
-class _BuiltInProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance-attributes,too-many-ancestors
+class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance-attributes,too-many-ancestors
     ScorableXBlockMixin,
     RawMixin,
     XmlMixin,
@@ -156,7 +503,7 @@ class _BuiltInProblemBlock(  # pylint: disable=too-many-public-methods,too-many-
     An XBlock representing a "problem".
 
     A problem contains zero or more respondable items, such as multiple choice,
-    numeric response, true/false, etc. See xmodule/capa/responsetypes.py
+    numeric response, true/false, etc. See xblocks_contrib/problem/capa/responsetypes.py
     for the full ensemble.
 
     The rendering logic of a problem is largely encapsulated within
@@ -171,7 +518,7 @@ class _BuiltInProblemBlock(  # pylint: disable=too-many-public-methods,too-many-
 
     INDEX_CONTENT_TYPE = "CAPA"
 
-    is_extracted = False
+    is_extracted = True
 
     has_score = True
     show_in_read_only_mode = True
@@ -376,9 +723,15 @@ class _BuiltInProblemBlock(  # pylint: disable=too-many-public-methods,too-many-
         else:
             html = self.get_html()
         fragment = Fragment(html)
-        add_css_to_fragment(fragment, "ProblemBlockDisplay.css")
-        add_webpack_js_to_fragment(fragment, "ProblemBlockDisplay")
-        shim_xmodule_js(fragment, "Problem")
+
+        pipeline = getattr(settings, 'PIPELINE', {})
+        use_pipeline = pipeline.get('PIPELINE_ENABLED', True) or not getattr(settings, 'REQUIRE_DEBUG', False)
+        base_path = "problem/public" if use_pipeline else "public"
+
+        fragment = Fragment(html)
+        fragment.add_css_url(self.runtime.local_resource_url(self, f"{base_path}/css/ProblemBlockDisplay.css"))
+        fragment.add_javascript_url(self.runtime.local_resource_url(self, f"{base_path}/js/ProblemBlockDisplay.js"))
+        fragment.initialize_js("Problem")
         return fragment
 
     def public_view(self, context):
@@ -765,7 +1118,7 @@ class _BuiltInProblemBlock(  # pylint: disable=too-many-public-methods,too-many-
                 # Capture a backtrace for errors from failed loncapa problems
                 log.exception(
                     "An error occurred generating a problem report on course %s, problem %s, and student %s",
-                    self.course_id,
+                    self.scope_ids.usage_id.course_key,
                     self.scope_ids.usage_id,
                     self.scope_ids.user_id,
                 )
@@ -2463,7 +2816,3 @@ def randomization_bin(seed, problem_id):
     r_hash.update(str(problem_id).encode())
     # get the first few digits of the hash, convert to an int, then mod.
     return int(r_hash.hexdigest()[:7], 16) % NUM_RANDOMIZATION_BINS
-
-
-ProblemBlock = _ExtractedProblemBlock if settings.USE_EXTRACTED_PROBLEM_BLOCK else _BuiltInProblemBlock
-ProblemBlock.__name__ = "ProblemBlock"

@@ -11,6 +11,7 @@ import abc
 import inspect
 import json
 import logging
+import math
 import numbers
 import re
 import sys
@@ -33,7 +34,6 @@ from calc import UndefinedVariable, UnmatchedParenthesis, evaluator
 from django.utils import html
 from lxml import etree
 from lxml.html.soupparser import fromstring as fromstring_bs  # uses Beautiful Soup!!! FIXME?
-from openedx.core.lib.grade_utils import round_away_from_zero
 from pyparsing import ParseException
 from shapely.geometry import MultiPoint, Point
 from six.moves import map, range, zip
@@ -72,6 +72,28 @@ QUESTION_HINT_INCORRECT_STYLE = "feedback-hint-incorrect"
 QUESTION_HINT_LABEL_STYLE = "hint-label"
 QUESTION_HINT_TEXT_STYLE = "hint-text"
 QUESTION_HINT_MULTILINE = "feedback-hint-multi"
+
+
+def round_away_from_zero(number, digits=0):
+    """
+    Round numbers using the 'away from zero' strategy as opposed to the
+    'Banker's rounding strategy.' The strategy refers to how we round when
+    a number is half way between two numbers.  eg. 0.5, 1.5, etc. In python 3
+    numbers round towards even. So 0.5 would round to 0 but 1.5 would round to 2.
+
+    See here for more on floating point rounding strategies:
+    https://en.wikipedia.org/wiki/IEEE_754#Rounding_rules
+
+    We want to continue to round away from zero so that student grades remain
+    consistent and don't suddenly change.
+    """
+    p = 10.0**digits
+
+    if number >= 0:
+        return float(math.floor((number * p) + 0.5)) / p
+    else:
+        return float(math.ceil((number * p) - 0.5)) / p
+
 
 # -----------------------------------------------------------------------------
 # Exceptions

@@ -1529,7 +1529,7 @@ class AnnotationInput(InputTypeBase):  # pylint: disable=too-many-instance-attri
         xml = self.xml
 
         self.debug = False  # set to True to display extra debug info with input
-        self.return_to_annotation = True  # return only works in conjunction with annotatable xmodule
+        self.return_to_annotation = True  # return only works in conjunction with annotatable xblock
 
         self.title = xml.findtext("./title", "Annotation Exercise")
         self.text = xml.findtext("./text")
