@@ -9,7 +9,7 @@ const config = {
   context: discussionRoot,
   entry: './static/js/discussion_main.js',
   output: {
-    path: path.join(__dirname, 'public', 'js'),
+    path: path.join(__dirname, '..', 'public', 'js'),
     filename: 'discussion_bundle.js',
   },
   resolve: {
@@ -74,8 +74,8 @@ const config = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.join(staticCss, 'inline-discussion.css'), to: path.join(discussionRoot, 'public', 'css', 'inline-discussion.css') },
-        { from: path.join(staticCss, 'inline-discussion-rtl.css'), to: path.join(discussionRoot, 'public', 'css', 'inline-discussion-rtl.css') },
+        { from: path.join(staticCss, 'inline-discussion.css'), to: path.join(__dirname, '..', 'public', 'css', 'inline-discussion.css') },
+        { from: path.join(staticCss, 'inline-discussion-rtl.css'), to: path.join(__dirname, '..', 'public', 'css', 'inline-discussion-rtl.css') },
       ],
     }),
   ],
