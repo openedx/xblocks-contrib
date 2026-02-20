@@ -1,9 +1,22 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_xfields.py#L17-L222
+"""  # lint-amnesty, pylint: disable=cyclic-import
+XFields for video block.
+"""
+
+
+import datetime
+
+from xblock.fields import Boolean, DateTime, Dict, Float, List, RelativeTime, Scope, String
+
+# TODO: Review the following _ function
+# Make '_' a no-op so we can scrape strings. Using lambda instead of
+#  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
+_ = lambda text: text
 
 
 class VideoFields:
     """Fields for `VideoBlock`."""
+    data = String(default="", scope=Scope.content)
+
     display_name = String(
         help=_("The display name for this component."),
         display_name=_("Component Display Name"),
