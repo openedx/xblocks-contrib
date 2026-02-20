@@ -107,8 +107,8 @@ pnpm-debug.log*
 .pnpm-store/
 
 # Webpack / bundling outputs
-public/
-**/public/
+# public/
+# **/public/
 
 webpack-stats.json
 webpack-stats.*
