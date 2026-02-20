@@ -1,5 +1,5 @@
 """
-Tests stringify functions used in xmodule html
+Tests stringify functions
 """
 
 from lxml import etree
@@ -38,9 +38,6 @@ def test_stringify_again():
   """
     xml = etree.fromstring(html)
     out = stringify_children(xml)
-
-    print("output:")
-    print(out)
 
     # Tracking strange content repeating bug
     # Should appear once
