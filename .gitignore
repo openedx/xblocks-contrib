@@ -120,3 +120,7 @@ stats.json
 # Karma
 .karma/
 **/.karma/
+
+# Bundled/generated JS (video XBlock)
+xblocks_contrib/video/public/js/video-xblock.js
+xblocks_contrib/video/public/js/video-xblock.js.map
