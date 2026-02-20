@@ -95,10 +95,6 @@ class RawMixin:
     Common code between RawDescriptor and XBlocks converted from XModules.
     """
 
-    resources_dir = None
-
-    data = String(help="XML data for the block", default="", scope=Scope.content)
-
     @classmethod
     def definition_from_xml(cls, xml_object, system):  # pylint: disable=unused-argument
         """Convert XML node into a dictionary with 'data' key for XBlock."""
