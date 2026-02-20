@@ -4,7 +4,7 @@
     "build": "webpack --config webpack.prod.config.js",
     "build-dev": "webpack --config webpack.dev.config.js",
     "test": "karma start karma.conf.js",
-    "test:ci": "xvfb-run --auto-servernum karma start karma.conf.js"
+    "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js"
   },
   "devDependencies": {
     "append-prepend-loader": "^1.0.0",
