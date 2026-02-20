@@ -54,7 +54,7 @@ const config = {
         use: [
           {
             loader: 'imports-loader',
-            options: 'this=>window'
+            options: { wrapper: 'window' },
           },
         ],
       },
