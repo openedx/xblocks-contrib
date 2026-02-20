@@ -116,6 +116,22 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         # return provider.provider_type == Provider.LEGACY
         return True
 
+    @staticmethod
+    def _discussion_js_resource_path():
+        """
+        Returns the URL for the local resource.
+
+        Note: when running with the full Django pipeline, the file will be accessed
+        as a static asset which will use a CDN in production.
+
+        For more details, see platform's xblock_local_resource_url() define in:
+        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
+        """
+        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
+            return 'discussion/public/js/discussion_bundle.js'
+        else:
+            return 'public/js/discussion_bundle.js'
+
     @property
     def django_user(self):
         """
@@ -127,67 +143,21 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
             return None
         return user_service._django_user  # pylint: disable=protected-access
 
-    def get_all_js_files(self):
-        """
-        Returns list of all JS files in the correct dependency order.
-        """
-        return [
-            # Vendor files (load first as dependencies)
-            'static/js/vendor/Markdown.Converter.js',
-            'static/js/vendor/Markdown.Sanitizer.js',
-            'static/js/vendor/Markdown.Editor.js',
-            'static/js/vendor/jquery.ajaxfileupload.js',
-            'static/js/vendor/jquery.timeago.js',
-            'static/js/vendor/jquery.timeago.locale.js',
-            'static/js/vendor/jquery.truncate.js',
-            'static/js/vendor/split.js',
-            # MathJax utilities
-            'static/js/mathjax_accessible.js',
-            'static/js/mathjax_delay_renderer.js',
-            # Core utilities and models
-            'static/js/common/utils.js',
-            'static/js/common/models/discussion_course_settings.js',
-            'static/js/common/models/discussion_user.js',
-            # Core discussion functionality
-            # content.js must come before discussion.js because discussion.js uses Thread
-            'static/js/common/content.js',
-            'static/js/common/discussion.js',
-            'static/js/common/mathjax_include.js',
-            # Custom WMD editor
-            'static/js/customwmd.js',
-            # Views (depend on core discussion and models)
-            'static/js/common/views/discussion_content_view.js',
-            'static/js/common/views/discussion_inline_view.js',
-            'static/js/common/views/discussion_thread_edit_view.js',
-            'static/js/common/views/discussion_thread_list_view.js',
-            'static/js/common/views/discussion_thread_profile_view.js',
-            'static/js/common/views/discussion_thread_show_view.js',
-            'static/js/common/views/discussion_thread_view.js',
-            'static/js/common/views/discussion_topic_menu_view.js',
-            'static/js/common/views/new_post_view.js',
-            'static/js/common/views/response_comment_edit_view.js',
-            'static/js/common/views/response_comment_show_view.js',
-            'static/js/common/views/response_comment_view.js',
-            'static/js/common/views/thread_response_edit_view.js',
-            'static/js/common/views/thread_response_show_view.js',
-            'static/js/common/views/thread_response_view.js',
-        ]
-
     def add_resource_urls(self, fragment):
         """
         Adds URLs for JS and CSS resources that this XBlock depends on to `fragment`.
         """
 
         css_file_path = (
-            'static/css/inline-discussion-rtl.css'
+            'public/css/inline-discussion-rtl.css'
             if get_language_bidi()
-            else 'static/css/inline-discussion.css'
+            else 'public/css/inline-discussion.css'
         )
-        fragment.add_css(loader.load_unicode(css_file_path))
+        fragment.add_css_url(self.runtime.local_resource_url(self, css_file_path))
 
-        # Load all JS files individually in the correct order
-        for js_file in self.get_all_js_files():
-            fragment.add_javascript(loader.load_unicode(js_file))
+        bundle_path = self._discussion_js_resource_path()
+        bundle_url = self.runtime.local_resource_url(self, bundle_path)
+        fragment.add_resource_url(bundle_url, 'application/javascript')
 
     def has_permission(self, permission):  # pylint: disable=unused-argument
         """
