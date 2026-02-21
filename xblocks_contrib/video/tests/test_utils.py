@@ -1,3 +1,4 @@
+"""Test utilities for the video XBlock: DummyRuntime, AsideTestType, and constants."""
 from unittest.mock import Mock
 
 from web_fragments.fragment import Fragment
@@ -15,7 +16,7 @@ class DummyRuntime(TestRuntime, Runtime):
     Construct a test DummyRuntime instance.
     """
 
-    def __init__(self, render_template=None, **kwargs):
+    def __init__(self, _render_template=None, **kwargs):
         services = kwargs.setdefault('services', {})
         services['field-data'] = KvsFieldData(DictKeyValueStore())
         video_config_mock = Mock(name='video_config')
@@ -28,7 +29,27 @@ class DummyRuntime(TestRuntime, Runtime):
         super().__init__(**kwargs)
         self._resources_fs = Mock(name='DummyRuntime.resources_fs', root_path='.')
 
-    def parse_asides(self, node, def_id, usage_id, id_generator):
+    def handler_url(self, *args, **kwargs):
+        """Return a test handler URL."""
+        return '/handler/block/handler'
+
+    def local_resource_url(self, *args, **kwargs):
+        """Return a test local resource URL."""
+        return '/resource/'
+
+    def publish(self, *args, **kwargs):
+        """No-op for tests."""
+        return None
+
+    def query(self, block):
+        """Return a mock query for tests."""
+        return Mock()
+
+    def resource_url(self, *args, **kwargs):
+        """Return a test resource URL."""
+        return '/static/'
+
+    def parse_asides(self, node, def_id, usage_id, _id_generator):
         """pull the asides out of the xml payload and instantiate them"""
         aside_children = []
         for child in node.iterchildren():
