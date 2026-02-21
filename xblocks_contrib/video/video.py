@@ -1,12 +1,16 @@
-"""Video is ungraded Xmodule for support video content.
+"""
+Video is ungraded Xmodule for support video content.
 It's new improved video block, which support additional feature:
-- Can play non-YouTube video sources via in-browser HTML5 video player.
-- YouTube defaults to HTML5 mode from the start.
-- Speed changes in both YouTube and non-YouTube videos happen via
-in-browser HTML5 video method (when in HTML5 mode).
-- Navigational subtitles can be disabled altogether via an attribute
-in XML.
-Examples of html5 videos for manual testing:
+
+* Can play non-YouTube video sources via in-browser HTML5 video player.
+* YouTube defaults to HTML5 mode from the start.
+* Speed changes in both YouTube and non-YouTube videos happen via
+  in-browser HTML5 video method (when in HTML5 mode).
+* Navigational subtitles can be disabled altogether via an attribute
+  in XML.
+
+Examples of html5 videos for manual testing::
+
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.mp4
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.webm
     https://s3.amazonaws.com/edx-course-videos/edx-intro/edX-FA12-cware-1_100.ogv
@@ -97,10 +101,6 @@ except ImportError:
 log = logging.getLogger(__name__)
 loader = ResourceLoader(__name__)
 
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
-#  `django.utils.translation.ugettext_noop` because Django cannot be imported in this file
-_ = lambda text: text
-
 EXPORT_IMPORT_COURSE_DIR = 'course'
 EXPORT_IMPORT_STATIC_DIR = 'static'
 
@@ -108,12 +108,13 @@ EXPORT_IMPORT_STATIC_DIR = 'static'
 @XBlock.wants('settings', 'completion', 'request_cache', 'video_config')
 @XBlock.needs('i18n', 'user')
 class VideoBlock(
-    VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
-    LegacyXmlMixin, XBlock,
-    AjaxHandlerMixin, StudioMetadataMixin,
-    LicenseMixin):
+        VideoFields, VideoTranscriptsMixin, VideoStudioViewHandlers, VideoStudentViewHandlers,
+        LegacyXmlMixin, XBlock,
+        AjaxHandlerMixin, StudioMetadataMixin,
+        LicenseMixin):
     """
-    XML source example:
+    XML source example::
+
         <video show_captions="true"
             youtube="0.75:jNCf2gIqpeE,1.0:ZwkTiUPN0mg,1.25:rsq9auxASqI,1.50:kMyNdzVHHgg"
             url_name="lecture_21_3" display_name="S19V3: Vacancies"
@@ -285,14 +286,15 @@ class VideoBlock(
 
     def studio_view(self, context):  # pylint: disable=unused-argument
         """
-        Returns a fragment having ``data-metadata`` attribute containing 
-        ``editable_metadata_fields`` as JSON. The authoring MFE (frontend-app-authoring) 
-        reads this attribute from the block's HTML to power the video editor UI 
-        (e.g. transcript parsing via ``parseTranscripts``and related thunk actions).
-        See: https://github.com/openedx/frontend-app-authoring/blob/master/src/editors/data/redux/thunkActions/video.js#L163
+        Returns a fragment having ``data-metadata`` attribute containing
+        ``editable_metadata_fields`` as JSON. The authoring MFE (frontend-app-authoring)
+        reads this attribute from the block's HTML to power the video editor UI
+        (e.g. transcript parsing via ``parseTranscripts`` and related thunk actions).
+        See: https://github.com/openedx/frontend-app-authoring/blob/master/
+        src/editors/data/redux/thunkActions/video.js#L163
 
-        This matches the contract of the built-in video block: 
-        edx-platform's ``mako_block.studio_view`` (xmodule/mako_block.py) uses
+        This matches the contract of the built-in video block:
+        the edX platform's ``mako_block.studio_view`` (xmodule/mako_block.py) uses
         cms/templates/widgets/metadata-edit.html, which also serializes
         ``editable_metadata_fields`` to JSON in a ``data-metadata`` attribute.
         """
@@ -330,7 +332,7 @@ class VideoBlock(
         fragment.initialize_js("Video")
         return fragment
 
-    def get_html(self, view=STUDENT_VIEW, context=None):  # lint-amnesty, pylint: disable=arguments-differ, too-many-statements
+    def get_html(self, view=STUDENT_VIEW, context=None):  # pylint: disable=too-many-statements
         """
         Return html for a given view of this block.
         """
@@ -475,7 +477,7 @@ class VideoBlock(
             'completionEnabled': completion_enabled,
             'completionPercentage': settings.COMPLETION_VIDEO_COMPLETE_PERCENTAGE,
             'duration': video_duration,
-            'end': self.end_time.total_seconds(),  # pylint: disable=no-member
+            'end': self.end_time.total_seconds(),
             'generalSpeed': self.global_speed,
             'lmsRootURL': settings.LMS_ROOT_URL,
             'poster': poster,
@@ -485,7 +487,7 @@ class VideoBlock(
             # this user, based on what was recorded the last time we saw the
             # user, and defaulting to True.
             'recordedYoutubeIsAvailable': self.youtube_is_available,
-            'savedVideoPosition': self.saved_video_position.total_seconds(),  # pylint: disable=no-member
+            'savedVideoPosition': self.saved_video_position.total_seconds(),
             'saveStateEnabled': not is_public_view,
             'saveStateUrl': self.ajax_url + '/save_user_state',
             # Despite the setting on the block, don't show transcript by default
@@ -493,7 +495,7 @@ class VideoBlock(
             'showCaptions': json.dumps(self.show_captions and not is_embed),
             'sources': sources,
             'speed': self.speed,
-            'start': self.start_time.total_seconds(),  # pylint: disable=no-member
+            'start': self.start_time.total_seconds(),
             'streams': self.youtube_streams,
             'transcriptAvailableTranslationsUrl': self.runtime.handler_url(
                 self, 'transcript', 'available_translations'
@@ -540,7 +542,8 @@ class VideoBlock(
             'poster': json.dumps(get_poster(self)),
             'track': track_url,
             'transcript_download_format': transcript_download_format,
-            'transcript_download_formats_list': self.fields['transcript_download_format'].values,  # lint-amnesty, pylint: disable=unsubscriptable-object
+            # pylint: disable=unsubscriptable-object
+            'transcript_download_formats_list': self.fields['transcript_download_format'].values,
             'transcript_feedback_enabled': self.is_transcript_feedback_enabled(),
         }
         video_config_service = self.runtime.service(self, 'video_config')
@@ -641,9 +644,10 @@ class VideoBlock(
         video_block = runtime.construct_xblock_from_class(cls, keys)
         field_data = cls.parse_video_xml(node)
         for key, val in field_data.items():
-            if key not in cls.fields:  # lint-amnesty, pylint: disable=unsupported-membership-test
+            # pylint: disable=unsubscriptable-object
+            if key not in cls.fields:  # pylint: disable=unsupported-membership-test
                 continue  # parse_video_xml returns some old non-fields like 'source'
-            setattr(video_block, key, cls.fields[key].from_json(val))  # lint-amnesty, pylint: disable=unsubscriptable-object
+            setattr(video_block, key, cls.fields[key].from_json(val))
         # Don't use VAL in the new runtime:
         video_block.edx_video_id = None
         return video_block
@@ -676,6 +680,7 @@ class VideoBlock(
             if field_name == "xml_attributes":
                 video.xml_attributes.update(value)
             elif field_name in video.fields:
+                # pylint: disable=unsubscriptable-object
                 setattr(video, field_name, cls.fields[field_name].from_json(value))
 
         # Update VAL with info extracted from `node`
@@ -712,7 +717,8 @@ class VideoBlock(
             # Mild workaround to ensure that tests pass -- if a field
             # is set to its default value, we don't write it out.
             if value:
-                if key in self.fields and self.fields[key].is_set_on(self):  # lint-amnesty, pylint: disable=unsubscriptable-object, unsupported-membership-test
+                # pylint: disable=unsupported-membership-test,unsubscriptable-object
+                if key in self.fields and self.fields[key].is_set_on(self):
                     try:
                         xml.set(key, str(value))
                     except UnicodeDecodeError:
@@ -977,7 +983,8 @@ class VideoBlock(
             else:
                 # We export values with json.dumps (well, except for Strings, but
                 # for about a month we did it for Strings also).
-                field_data[attr] = deserialize_field(cls.fields[attr], value)  # lint-amnesty, pylint: disable=unsubscriptable-object
+                # pylint: disable-next=unsubscriptable-object
+                field_data[attr] = deserialize_field(cls.fields[attr], value)
 
         course_id = getattr(id_generator, 'target_course_id', None)
         # Update the handout location with current course_id
@@ -1093,7 +1100,8 @@ class VideoBlock(
     @request_cached(
         request_cache_getter=lambda args, kwargs: args[1],
     )
-    def get_cached_val_data_for_course(cls, request_cache, video_profile_names, course_id):  # lint-amnesty, pylint: disable=unused-argument
+    # pylint: disable=unused-argument
+    def get_cached_val_data_for_course(cls, request_cache, video_profile_names, course_id):
         """
         Returns the VAL data for the requested video profiles for the given course.
         """
@@ -1212,7 +1220,8 @@ class VideoBlock(
         # Skip rebinding if we're already bound a user, and it's this user.
         if self.scope_ids.user_id is not None and user_id == self.scope_ids.user_id:
             if getattr(self.runtime, "position", None):
-                self.position = self.runtime.position  # update the position of the tab
+                # update the position of the tab
+                self.position = self.runtime.position  # pylint: disable=attribute-defined-outside-init
             return
 
         # If we are switching users mid-request, save the data from the old user.
@@ -1243,14 +1252,14 @@ class VideoBlock(
             wrapped_field_data = self.runtime.service(self, "field-data-unbound")
             for wrapper in wrappers:
                 wrapped_field_data = wrapper(wrapped_field_data)
-            self._bound_field_data = wrapped_field_data
+            self._bound_field_data = wrapped_field_data  # pylint: disable=attribute-defined-outside-init
             if getattr(self.runtime, "uses_deprecated_field_data", False):
                 # This approach is deprecated but OldModuleStoreRuntime still requires it.
                 # For SplitModuleStoreRuntime, don't set ._field_data this way.
                 self._field_data = wrapped_field_data
 
     @classmethod
-    def definition_from_xml(cls, xml_object, system):  # lint-amnesty, pylint: disable=unused-argument
+    def definition_from_xml(cls, xml_object, system):
         if len(xml_object) == 0 and len(list(xml_object.items())) == 0:
             return {"data": ""}, []
         return {"data": etree.tostring(xml_object, pretty_print=True, encoding="unicode")}, []
