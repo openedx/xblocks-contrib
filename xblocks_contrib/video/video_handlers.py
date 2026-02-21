@@ -1,5 +1,3 @@
-# NOTE: Original code has been copied from the following files: 
-# https://github.com/openedx/edx-platform/blob/master/xmodule/video_block/video_handlers.py
 """
 Handlers for video block.
 
@@ -16,20 +14,12 @@ from django.utils.timezone import now
 from opaque_keys.edx.locator import CourseLocator
 from webob import Response
 from xblock.core import XBlock
+from xblock.fields import RelativeTime
 from xblock.exceptions import JsonHandlerError
 
-from xmodule.exceptions import NotFoundError
-from xmodule.fields import RelativeTime
-
-from openedx.core.djangoapps.video_config.transcripts_utils import (
-    Transcript,
-    clean_video_id,
-    subs_filename,
-)
-from xblocks_contrib.video.exceptions import (
-    TranscriptsGenerationException,
-    TranscriptNotFoundError,
-)
+from xblocks_contrib.video.exceptions import TranscriptNotFoundError, TranscriptsGenerationException
+from xblocks_contrib.video.video_transcripts_utils import TranscriptExtensions, clean_video_id, subs_filename
+from xblocks_contrib.video.video_utils import load_metadata_from_youtube
 
 log = logging.getLogger(__name__)
 
@@ -123,7 +113,7 @@ class VideoStudentViewHandlers:
         log.debug(f"GET {data}")
         log.debug(f"DISPATCH {dispatch}")
 
-        raise NotFoundError('Unexpected dispatch type')
+        raise TranscriptNotFoundError('Unexpected dispatch type')
 
     def get_static_transcript(self, request, transcripts):
         """
@@ -282,7 +272,7 @@ class VideoStudentViewHandlers:
                 content, filename, mimetype = get_transcript(
                     self,
                     lang=self.transcript_language,
-                    output_format=Transcript.SJSON,
+                    output_format=TranscriptExtensions.SJSON,
                     youtube_id=youtube_id,
                     is_bumper=is_bumper
                 )
@@ -362,7 +352,6 @@ class VideoStudentViewHandlers:
         This handler is only used in the Learning-Core-based runtime. The old
         runtime uses a similar REST API that's not an XBlock handler.
         """
-        from lms.djangoapps.courseware.views.views import load_metadata_from_youtube
         if not self.youtube_id_1_0:
             # TODO: more informational response to explain that yt_video_metadata not supported for non-youtube videos.
             return Response('{}', status=400)
@@ -432,7 +421,7 @@ class VideoStudioViewHandlers:
                 Return filename from storage. SRT format is sent back on success. Filename should be in GET dict.
 
         We raise all exceptions right in Studio:
-            NotFoundError:
+            TranscriptNotFoundError:
                 Video or asset was deleted from module/contentstore, but request came later.
                 Seems impossible to be raised. block_render.py catches NotFoundErrors from here.
 
@@ -534,7 +523,7 @@ class VideoStudioViewHandlers:
             if not video_config_service:
                 return Response(status=404)
             transcript_content, transcript_name, mime_type = video_config_service.get_transcript(
-                self, lang=language, output_format=Transcript.SRT
+                self, lang=language, output_format=TranscriptExtensions.SRT
             )
             response = Response(transcript_content, headerlist=[
                 (

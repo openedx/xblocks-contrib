@@ -1,5 +1,3 @@
-# NOTE: Code has been copied from the following source files
-# https://github.com/openedx/edx-platform/blob/master/xmodule/validation.py
 """
 Extension of XBlock Validation class to include information for presentation in Studio.
 """
