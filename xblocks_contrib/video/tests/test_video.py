@@ -20,30 +20,21 @@ from tempfile import mkdtemp
 from unittest.mock import ANY, MagicMock, Mock, patch
 from uuid import uuid4
 
-from django.test.utils import override_settings
-import pytest
 import ddt
+import pytest
 from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 from fs.osfs import OSFS
 from lxml import etree
 from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locator import CourseLocator
+from xblock.core import XBlockAside
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 
-from xblocks_contrib.video.tests.test_utils import (
-    VALIDATION_MESSAGE_WARNING,
-    AsideTestType,
-    DummyRuntime,
-)
-from xblocks_contrib.video.video import (
-    EXPORT_IMPORT_STATIC_DIR,
-    VideoBlock,
-    create_youtube_string,
-)
-from xblock.core import XBlockAside
-
+from xblocks_contrib.video.tests.test_utils import VALIDATION_MESSAGE_WARNING, AsideTestType, DummyRuntime
+from xblocks_contrib.video.video import EXPORT_IMPORT_STATIC_DIR, VideoBlock, create_youtube_string
 
 SRT_FILEDATA = '''
 0
@@ -650,7 +641,7 @@ class VideoBlockImportTestCase(TestCase):
         """
         Test that `parse_xml` works method works as expected.
         """
-        def mock_val_import(xml, edx_video_id, resource_fs, static_dir, external_transcripts, course_id):
+        def mock_val_import(xml, edx_video_id, resource_fs, static_dir, external_transcripts, *, course_id=None):
             """Mock edxval.api.import_parse_xml"""
             assert xml.tag == 'video_asset'
             assert dict(list(xml.items())) == {'mock_attr': ''}
@@ -725,10 +716,7 @@ class VideoExportTestCase(VideoBlockTestBase):
         """
         edx_video_id = 'test_edx_video_id'
         mock_val_api.export_to_xml = Mock(
-            return_value=dict(
-                xml=etree.Element('video_asset'),
-                transcripts={}
-            )
+            return_value={"xml": etree.Element('video_asset'), "transcripts": {}}
         )
         self.block.youtube_id_0_75 = 'izygArpw-Qo'
         self.block.youtube_id_1_0 = 'p2Q6BrNhdh8'
@@ -851,7 +839,9 @@ class VideoExportTestCase(VideoBlockTestBase):
         xml = self.block.definition_to_xml(self.file_system)
         parser = etree.XMLParser(remove_blank_text=True)
         xml_string = '''\
-         <video url_name="SampleProblem" start_time="0:00:05" youtube="0.75:izygArpw-Qo,1.00:p2Q6BrNhdh8,1.25:1EeWXzPdhSA,1.50:rABDYkeK0x8" show_captions="false" download_video="true" download_track="true">
+         <video url_name="SampleProblem" start_time="0:00:05"
+                youtube="0.75:izygArpw-Qo,1.00:p2Q6BrNhdh8,1.25:1EeWXzPdhSA,1.50:rABDYkeK0x8"
+                show_captions="false" download_video="true" download_track="true">
            <source src="http://www.example.com/source.mp4"/>
            <source src="http://www.example.com/source.ogg"/>
            <track src="http://www.example.com/track"/>
@@ -951,7 +941,10 @@ class VideoBlockStudentViewDataTestCase(unittest.TestCase):
         'xblocks_contrib.video.video.VideoBlock.is_hls_playback_enabled',
         Mock(return_value=True)
     )
-    @patch('xblocks_contrib.video.video_transcripts_utils.get_available_transcript_languages', Mock(return_value=['es']))
+    @patch(
+        'xblocks_contrib.video.video_transcripts_utils.get_available_transcript_languages',
+        Mock(return_value=['es'])
+    )
     @patch('edxval.api.get_video_info_for_course_and_profiles', Mock(return_value={}))
     @patch('edxval.api.get_video_info')
     def test_student_view_data_with_hls_flag(self, mock_get_video_info):
@@ -1069,12 +1062,21 @@ class VideoBlockIndexingTestCase(unittest.TestCase):
         }
         block = instantiate_block(data=xml_data_transcripts)
         video_config_service = block.runtime.service(block, 'video_config')
-        # Mock the get_transcript method of the video_config service to return the transcript text for the given language.
-        video_config_service.get_transcript = lambda block, lang=None, output_format=None: (_TRANSCRIPT_TEXT_BY_LANG.get(lang, ''),)
-        assert block.index_dictionary() ==\
-               {'content': {'display_name': 'Test Video',
-                            'transcript_ge': 'sprechen sie deutsch? Ja, ich spreche Deutsch',
-                            'transcript_hr': 'Dobar dan! Kako ste danas?'}, 'content_type': 'Video'}
+        # Mock get_transcript to return transcript text for the given language.
+        video_config_service.get_transcript = (
+            lambda block, lang=None, output_format=None: (
+                _TRANSCRIPT_TEXT_BY_LANG.get(lang, ''),
+            )
+        )
+        expected = {
+            'content': {
+                'display_name': 'Test Video',
+                'transcript_ge': 'sprechen sie deutsch? Ja, ich spreche Deutsch',
+                'transcript_hr': 'Dobar dan! Kako ste danas?',
+            },
+            'content_type': 'Video',
+        }
+        assert block.index_dictionary() == expected
 
     @override_settings(ALL_LANGUAGES=ALL_LANGUAGES)
     def test_video_with_language_do_not_have_transcripts_translation(self):
