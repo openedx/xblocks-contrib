@@ -29,12 +29,12 @@ binaryornot==0.4.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   cookiecutter
-boto3==1.42.49
+boto3==1.42.54
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   fs-s3fs
-botocore==1.42.49
+botocore==1.42.54
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -54,7 +54,7 @@ certifi==2026.1.4
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   requests
-chardet==5.2.0
+chardet==6.0.0.post1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -150,7 +150,7 @@ edx-opaque-keys==3.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-filelock==3.24.1
+filelock==3.24.3
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -179,7 +179,7 @@ iniconfig==2.3.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   pytest
-isort==7.0.0
+isort==8.0.0
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -264,7 +264,7 @@ path==16.16.0
     #   edx-i18n-tools
 pip-tools==7.5.3
     # via -r requirements/pip-tools.txt
-platformdirs==4.9.1
+platformdirs==4.9.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -295,7 +295,7 @@ pygments==2.19.2
     #   diff-cover
     #   pytest
     #   rich
-pylint==4.0.4
+pylint==4.0.5
     # via
     #   -r requirements/quality.txt
     #   edx-lint
@@ -381,7 +381,7 @@ requests==2.32.5
     #   -r requirements/test.txt
     #   cookiecutter
     #   xblock-sdk
-rich==14.3.2
+rich==14.3.3
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -414,7 +414,7 @@ sqlparse==0.5.5
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   django
-stevedore==5.6.0
+stevedore==5.7.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -429,7 +429,7 @@ tomlkit==0.14.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.36.0
+tox==4.44.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -449,7 +449,7 @@ urllib3==2.6.3
     #   -r requirements/test.txt
     #   botocore
     #   requests
-virtualenv==20.36.1
+virtualenv==20.38.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
