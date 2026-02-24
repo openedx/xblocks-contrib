@@ -2,9 +2,12 @@
 -c constraints.txt
 
 django-statici18n
+edx-django-utils
 edx-i18n-tools
 edx-opaque-keys
+edxval
 nh3
 oauthlib
 openedx-django-pyfs
+wrapt
 XBlock
