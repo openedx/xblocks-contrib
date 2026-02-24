@@ -16,11 +16,11 @@ asgiref==3.11.1
     #   django
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.42.49
+boto3==1.42.54
     # via
     #   -r requirements/base.txt
     #   fs-s3fs
-botocore==1.42.49
+botocore==1.42.54
     # via
     #   -r requirements/base.txt
     #   boto3
@@ -29,7 +29,7 @@ cachetools==7.0.1
     # via tox
 certifi==2026.1.4
     # via requests
-chardet==5.2.0
+chardet==6.0.0.post1
     # via
     #   binaryornot
     #   tox
@@ -75,7 +75,7 @@ edx-opaque-keys==3.0.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.in
-filelock==3.24.1
+filelock==3.24.3
     # via
     #   tox
     #   virtualenv
@@ -143,7 +143,7 @@ path==16.16.0
     # via
     #   -r requirements/base.txt
     #   edx-i18n-tools
-platformdirs==4.9.1
+platformdirs==4.9.2
     # via
     #   tox
     #   virtualenv
@@ -201,7 +201,7 @@ requests==2.32.5
     # via
     #   cookiecutter
     #   xblock-sdk
-rich==14.3.2
+rich==14.3.3
     # via cookiecutter
 s3transfer==0.16.0
     # via
@@ -222,14 +222,14 @@ sqlparse==0.5.5
     # via
     #   -r requirements/base.txt
     #   django
-stevedore==5.6.0
+stevedore==5.7.0
     # via
     #   -r requirements/base.txt
     #   code-annotations
     #   edx-opaque-keys
 text-unidecode==1.3
     # via python-slugify
-tox==4.36.0
+tox==4.44.0
     # via -r requirements/test.in
 typing-extensions==4.15.0
     # via
@@ -242,7 +242,7 @@ urllib3==2.6.3
     #   -r requirements/base.txt
     #   botocore
     #   requests
-virtualenv==20.36.1
+virtualenv==20.38.0
     # via tox
 web-fragments==3.1.0
     # via
