@@ -1,4 +1,4 @@
-import Resizer from '../../static/js/src/00_resizer.js';
+import Resizer from '../../assets/js/src/00_resizer.js';
 import _ from 'underscore';
 
 describe('Resizer', function() {

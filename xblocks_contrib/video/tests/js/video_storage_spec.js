@@ -1,4 +1,4 @@
-import VideoStorage from '../../static/js/src/00_video_storage.js';
+import VideoStorage from '../../assets/js/src/00_video_storage.js';
 
 describe('VideoStorage', function() {
     var namespace = 'test_storage',

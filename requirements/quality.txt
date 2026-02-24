@@ -505,17 +505,10 @@ tomlkit==0.14.0
     # via pylint
 tox==4.47.0
     # via -r requirements/test.txt
-<<<<<<< HEAD
 tqdm==4.67.3
     # via
     #   -r requirements/test.txt
     #   nltk
-=======
-types-python-dateutil==2.9.0.20251008
-    # via
-    #   -r requirements/test.txt
-    #   arrow
->>>>>>> 1d24e65 (chore: karma test cases)
 typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt

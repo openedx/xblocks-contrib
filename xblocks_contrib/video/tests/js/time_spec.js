@@ -1,6 +1,6 @@
 'use strict';
 
-import * as Time from '../../static/js/src/utils/time.js';
+import * as Time from '../../assets/js/src/utils/time.js';
 
 describe('Time', function() {
     describe('format', function() {

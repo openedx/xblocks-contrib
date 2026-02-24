@@ -1,4 +1,4 @@
-import Initialize from '../../static/js/src/01_initialize.js';
+import Initialize from '../../assets/js/src/01_initialize.js';
 
 describe('Initialize', function() {
     var state = {};

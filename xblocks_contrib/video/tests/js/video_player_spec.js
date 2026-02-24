@@ -1,6 +1,6 @@
 /* global YT */
 
-import VideoPlayer from "../../static/js/src/03_video_player.js";
+import VideoPlayer from "../../assets/js/src/03_video_player.js";
 import HLS from 'hls';
 import _ from 'underscore';
 

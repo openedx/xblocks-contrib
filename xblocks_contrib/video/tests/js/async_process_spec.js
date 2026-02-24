@@ -1,4 +1,4 @@
-import AsyncProcess from '../../static/js/src/00_async_process.js';
+import AsyncProcess from '../../assets/js/src/00_async_process.js';
 
 var AP = AsyncProcess;
 var getArrayNthLength = function(n, multiplier) {

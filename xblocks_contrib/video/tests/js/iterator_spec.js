@@ -1,4 +1,4 @@
-import Iterator from '../../static/js/src/00_iterator.js';
+import Iterator from '../../assets/js/src/00_iterator.js';
 
 describe('Iterator', function() {
     var list = ['a', 'b', 'c', 'd', 'e'],

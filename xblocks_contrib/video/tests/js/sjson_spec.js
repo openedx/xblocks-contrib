@@ -1,4 +1,4 @@
-import Sjson from '../../static/js/src/00_sjson.js';
+import Sjson from '../../assets/js/src/00_sjson.js';
 
 describe('Sjson', function() {
     var data = jasmine.stubbedCaption,
