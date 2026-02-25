@@ -5,7 +5,6 @@ Common utility functions for XBlocks.
 from django.conf import settings
 
 
-
 def get_resource_url(xblock, path, package_scope=None):
     """
     Return the runtime URL for a static resource in this XBlock's package.

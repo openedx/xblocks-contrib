@@ -123,7 +123,7 @@ class StudioMetadataMixin:
         editable_fields.pop('sub')
 
         languages = [{'label': label, 'code': lang} for lang, label in settings.ALL_LANGUAGES]
-        languages.sort(key=lambda l: l['label'])
+        languages.sort(key=lambda lang_item: lang_item['label'])
         editable_fields['transcripts']['custom'] = True
         editable_fields['transcripts']['languages'] = languages
         editable_fields['transcripts']['type'] = 'VideoTranslations'
@@ -148,7 +148,9 @@ class StudioMetadataMixin:
         if video_config_service:
             for sub_id in possible_sub_ids:
                 try:
-                    _, sub_id, _ = video_config_service.get_transcript(self, lang='en', output_format=TranscriptExtensions.TXT)
+                    _, sub_id, _ = video_config_service.get_transcript(
+                        self, lang='en', output_format=TranscriptExtensions.TXT
+                    )
                     transcripts_info['transcripts'] = dict(transcripts_info['transcripts'], en=sub_id)
                     break
                 except TranscriptNotFoundError:
