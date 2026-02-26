@@ -1,7 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "xblocks_contrib/*/*"
+    "xblocks_contrib/*/*",
+    "xblock_pdf/*/*/"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
