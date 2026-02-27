@@ -13,6 +13,14 @@ Change Log
 
 Unreleased
 **********
+0.11.1 - 2026-02-27
+**********************************************
+
+Fixed
+=====
+
+* Package data for PDF block (templates, static assets) was missing and is now included.
+
 0.11.0 - 2026-01-26
 **********************************************
 
