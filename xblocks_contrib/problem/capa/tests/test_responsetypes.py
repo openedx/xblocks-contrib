@@ -55,7 +55,7 @@ class ResponseTest(unittest.TestCase):
     def setUp(self):
         super().setUp()
         if self.xml_factory_class:
-            self.xml_factory = self.xml_factory_class()  # pylint: disable=not-callable
+            self.xml_factory = self.xml_factory_class()
 
     def build_problem(self, capa_system=None, **kwargs):
         """Build a Loncapa problem using the XML factory and provided arguments."""
@@ -702,8 +702,9 @@ class StringResponseTest(ResponseTest):
 
         Example of real use case in Studio:
             a) user inputs regexp in usual regexp language,
-            b) regexp is saved to xml and is read in python as repr of that string
-            So  a\d in front-end editor will become a\\\\d in xml,  so it will match a1 as student answer.
+            b) regexp is saved to xml and is read in python as repr of that string.
+
+        So  a\d in front-end editor will become a\\\\d in xml,  so it will match a1 as student answer.
         """
         problem = self.build_problem(answer="5\\\\æ", case_sensitive=False, regexp=True)
         self.assert_grade(problem, "5\\æ", "correct")
@@ -1309,7 +1310,7 @@ class ChoiceResponseTest(ResponseTest):
 
 
 @UseUnsafeCodejail()
-class NumericalResponseTest(ResponseTest):  # pylint: disable=too-many-public-methods
+class NumericalResponseTest(ResponseTest):
     """Unit and integration tests for the NumericalResponse class."""
 
     xml_factory_class = NumericalResponseXMLFactory
@@ -1585,7 +1586,7 @@ class NumericalResponseTest(ResponseTest):  # pylint: disable=too-many-public-me
         staff_ans = "clearly bad syntax )[+1e"
         problem = self.build_problem(answer=staff_ans, tolerance=1e-3)
 
-        class FakeTranslations:  # pylint: disable=too-few-public-methods
+        class FakeTranslations:
             """A fake gettext.Translations object."""
 
             def ugettext(self, text):
@@ -1629,7 +1630,7 @@ class NumericalResponseTest(ResponseTest):  # pylint: disable=too-many-public-me
 
     def test_err_handling(self):
         """
-        See that `StudentInputError`s are raised when things go wrong.
+        See that StudentInputError are raised when things go wrong.
         """
         problem = self.build_problem(answer=4)
 
@@ -1673,7 +1674,7 @@ class NumericalResponseTest(ResponseTest):  # pylint: disable=too-many-public-me
 
 
 @UseUnsafeCodejail()
-class CustomResponseTest(ResponseTest):  # pylint: disable=too-many-public-methods
+class CustomResponseTest(ResponseTest):
     """Unit tests for validating CustomResponse behavior"""
 
     xml_factory_class = CustomResponseXMLFactory

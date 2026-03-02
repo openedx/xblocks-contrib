@@ -10,7 +10,7 @@ class CapaAppConfig(AppConfig):
     Configuration for the CAPA problem XBlock Django application.
 
     Why are we registering this as a Django App?
-    -------------------------------------------
+    --------------------------------------------
     By default, Django's template engine (specifically the `app_directories` loader)
     only discovers `templates/` folders that belong to an app listed in `INSTALLED_APPS`.
 
@@ -28,10 +28,13 @@ class CapaAppConfig(AppConfig):
     without manual intervention.
 
     References:
+
     - Open edX Plugin App Framework:
       https://docs.openedx.org/projects/edx-django-utils/en/latest/plugins/how_tos/how_to_create_a_plugin_app.html
+
     - Django App Directories Loader:
       https://docs.djangoproject.com/en/stable/ref/templates/api/#django.template.loaders.app_directories.Loader
+
     """
 
     name = "xblocks_contrib.problem.capa"

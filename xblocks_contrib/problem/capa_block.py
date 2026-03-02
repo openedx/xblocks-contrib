@@ -59,9 +59,12 @@ from xblocks_contrib.problem.markup import HTML, Text
 
 log = logging.getLogger("edx.courseware")
 
-# Make '_' a no-op so we can scrape strings. Using lambda instead of
+
+# Make '_' a no-op so we can scrape strings. Using function instead of
 #  `django.utils.translation.gettext_noop` because Django cannot be imported in this file
-_ = lambda text: text  # pylint: disable=unnecessary-lambda-assignment
+def _(text):
+    return text
+
 
 # The global (course-agnostic) anonymous user ID for the user.
 ATTR_KEY_DEPRECATED_ANONYMOUS_USER_ID = "edx-platform.deprecated_anonymous_user_id"
@@ -85,6 +88,7 @@ class SerializationError(Exception):
     """
     Thrown when a module cannot be exported to XML
     """
+
     def __init__(self, location, msg):
         super().__init__(msg)
         self.location = location
@@ -214,7 +218,6 @@ class XModuleMixin(XBlock):
         # Skip rebinding if we're already bound a user, and it's this user.
         if self.scope_ids.user_id is not None and user_id == self.scope_ids.user_id:
             if getattr(self.runtime, "position", None):
-                # pylint: disable=attribute-defined-outside-init
                 self.position = self.runtime.position  # update the position of the tab
             return
 
@@ -246,7 +249,7 @@ class XModuleMixin(XBlock):
             wrapped_field_data = self.runtime.service(self, "field-data-unbound")
             for wrapper in wrappers:
                 wrapped_field_data = wrapper(wrapped_field_data)
-            self._bound_field_data = wrapped_field_data  # pylint: disable=attribute-defined-outside-init
+            self._bound_field_data = wrapped_field_data
             if getattr(self.runtime, "uses_deprecated_field_data", False):
                 # This approach is deprecated but OldModuleStoreRuntime still requires it.
                 # For SplitModuleStoreRuntime, don't set ._field_data this way.
@@ -304,7 +307,7 @@ class XModuleToXBlockMixin:
         XBlock handler that wraps `handle_ajax`
         """
 
-        class FileObjForWebobFiles:  # pylint: disable=too-few-public-methods
+        class FileObjForWebobFiles:
             """
             Turn Webob cgi.FieldStorage uploaded files into pure file objects.
 
@@ -377,7 +380,7 @@ class InheritanceKeyValueStore(KeyValueStore):
         return self.inherited_settings[key.field_name]
 
 
-class XmlMixin(LegacyXmlMixin):
+class XmlMixin(LegacyXmlMixin):  # pylint: disable=abstract-method
     """
     TODO: This mixin is legacy tech debt. Transition toward modern XBlock
     serialization and remove this legacy XML parsing logic.
@@ -479,7 +482,7 @@ class XmlMixin(LegacyXmlMixin):
         return xblock
 
 
-class SHOWANSWER:  # pylint: disable=too-few-public-methods
+class SHOWANSWER:
     """
     Constants for when to show answer
     """
@@ -498,7 +501,7 @@ class SHOWANSWER:  # pylint: disable=too-few-public-methods
     ATTEMPTED_NO_PAST_DUE = "attempted_no_past_due"
 
 
-class GRADING_METHOD:  # pylint: disable=too-few-public-methods,invalid-name
+class GRADING_METHOD:
     """
     Constants for grading method options.
     """
@@ -509,7 +512,7 @@ class GRADING_METHOD:  # pylint: disable=too-few-public-methods,invalid-name
     AVERAGE_SCORE = "average_score"
 
 
-class RANDOMIZATION:  # pylint: disable=too-few-public-methods
+class RANDOMIZATION:
     """
     Constants for problem randomization
     """
@@ -520,7 +523,7 @@ class RANDOMIZATION:  # pylint: disable=too-few-public-methods
     PER_STUDENT = "per_student"
 
 
-class Randomization(String):  # pylint: disable=too-few-public-methods
+class Randomization(String):
     """
     Define a field to store how to randomize a problem.
     """
@@ -545,7 +548,7 @@ class Randomization(String):  # pylint: disable=too-few-public-methods
 @XBlock.needs("xqueue")
 @XBlock.needs("replace_urls")
 @XBlock.wants("call_to_action")
-class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance-attributes,too-many-ancestors
+class ProblemBlock(
     ScorableXBlockMixin,
     RawMixin,
     XmlMixin,
@@ -819,10 +822,13 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
 
         `data` is request.POST.
 
-        Returns a json dictionary:
-        { 'progress_changed' : True/False,
-          'progress' : 'none'/'in_progress'/'done',
-          <other request-specific values here > }
+        Returns a json dictionary::
+
+            {
+                'progress_changed': True/False,
+                'progress': 'none'/'in_progress'/'done',
+                <other request-specific values here>
+            }
         """
         # self.score is initialized in self.lcp but in this method is accessed before self.lcp so just call it first.
         self.lcp  # pylint: disable=pointless-statement
@@ -1030,7 +1036,7 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
         xblock_body["problem_types"] = list(self.problem_types)
         return xblock_body
 
-    def has_support(self, view, functionality):  # pylint: disable=unused-argument
+    def has_support(self, view, functionality):
         """
         Override the XBlock.has_support method to return appropriate
         value for the multi-device functionality.
@@ -1090,12 +1096,13 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
                 Set to None (default) to include all.
 
         Returns:
-            each call returns a tuple like:
-            ("username", {
-                           "Question": "2 + 2 equals how many?",
-                           "Answer": "Four",
-                           "Answer ID": "98e6a8e915904d5389821a94e48babcf_10_1"
-            })
+            each call returns a tuple like::
+
+                ("username", {
+                    "Question": "2 + 2 equals how many?",
+                    "Answer": "Four",
+                    "Answer ID": "98e6a8e915904d5389821a94e48babcf_10_1"
+                })
         """
         if self.category != "problem":
             raise NotImplementedError()
@@ -1385,7 +1392,7 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
                 "total_possible": total_possible,
                 "attempts_used": self.attempts,
                 "content": self.get_problem_html(encapsulate=False),
-                "graded": self.graded,  # pylint: disable=no-member
+                "graded": self.graded,
             },
         )
 
@@ -2425,12 +2432,17 @@ class ProblemBlock(  # pylint: disable=too-many-public-methods,too-many-instance
 
                 question (str): Is the prompt that was presented to the student.  It corresponds to the
                     label of the input.
+
                 answer (mixed): Is the answer the student provided.  This may be a rich structure,
                     however it must be json serializable.
+
                 response_type (str): The XML tag of the capa response type.
+
                 input_type (str): The XML tag of the capa input type.
+
                 correct (bool): Whether or not the provided answer is correct.  Will be an empty
                     string if correctness could not be determined.
+
                 variant (str): In some cases the same question can have several different variants.
                     This string should uniquely identify the variant of the question that was answered.
                     In the capa context this corresponds to the `seed`.
