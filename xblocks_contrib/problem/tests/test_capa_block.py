@@ -1,6 +1,6 @@
 # pylint: disable=too-many-lines
 """
-Tests of the Capa XModule
+Tests of the Capa XBlock
 """
 
 import datetime
@@ -9,6 +9,7 @@ import os
 import random
 import textwrap
 import unittest
+from collections import namedtuple
 from unittest.mock import DEFAULT, Mock, PropertyMock, patch
 from zoneinfo import ZoneInfo
 
@@ -19,10 +20,8 @@ import webob
 from codejail.safe_exec import SafeExecException
 from django.test import override_settings
 from django.utils.encoding import smart_str
-from lms.djangoapps.courseware.user_state_client import XBlockUserState
 from lxml import etree
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
-from openedx.core.djangolib.testing.utils import skip_unless_lms
 from webob.multidict import MultiDict
 from xblock.exceptions import NotFoundError
 from xblock.field_data import DictFieldData
@@ -31,7 +30,11 @@ from xblock.scorable import Score
 
 from xblocks_contrib.problem.capa import responsetypes
 from xblocks_contrib.problem.capa.correctmap import CorrectMap
-from xblocks_contrib.problem.capa.responsetypes import LoncapaProblemError, ResponseError, StudentInputError
+from xblocks_contrib.problem.capa.responsetypes import (
+    LoncapaProblemError,
+    ResponseError,
+    StudentInputError,
+)
 from xblocks_contrib.problem.capa.tests.test_util import UseUnsafeCodejail
 from xblocks_contrib.problem.capa.xqueue_interface import XQueueInterface
 from xblocks_contrib.problem.capa_block import ComplexEncoder, ProblemBlock
@@ -39,6 +42,40 @@ from xblocks_contrib.problem.tests import DATA_DIR
 
 from ..capa_block import RANDOMIZATION, SHOWANSWER
 from . import get_test_system
+
+
+class XBlockUserState(namedtuple("_XBlockUserState", ["username", "block_key", "state", "updated", "scope"])):
+    """
+    The current state of a single XBlock.
+
+    Arguments:
+        username: The username of the user that stored this state.
+        block_key: The key identifying the scoped state. Depending on the :class:`~xblock.fields.BlockScope` of
+
+                  ``scope``, this may take one of several types:
+
+                      * ``USAGE``: :class:`~opaque_keys.edx.keys.UsageKey`
+                      * ``DEFINITION``: :class:`~opaque_keys.edx.keys.DefinitionKey`
+                      * ``TYPE``: :class:`str`
+                      * ``ALL``: ``None``
+        state: A dict mapping field names to the values of those fields for this XBlock.
+        updated: A :class:`datetime.datetime`. We guarantee that the fields
+                 that were returned in "state" have not been changed since
+                 this time (in UTC).
+        scope: A :class:`xblock.fields.Scope` identifying which XBlock scope this state is coming from.
+
+    TODO: This class was copied in from lms/djangoapps/courseware/user_state_client.py
+          in openedx-platform because ProblemBlock.generate_report_data expects instances
+          of it and we needed to get tests running here. We should fix the underlying
+          ProblemBlock->openedx-platform dependency by deleting XBlockUserState from
+          here and from openedx-platform, and defining it in the core XBlock repo instead.
+          https://github.com/openedx/openedx-platform/issues/38043
+    """
+
+    __slots__ = ()
+
+    def __repr__(self):
+        return "{}{!r}".format(self.__class__.__name__, tuple(self))  # pylint: disable=consider-using-f-string
 
 
 class CapaFactory:
@@ -194,7 +231,6 @@ if submission[0] == '':
 
 
 @ddt.ddt
-@skip_unless_lms
 @pytest.mark.django_db
 class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-methods
     """Tests for various problem types in XBlocks."""
@@ -2068,7 +2104,7 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
     @ddt.data(RANDOMIZATION.ALWAYS, "true")
     def test_save_problem_submitted_with_randomize(self, rerandomize):
         """Verify saving fails when problem is submitted and rerandomization is enabled."""
-        # Capa XModule treats 'always' and 'true' equivalently
+        # Capa XBlock treats 'always' and 'true' equivalently
         block = CapaFactory.create(rerandomize=rerandomize, done=True)
 
         # Try to save
@@ -3647,7 +3683,6 @@ class ComplexEncoderTest(unittest.TestCase):
         # ignore quotes
 
 
-@skip_unless_lms
 @UseUnsafeCodejail()
 @pytest.mark.django_db
 class ProblemCheckTrackingTest(unittest.TestCase):
