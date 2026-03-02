@@ -20,10 +20,10 @@ These are the XBlocks being moved here, and each of their statuses:
 * ``poll_question`` -- Ready to Use
 * ``word_cloud`` -- Ready to Use
 * ``annotatable`` -- Ready to Use
-* ``lti`` -- In Development
+* ``lti`` -- Ready to Use
 * ``pdf`` -- Done
 * ``html`` -- Ready to Use
-* ``discussion`` -- Placeholder
+* ``discussion`` -- In Development
 * ``problem`` -- In Development
 * ``video`` -- In Development
 

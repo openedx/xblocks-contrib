@@ -13,6 +13,17 @@ Change Log
 
 Unreleased
 **********
+
+0.12.0 - 2026-03-02
+**********************************************
+
+Added
+=====
+
+* Implemented the Problem XBlock, extracted from edx-platform.
+
+
+
 0.11.1 - 2026-02-27
 **********************************************
 
