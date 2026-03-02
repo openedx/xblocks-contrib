@@ -34,7 +34,7 @@ from xblock.core import Scope, XBlock
 from xblock.fields import ScopeIds, UserScope
 from xblock.utils.resources import ResourceLoader
 
-from xblocks_contrib.common.utils import get_resource_url
+from xblocks_contrib.video.video_utils import get_resource_url
 from xblocks_contrib.common.xml_utils import (
     EdxJSONEncoder,
     LegacyXmlMixin,
