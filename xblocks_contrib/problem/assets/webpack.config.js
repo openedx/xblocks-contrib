@@ -6,7 +6,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const defineHeader = /\(function ?\(((define|require|requirejs|\$)(, )?)+\) ?\{/;
 const defineCallFooter = /\}\)\.call\(this, ((define|require)( \|\| RequireJS\.(define|require))?(, )?)+?\);/;
 const defineDirectFooter = /\}\(((window\.)?(RequireJS\.)?(requirejs|define|require|jQuery)(, )?)+\)\);/;
-const defineFancyFooter = /\}\).call\(\s*this(\s|.)*define(\s|.)*\);/;
+const defineFancyFooter = /\}\).call\(\s*this[\s\S]*define[\s\S]*\);/;
 const defineFooter = new RegExp('(' + defineCallFooter.source + ')|('
     + defineDirectFooter.source + ')|('
     + defineFancyFooter.source + ')', 'm');
