@@ -469,7 +469,7 @@ class CodeInputTest(unittest.TestCase):
         assert context == expected
 
 
-class MatlabTest(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
+class MatlabTest(unittest.TestCase):
     """
     Test Matlab input types
     """
@@ -1606,12 +1606,16 @@ class TestChoiceText(unittest.TestCase):
         `choice_tag` is either 'choice' for proper xml, or any other value to trigger an error.
         `expected_input_type` is either 'radio' or 'checkbox'.
         """
-        xml_str = """
-  <{tag}>
-      <{choice_tag} correct="false" name="choiceinput_0">this is<numtolerance_input name="choiceinput_0_textinput_0"/>false</{choice_tag}>
-      <choice correct="true" name="choiceinput_1">Is a number<decoy_input name="choiceinput_1_textinput_0"/><text>!</text></choice>
-  </{tag}>
-        """.format(tag=tag, choice_tag=choice_tag)
+        xml_str = (
+            f"<{tag}>"
+            f'<{choice_tag} correct="false" name="choiceinput_0">'
+            f'this is<numtolerance_input name="choiceinput_0_textinput_0"/>false'
+            f"</{choice_tag}>"
+            f'<choice correct="true" name="choiceinput_1">'
+            f'Is a number<decoy_input name="choiceinput_1_textinput_0"/><text>!</text>'
+            f"</choice>"
+            f"</{tag}>"
+        )
         element = etree.fromstring(xml_str)
         prob_id = "choicetext_input"
         state = {"value": "{}", "id": prob_id, "status": inputtypes.Status("answered"), "response_data": RESPONSE_DATA}
