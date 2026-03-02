@@ -12,7 +12,7 @@ Draft
 Context
 *******
 
-In the Open edX ecosystem, course content is represented in **OLX (Open Learning XML)**.  
+In the Open edX ecosystem, course content is represented in **OLX (Open Learning XML)**.
 OLX supports **two organizational formats** for defining blocks:
 
 1. **Inline Format** - The block's full definition is written inline within its tag attributes.
@@ -56,7 +56,7 @@ Both formats are supported by edx-platform's `XmlMixin`, which handles:
 
 However, this was disrupted when **built-in XBlocks** (such as `WordCloud`, `Annotatable`, `LTI`, `HTML`, `Poll`, `Video`, `Problem`) were **extracted from edx-platform** into a new repository: **xblocks-contrib**.
 
-The key architectural change was that **extracted XBlocks no longer depend on `XmlMixin`** and instead inherit directly from the base `XBlock` class — following the *pure XBlock* pattern.  
+The key architectural change was that **extracted XBlocks no longer depend on `XmlMixin`** and instead inherit directly from the base `XBlock` class — following the *pure XBlock* pattern.
 This transition removed pointer-tag handling functionality for those blocks.
 
 Problem
@@ -99,7 +99,7 @@ Alternatives To Consider
    - Rejected for now due to the scope and cross-repo impact.
 
 2. **XML Preprocessing Step in edx-platform**
-   - Architecturally cleaner (resolve all pointer tags before XBlock parsing).  
+   - Architecturally cleaner (resolve all pointer tags before XBlock parsing).
    - Rejected as a longer-term project not suited for immediate release needs.
 
 Future Work
@@ -107,12 +107,12 @@ Future Work
 
 Longer-term architectural improvements to consider:
 
-- Introduce a **preprocessing layer** in edx-platform's OLX pipeline to centralize pointer resolution i.e., resolve all pointer tags into inline XML. (Alternative #1).  
-- Define a **standard XBlock API interface** for pointer-tag handling (Alternative #2).  
+- Introduce a **preprocessing layer** in edx-platform's OLX pipeline to centralize pointer resolution i.e., resolve all pointer tags into inline XML. (Alternative #1).
+- Define a **standard XBlock API interface** for pointer-tag handling (Alternative #2).
 
 References
 **********
 
-- `openedx/XBlock#830` - Initial attempt to add pointer-tag parsing to XBlock core  
-- `openedx/edx-platform#37133` - Runtime-based pointer resolution PR  
+- `openedx/XBlock#830` - Initial attempt to add pointer-tag parsing to XBlock core
+- `openedx/edx-platform#37133` - Runtime-based pointer resolution PR
 - `xblocks_contrib` - Repository containing extracted XBlocks and new `PointerTagMixin`
