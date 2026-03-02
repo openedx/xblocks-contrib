@@ -3,7 +3,7 @@ include LICENSE.txt
 include README.rst
 include requirements/base.in
 include requirements/constraints.txt
-recursive-include xblocks_contrib *.html *.png *.gif *.jpg *.jpeg *.svg
+recursive-include xblocks_contrib *.html *.js *.css *.jar *.png *.gif *.jpg *.jpeg *.svg
 recursive-include xblocks_contrib/*/public *.js *.css
 recursive-include xblocks_contrib/*/static *.js *.css
 
@@ -16,3 +16,7 @@ global-exclude webpack*.config.js
 global-exclude karma*.js
 global-exclude package*.json
 global-exclude .gitignore
+
+include xblocks_contrib/problem/capa/tests/test_util.py
+include xblocks_contrib/problem/capa/tests/helpers.py
+include xblocks_contrib/problem/capa/tests/response_xml_factory.py

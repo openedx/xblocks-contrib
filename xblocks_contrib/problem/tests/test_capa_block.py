@@ -1,6 +1,6 @@
 # pylint: disable=too-many-lines
 """
-Tests of the Capa XModule
+Tests of the Capa XBlock
 """
 
 import datetime
@@ -9,6 +9,7 @@ import os
 import random
 import textwrap
 import unittest
+from collections import namedtuple
 from unittest.mock import DEFAULT, Mock, PropertyMock, patch
 from zoneinfo import ZoneInfo
 
@@ -19,10 +20,8 @@ import webob
 from codejail.safe_exec import SafeExecException
 from django.test import override_settings
 from django.utils.encoding import smart_str
-from lms.djangoapps.courseware.user_state_client import XBlockUserState
 from lxml import etree
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
-from openedx.core.djangolib.testing.utils import skip_unless_lms
 from webob.multidict import MultiDict
 from xblock.exceptions import NotFoundError
 from xblock.field_data import DictFieldData
@@ -39,6 +38,40 @@ from xblocks_contrib.problem.tests import DATA_DIR
 
 from ..capa_block import RANDOMIZATION, SHOWANSWER
 from . import get_test_system
+
+
+class XBlockUserState(namedtuple("_XBlockUserState", ["username", "block_key", "state", "updated", "scope"])):
+    """
+    The current state of a single XBlock.
+
+    Arguments:
+        username: The username of the user that stored this state.
+        block_key: The key identifying the scoped state. Depending on the :class:`~xblock.fields.BlockScope` of
+
+                  ``scope``, this may take one of several types:
+
+                      * ``USAGE``: :class:`~opaque_keys.edx.keys.UsageKey`
+                      * ``DEFINITION``: :class:`~opaque_keys.edx.keys.DefinitionKey`
+                      * ``TYPE``: :class:`str`
+                      * ``ALL``: ``None``
+        state: A dict mapping field names to the values of those fields for this XBlock.
+        updated: A :class:`datetime.datetime`. We guarantee that the fields
+                 that were returned in "state" have not been changed since
+                 this time (in UTC).
+        scope: A :class:`xblock.fields.Scope` identifying which XBlock scope this state is coming from.
+
+    TODO: This class was copied in from lms/djangoapps/courseware/user_state_client.py
+          in openedx-platform because ProblemBlock.generate_report_data expects instances
+          of it and we needed to get tests running here. We should fix the underlying
+          ProblemBlock->openedx-platform dependency by deleting XBlockUserState from
+          here and from openedx-platform, and defining it in the core XBlock repo instead.
+          https://github.com/openedx/openedx-platform/issues/38043
+    """
+
+    __slots__ = ()
+
+    def __repr__(self):
+        return "{}{!r}".format(self.__class__.__name__, tuple(self))
 
 
 class CapaFactory:
@@ -194,9 +227,8 @@ if submission[0] == '':
 
 
 @ddt.ddt
-@skip_unless_lms
 @pytest.mark.django_db
-class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-methods
+class ProblemBlockTest(unittest.TestCase):
     """Tests for various problem types in XBlocks."""
 
     def setUp(self):
@@ -766,10 +798,10 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
 
         # Expect that we get a dict with "input" stripped from key names
         # and that we get the same values back
-        for key in result:
+        for key, value in result.items():
             original_key = "input_" + key
             assert original_key in valid_get_dict, f"Output dict should have key {original_key}"
-            assert valid_get_dict[original_key] == result[key]
+            assert valid_get_dict[original_key] == value
 
         # Valid GET param dict with list keys
         # Each tuple represents a single parameter in the query string
@@ -2068,7 +2100,7 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
     @ddt.data(RANDOMIZATION.ALWAYS, "true")
     def test_save_problem_submitted_with_randomize(self, rerandomize):
         """Verify saving fails when problem is submitted and rerandomization is enabled."""
-        # Capa XModule treats 'always' and 'true' equivalently
+        # Capa XBlock treats 'always' and 'true' equivalently
         block = CapaFactory.create(rerandomize=rerandomize, done=True)
 
         # Try to save
@@ -2403,8 +2435,10 @@ class ProblemBlockTest(unittest.TestCase):  # pylint: disable=too-many-public-me
             </multiplechoiceresponse>
             <demandhint>
               <hint>
-                <img src="/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-clipart-high-quality-free-_1200-1386.jpeg"> </img>
-                You can add an optional hint like this. Problems that have a hint include a hint button, and this text appears the first time learners select the button.</hint>
+                <img src="/static/7b1d74b2383b7d25a70ae4991190c222_28-collection-of-dark-souls-bonfire-\
+                    clipart-high-quality-free-_1200-1386.jpeg"> </img>
+                You can add an optional hint like this. Problems that have a hint include a hint button,
+                and this text appears the first time learners select the button.</hint>
             </demandhint>
             </problem>"""
         render_template.return_value = "<div>Test Template HTML</div>"
@@ -3647,7 +3681,6 @@ class ComplexEncoderTest(unittest.TestCase):
         # ignore quotes
 
 
-@skip_unless_lms
 @UseUnsafeCodejail()
 @pytest.mark.django_db
 class ProblemCheckTrackingTest(unittest.TestCase):

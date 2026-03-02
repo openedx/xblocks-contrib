@@ -78,9 +78,8 @@ def send_safe_exec_request_v0(data):
     """
     Sends a request to a codejail api service forwarding required code and files.
     Arguments:
-        data: Dict containing code and other parameters
-            required for jailed code execution.
-            It also includes extra_files (python_lib.zip) required by the codejail execution.
+        data: Dict containing code and other parameters required for jailed code execution.
+        It also includes extra_files (python_lib.zip) required by the codejail execution.
     Returns:
         Response received from codejail api service
     """

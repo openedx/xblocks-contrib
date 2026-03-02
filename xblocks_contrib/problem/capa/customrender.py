@@ -23,7 +23,7 @@ registry = TagRegistry()
 # -----------------------------------------------------------------------------
 
 
-class MathRenderer:  # pylint: disable=too-few-public-methods
+class MathRenderer:
     """
     Renders <math> tags into MathJax-compatible HTML for displaying math expressions.
     """
@@ -63,7 +63,7 @@ class MathRenderer:  # pylint: disable=too-few-public-methods
         html = f"<html><html>{self.mathstr}</html><html>{saxutils.escape(self.xml.tail or '')}</html></html>"
         try:
             xhtml = etree.XML(html)
-        except Exception as err:  # pylint: disable=broad-exception-caught
+        except Exception as err:
             if self.system.DEBUG:
                 msg = (
                     f"<html><div class='inline-error'>"
@@ -85,7 +85,7 @@ registry.register(MathRenderer)
 # -----------------------------------------------------------------------------
 
 
-class SolutionRenderer:  # pylint: disable=too-few-public-methods
+class SolutionRenderer:
     """
     A solution is just a <span>...</span> which is given an ID, that is used for displaying an
     extended answer (a problem "solution") after "show answers" is pressed.
@@ -113,7 +113,7 @@ registry.register(SolutionRenderer)
 # -----------------------------------------------------------------------------
 
 
-class TargetedFeedbackRenderer:  # pylint: disable=too-few-public-methods
+class TargetedFeedbackRenderer:
     """
     A targeted feedback is just a <span>...</span> that is used for displaying an
     extended piece of feedback to students if they incorrectly answered a question.
@@ -138,7 +138,7 @@ class TargetedFeedbackRenderer:  # pylint: disable=too-few-public-methods
         try:
             xhtml = etree.XML(html_str)
 
-        except Exception as err:  # pylint: disable=broad-exception-caught
+        except Exception as err:
             if self.system.DEBUG:
                 # xss-lint: disable=python-wrap-html
                 msg = f"""
@@ -163,7 +163,7 @@ registry.register(TargetedFeedbackRenderer)
 # -----------------------------------------------------------------------------
 
 
-class ClarificationRenderer:  # pylint: disable=too-few-public-methods
+class ClarificationRenderer:
     """
     A clarification appears as an inline icon which reveals more information when the user
     hovers over it.

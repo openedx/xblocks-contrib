@@ -16,7 +16,6 @@ from codejail.safe_exec import SafeExecException
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.test import override_settings
-from openedx.core.djangolib.testing.utils import skip_unless_lms
 from six import unichr
 from six.moves import range
 
@@ -94,21 +93,26 @@ class TestSafeExec(unittest.TestCase):
 class TestSafeOrNot(unittest.TestCase):
     """Tests to verify safe vs unsafe execution behavior of code jail."""
 
-    @skip_unless_lms
     def test_cant_do_something_forbidden(self):
         """
         Demonstrates that running unsafe code inside the code jail
         throws SafeExecException, protecting the calling process.
 
-        This test generally is skipped in CI due to its complex setup. That said, we recommend that devs who are
-        hacking on CodeJail or advanced CAPA in any significant way take the time to make sure it passes locally.
-        See either:
-        * in-platform setup: https://github.com/openedx/edx-platform/blob/master/xmodule/capa/safe_exec/README.rst
-        * remote setup (using Tutor): https://github.com/eduNEXT/tutor-contrib-codejail
+        This test is skipped unless a local or remote CodeJail service is
+        properly configured. In xblocks-contrib, the test **will pass**
+        when the CodeJail REST service is running and the following setting
+        is enabled:
 
-        Note on @skip_unless_lms:
-        This test can also be run in a CMS context, but that's giving us trouble in CI right now (the skip logic isn't
-        working). So, if you're running this locally, feel free to remove @skip_unless_lms and run it against CMS too.
+            @override_settings(ENABLE_CODEJAIL_REST_SERVICE=True)
+
+        Developers working on CodeJail integration or advanced CAPA logic
+        are encouraged to run this test locally with CodeJail configured.
+
+        See setup instructions:
+        * in-platform setup:
+        https://github.com/openedx/xblocks-contrib/blob/main/xblocks_contrib/problem/capa/safe_exec/README.rst
+        * remote setup (using Tutor):
+        https://github.com/eduNEXT/tutor-contrib-codejail
         """
         # If in-platform codejail isn't configured...
         if not jail_code.is_configured("python"):
@@ -216,7 +220,7 @@ class TestCodeJailDarkLaunch(unittest.TestCase):
                     limit_overrides_context="course-v1:org+course+run",
                     slug="hw1",
                 )
-            except BaseException as e:  # pylint: disable=broad-exception-caught
+            except BaseException as e:
                 safe_exec_e = e
             else:
                 safe_exec_e = None
@@ -308,7 +312,7 @@ class TestCodeJailDarkLaunch(unittest.TestCase):
 
         def local_exec(code, globals_dict, **kwargs):
             # Raise something other than a SafeExecException.
-            raise expected_error  # pylint: disable=broad-exception-raised
+            raise expected_error
 
         def remote_exec(data):  # pylint: disable=unused-argument
             return (None, None)

@@ -39,7 +39,8 @@ def make_xheader(lms_callback_url, lms_key, queue_name):
     """
     Generate header for delivery and reply of queue request.
 
-    Xqueue header is a JSON-serialized dict:
+    Xqueue header is a JSON-serialized dict::
+
         { 'lms_callback_url': url to which xqueue will return the request (string),
           'lms_key': secret key used by LMS to protect its state (string),
           'queue_name': designate a specific queue within xqueue server, e.g. 'MITx-6.00x' (string)
@@ -50,7 +51,8 @@ def make_xheader(lms_callback_url, lms_key, queue_name):
 
 def parse_xreply(xreply):
     """
-    Parse the reply from xqueue. Messages are JSON-serialized dict:
+    Parse the reply from xqueue. Messages are JSON-serialized dict::
+
         { 'return_code': 0 (success), 1 (fail)
           'content': Message from xqueue (string)
         }
@@ -67,10 +69,10 @@ def parse_xreply(xreply):
     return (return_code, content)
 
 
-class XQueueInterface:  # pylint: disable=too-few-public-methods
+class XQueueInterface:
     """Initializes the XQueue interface."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         url: str,
         django_auth: Dict[str, str],
@@ -156,7 +158,7 @@ class XQueueInterface:  # pylint: disable=too-few-public-methods
             return self._http_post(self.url + "/xqueue/submit/", payload, files=files)
 
         header_info = json.loads(header)
-        queue_key = header_info["lms_key"]  # pylint: disable=unused-variable
+        queue_key = header_info["lms_key"]
 
         if self.use_submission_service:
             submission = self.submission.send_to_submission(  # pylint: disable=unused-variable
