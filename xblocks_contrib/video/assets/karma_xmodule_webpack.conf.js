@@ -26,12 +26,14 @@ var options = {
     specFiles: [],
 
     fixtureFiles: [
-        {pattern: path.join(__dirname, 'tests/fixtures/*.*')},
-        {pattern: path.join(__dirname, 'tests/fixtures/hls/**/*.*')}
+        {pattern: 'tests/fixtures/*.*', included: false},
+        {pattern: 'tests/fixtures/hls/**/*.*', included: false},
+        {pattern: 'fixtures/*.*', included: false},
+        {pattern: 'fixtures/hls/**/*.*', included: false}
     ],
 
     runFiles: [
-        {pattern: 'karma_runner_webpack.js', webpack: true}
+        {pattern: 'assets/karma_runner_webpack.js', webpack: true}
     ],
 
     preprocessors: {}

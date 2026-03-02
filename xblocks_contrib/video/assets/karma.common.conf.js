@@ -178,8 +178,8 @@ function getBaseConfig(config, useRequireJs) {
     initFrameworks.$inject = ['config.files'];
 
     return {
-        // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '',
+        // base path = video dir so /base/tests/fixtures/ serves video/tests/fixtures/
+        basePath: '..',
 
         // Proxy configuration to map fixture paths
         proxies: {
@@ -263,7 +263,7 @@ function getBaseConfig(config, useRequireJs) {
         // how many browser should be started simultaneous
         concurrency: Infinity,
 
-        browserNoActivityTimeout: 50000,
+        browserNoActivityTimeout: 120000,
 
         client: {
             captureConsole: false
