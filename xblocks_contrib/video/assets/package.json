@@ -8,10 +8,10 @@
     "build": "webpack --config webpack.prod.config.js",
     "build-dev": "webpack --config webpack.dev.config.js",
 
-    "test-ci": "npm run karma-testing",
+    "test-ci": "npm run build && npm run karma-testing",
     "test-karma-conf": "${NODE_WRAPPER:-xvfb-run --auto-servernum} node --max_old_space_size=4096 ../../node_modules/.bin/karma start --single-run=true --capture-timeout=60000 --browsers=FirefoxNoUpdates",
     "karma-testing": "npm run test-karma-conf -- karma_xmodule_webpack.conf.js",
-    "test": "karma start karma_xmodule_webpack.conf.js --log-level debug --single-run"
+    "test": "npm run build && karma start karma_xmodule_webpack.conf.js --log-level debug --single-run"
   },
   "dependencies": {
     "draggabilly": "^3",
