@@ -170,6 +170,14 @@ setup(
             # and have been migrated fully from edx-platform or their original
             # repository.
             "pdf = xblock_pdf:PDFBlock",
-        ]
+        ],
+        # Dynamically inject the CAPA problem module as a Django app
+        # so edx-platform natively discovers the templates/ directory.
+        "lms.djangoapp": [
+            "xblocks_contrib_problem_capa = xblocks_contrib.problem.capa.apps:CapaAppConfig",
+        ],
+        "cms.djangoapp": [
+            "xblocks_contrib_problem_capa = xblocks_contrib.problem.capa.apps:CapaAppConfig",
+        ],
     },
 )
