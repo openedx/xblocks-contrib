@@ -14,6 +14,15 @@ Change Log
 Unreleased
 **********
 
+0.13.0 - 2026-03-03
+**********************************************
+
+Added
+=====
+
+* Implemented the Video XBlock, extracted from edx-platform.
+
+
 0.12.1 - 2026-03-03
 **********************************************
 
