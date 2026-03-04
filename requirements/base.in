@@ -12,6 +12,8 @@ edx-opaque-keys
 edx-submissions
 edx-toggles
 html5lib
+edx-django-utils
+edxval
 nh3
 numpy
 oauthlib
@@ -20,4 +22,5 @@ openedx-django-pyfs
 pillow
 random2
 shapely
+wrapt
 XBlock
