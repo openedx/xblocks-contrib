@@ -9,7 +9,7 @@
     "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js"
   },
   "dependencies": {
-    "babel-loader": "^9",
+    "babel-loader": "^10.0.0",
     "edx-ui-toolkit": "^1",
     "exports-loader": "^0.6",
     "imports-loader": "^0.8",
