@@ -1,8 +1,10 @@
 {% load static %}
+<script type="text/gwt-dummy"
+        src="{% static 'js/capa/genex/genex.nocache.js' %}"></script>
 <section id="editageneinput_{{ id }}" class="editageneinput">
     <div class="script_placeholder"
-         data-src="{% static 'js/capa/genex/genex.nocache.js' %}" />
-    <div class="script_placeholder" data-src="{{ applet_loader }}" />
+         data-src="{% static 'js/capa/genex/genex.nocache.js' %}"></div>
+    <div class="script_placeholder" data-src="{{ applet_loader }}"></div>
     {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
         <div class="{{ status.classname }}">
         {% endif %}
@@ -10,23 +12,21 @@
         <input type="hidden"
                name="genex_dna_sequence"
                id="genex_dna_sequence"
-               value="{{ genex_dna_sequence }}">
-    </input>
-    <input type="hidden"
-           name="genex_problem_number"
-           id="genex_problem_number"
-           value="{{ genex_problem_number }}">
-</input>
-<input type="hidden"
-       name="input_{{ id }}"
-       aria-describedby="answer_{{ id }}"
-       id="input_{{ id }}"
-       value="{{ value }}" />
-<p class="indicator-container" aria-describedby="input_{{ id }}">
-    {% include "status_span.html" with status=status status_id=id %}
-</p>
-<p id="answer_{{ id }}" class="answer"></p>
-{% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
-</div>
-{% endif %}
+               value="{{ genex_dna_sequence }}" />
+        <input type="hidden"
+               name="genex_problem_number"
+               id="genex_problem_number"
+               value="{{ genex_problem_number }}" />
+        <input type="hidden"
+               name="input_{{ id }}"
+               aria-describedby="answer_{{ id }}"
+               id="input_{{ id }}"
+               value="{{ value }}" />
+        <p class="indicator-container" aria-describedby="input_{{ id }}">
+            {% include "status_span.html" with status=status status_id=id %}
+        </p>
+        <p id="answer_{{ id }}" class="answer"></p>
+        {% if status == 'unsubmitted' or status == 'correct' or status == 'incorrect' or status == 'partially-correct' or status == 'incomplete' %}
+        </div>
+    {% endif %}
 </section>
