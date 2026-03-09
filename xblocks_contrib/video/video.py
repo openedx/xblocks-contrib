@@ -59,12 +59,12 @@ from xblocks_contrib.video.video_transcripts_utils import (
     subs_filename,
 )
 from xblocks_contrib.video.video_utils import (
+    _get_edxval_api,
     create_youtube_string,
     format_xml_exception_message,
     get_poster,
     get_resource_url,
     rewrite_video_url,
-    _get_edxval_api
 )
 from xblocks_contrib.video.video_xfields import VideoFields
 

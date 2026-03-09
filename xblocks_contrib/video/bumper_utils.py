@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 from django.conf import settings
 
-from .video_utils import set_query_parameter, _get_edxval_api
+from .video_utils import _get_edxval_api, set_query_parameter
 
 log = logging.getLogger(__name__)
 
