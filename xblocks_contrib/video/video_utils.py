@@ -220,7 +220,7 @@ def _get_edxval_api():
     during Django startup.
     """
     try:
-        import edxval.api as edxval_api
+        import edxval.api as edxval_api  # pylint: disable=import-outside-toplevel
         return edxval_api
     except ImportError:
         return None
