@@ -636,11 +636,13 @@ class VideoBlockImportTestCase(TestCase):
             'data': ''
         })
 
-    @patch('xblocks_contrib.video.video.edxval_api')
-    def test_import_val_data(self, mock_val_api):
+    @patch('xblocks_contrib.video.video.get_edxval_api')
+    def test_import_val_data(self, mock_get_edxval_api):
         """
         Test that `parse_xml` works method works as expected.
         """
+        mock_val_api = mock_get_edxval_api.return_value
+
         def mock_val_import(xml, edx_video_id, resource_fs, static_dir, external_transcripts, *, course_id=None):
             """Mock edxval.api.import_parse_xml"""
             assert xml.tag == 'video_asset'
@@ -681,8 +683,9 @@ class VideoBlockImportTestCase(TestCase):
             course_id='test_course_id'
         )
 
-    @patch('xblocks_contrib.video.video.edxval_api')
-    def test_import_val_data_invalid(self, mock_val_api):
+    @patch('xblocks_contrib.video.video.get_edxval_api')
+    def test_import_val_data_invalid(self, mock_get_edxval_api):
+        mock_val_api = mock_get_edxval_api.return_value
         mock_val_api.ValCannotCreateError = _MockValCannotCreateError
         mock_val_api.import_from_xml = Mock(side_effect=mock_val_api.ValCannotCreateError)
         module_system = DummyRuntime(load_error_blocks=True)
@@ -709,11 +712,12 @@ class VideoExportTestCase(VideoBlockTestBase):
         self.file_system = OSFS(self.temp_dir)
         self.addCleanup(shutil.rmtree, self.temp_dir)
 
-    @patch('xblocks_contrib.video.video.edxval_api')
-    def test_export_to_xml(self, mock_val_api):
+    @patch('xblocks_contrib.video.video.get_edxval_api')
+    def test_export_to_xml(self, mock_get_edxval_api):
         """
         Test that we write the correct XML on export.
         """
+        mock_val_api = mock_get_edxval_api.return_value
         edx_video_id = 'test_edx_video_id'
         mock_val_api.export_to_xml = Mock(
             return_value={"xml": etree.Element('video_asset'), "transcripts": {}}
@@ -806,8 +810,9 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch('xblocks_contrib.video.video.edxval_api')
-    def test_export_to_xml_val_error(self, mock_val_api):
+    @patch('xblocks_contrib.video.video.get_edxval_api')
+    def test_export_to_xml_val_error(self, mock_get_edxval_api):
+        mock_val_api = mock_get_edxval_api.return_value
         # Export should succeed without VAL data if video does not exist
         mock_val_api.ValVideoNotFoundError = _MockValVideoNotFoundError
         mock_val_api.export_to_xml = Mock(side_effect=mock_val_api.ValVideoNotFoundError)
@@ -819,8 +824,8 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch('xblocks_contrib.video.video.edxval_api', None)
-    def test_export_to_xml_empty_end_time(self):
+    @patch('xblocks_contrib.video.video.get_edxval_api', return_value=None)
+    def test_export_to_xml_empty_end_time(self, _mock_get_edxval_api):
         """
         Test that we write the correct XML on export.
         """
@@ -850,8 +855,8 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = etree.XML(xml_string, parser=parser)
         self.assertXmlEqual(expected, xml)
 
-    @patch('xblocks_contrib.video.video.edxval_api', None)
-    def test_export_to_xml_empty_parameters(self):
+    @patch('xblocks_contrib.video.video.get_edxval_api', return_value=None)
+    def test_export_to_xml_empty_parameters(self, _mock_get_edxval_api):
         """
         Test XML export with defaults.
         """
@@ -860,8 +865,8 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = '<video youtube="1.00:3_yD_cEKoCk" url_name="SampleProblem"/>\n'
         assert expected == etree.tostring(xml, pretty_print=True).decode('utf-8')
 
-    @patch('xblocks_contrib.video.video.edxval_api', None)
-    def test_export_to_xml_with_transcripts_as_none(self):
+    @patch('xblocks_contrib.video.video.get_edxval_api', return_value=None)
+    def test_export_to_xml_with_transcripts_as_none(self, _mock_get_edxval_api):
         """
         Test XML export with transcripts being overridden to None.
         """
@@ -870,8 +875,8 @@ class VideoExportTestCase(VideoBlockTestBase):
         expected = b'<video youtube="1.00:3_yD_cEKoCk" url_name="SampleProblem"/>\n'
         assert expected == etree.tostring(xml, pretty_print=True)
 
-    @patch('xblocks_contrib.video.video.edxval_api', None)
-    def test_export_to_xml_invalid_characters_in_attributes(self):
+    @patch('xblocks_contrib.video.video.get_edxval_api', return_value=None)
+    def test_export_to_xml_invalid_characters_in_attributes(self, _mock_get_edxval_api):
         """
         Test XML export will *not* raise TypeError by lxml library if contains illegal characters.
         The illegal characters in a String field are removed from the string instead.
@@ -880,8 +885,8 @@ class VideoExportTestCase(VideoBlockTestBase):
         xml = self.block.definition_to_xml(self.file_system)
         assert xml.get('display_name') == 'DisplayName'
 
-    @patch('xblocks_contrib.video.video.edxval_api', None)
-    def test_export_to_xml_unicode_characters(self):
+    @patch('xblocks_contrib.video.video.get_edxval_api', return_value=None)
+    def test_export_to_xml_unicode_characters(self, _mock_get_edxval_api):
         """
         Test XML export handles the unicode characters.
         """
