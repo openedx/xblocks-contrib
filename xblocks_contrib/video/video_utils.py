@@ -214,7 +214,7 @@ def get_resource_url(xblock, path, package_scope=None):
     return xblock.runtime.local_resource_url(xblock, resource_path)
 
 
-def _get_edxval_api():
+def get_edxval_api():
     """
     Lazy import for edxval_api to prevent AppRegistryNotReady errors
     during Django startup.
