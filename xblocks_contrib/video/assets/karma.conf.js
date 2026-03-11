@@ -160,7 +160,9 @@ function getBaseConfig(config) {
 
         // Proxy configuration to map fixture paths
         proxies: {
-            '/base/fixtures/': '/base/tests/fixtures/'
+            '/base/fixtures/': '/base/tests/fixtures/',
+            '/media/video-images/': '/base/tests/fixtures/',
+            '/static/images/': '/base/tests/fixtures/'
         },
 
         // frameworks to use
@@ -296,9 +298,7 @@ var options = {
     ],
     fixtureFiles: [
         {pattern: 'tests/fixtures/*.*', included: false},
-        {pattern: 'tests/fixtures/hls/**/*.*', included: false},
-        {pattern: 'fixtures/*.*', included: false},
-        {pattern: 'fixtures/hls/**/*.*', included: false}
+        {pattern: 'tests/fixtures/hls/**/*.*', included: false}
     ],
     runFiles: [
         {pattern: 'assets/karma.webpack.entry.js', webpack: true}
