@@ -27,8 +27,8 @@
             expect($('.poster')).toExist();
             expect($('.btn-play')).toExist();
         });
-// TODO: Fix this test        
-        xit('can start playing the video on click', function(done) {
+  
+        it('can start playing the video on click', function(done) {
             $('.btn-play').click();
             jasmine.waitUntil(function() {
                 return state.el.hasClass('is-playing');
