@@ -140,3 +140,11 @@ def test_download_event_fires(mock_publish):
             "source_url": "",
         }
     )
+
+
+def test_get_settings():
+    """Test that fetching the block's settings works."""
+    block = make_block()
+    request = mock_handle_request({}, method="GET")
+    result = json.loads(block.load_pdf(request).body)
+    assert result["display_name"] == "PDF"
