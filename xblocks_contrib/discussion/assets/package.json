@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.prod.config.js",
+    "build-dev": "webpack --config webpack.dev.config.js"
+  },
+  "devDependencies": {
+    "backbone": "^1",
+    "backbone-associations": "^0.6",
+    "backbone.paginator": "^2",
+    "append-prepend-loader": "^1.0.0",
+    "copy-webpack-plugin": "13.0.1",
+    "imports-loader": "^0.8",
+    "webpack": "^5",
+    "webpack-cli": "^5"
+  }
+}
