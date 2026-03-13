@@ -62,7 +62,7 @@ def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
 
 
 @XBlock.needs("i18n")
-@XBlock.wants("user")
+@XBlock.needs("user")
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     """
