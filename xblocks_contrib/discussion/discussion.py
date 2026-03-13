@@ -54,15 +54,9 @@ def HTML(html):                                 # pylint: disable=invalid-name
     return markupsafe.Markup(html)
 
 
-def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
-    """
-    Return True if discussions are enabled; else False
-    """
-    return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
-
-
 @XBlock.needs("i18n")
 @XBlock.needs("user")
+@XBlock.wants('discussion_config_service')
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     """
