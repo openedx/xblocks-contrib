@@ -13,6 +13,59 @@ Change Log
 
 Unreleased
 **********
+
+0.13.1 - 2026-03-09
+**********************************************
+
+Fixed
+=====
+
+* Fix TemplateDoesNotExist Error for capa templates.
+
+0.13.0 - 2026-03-03
+**********************************************
+
+Added
+=====
+
+* Implemented the Video XBlock, extracted from edx-platform.
+
+
+0.12.1 - 2026-03-03
+**********************************************
+
+Added
+=====
+
+* Adds Capa app entrypoints in setup.py.
+
+
+0.12.0 - 2026-03-02
+**********************************************
+
+Added
+=====
+
+* Implemented the Problem XBlock, extracted from edx-platform.
+
+
+
+0.11.1 - 2026-02-27
+**********************************************
+
+Fixed
+=====
+
+* Package data for PDF block (templates, static assets) was missing and is now included.
+
+0.11.0 - 2026-01-26
+**********************************************
+
+Added
+=====
+
+* Implemented PDF Block, extracted from third party plugin.
+
 0.6.0 – 2025-08-13
 **********************************************
 

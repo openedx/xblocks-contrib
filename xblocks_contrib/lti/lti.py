@@ -76,13 +76,8 @@ from web_fragments.fragment import Fragment
 from webob import Response
 from xblock.core import List, Scope, String, XBlock
 from xblock.fields import Boolean, Float, UserScope
-
-try:
-    from xblock.utils.resources import ResourceLoader
-    from xblock.utils.studio_editable import StudioEditableXBlockMixin
-except ModuleNotFoundError:
-    from xblockutils.resources import ResourceLoader
-    from xblockutils.studio_editable import StudioEditableXBlockMixin
+from xblock.utils.resources import ResourceLoader
+from xblock.utils.studio_editable import StudioEditableXBlockMixin
 
 from xblocks_contrib.common.xml_utils import LegacyXmlMixin
 
@@ -774,9 +769,9 @@ class LTIBlock(
         Return course by course id.
 
         Note: This only works for Modulestore-backed courses.
-              It will return None for Learning-Core-backed content libraries.
+              It will return None for openedx_content-backed libraries.
               In general, please do not add new code that access Modulestore, because it
-              will not work in Learning Core. We do it here just to support a legacy feature.
+              will not work with openedx_content. We do it here just to support a legacy feature.
         """
         if isinstance(self.location.course_key, CourseKey):
             return self.runtime.modulestore.get_course(self.location.course_key)
@@ -807,7 +802,7 @@ class LTIBlock(
 
     def get_icon_class(self):
         """ Returns the icon class """
-        if self.graded and self.has_score:
+        if self.graded and self.has_score:  # pylint: disable=no-member
             return 'problem'
         return 'other'
 
