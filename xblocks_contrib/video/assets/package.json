@@ -19,7 +19,7 @@
     "webpack-merge": "^6"
   },
   "devDependencies": {
-    "bootstrap": "^4.6",
+    "bootstrap": "^5.0.0",
     "copy-webpack-plugin": "^13",
     "clean-webpack-plugin": "^4",
     "webpack": "^5",
