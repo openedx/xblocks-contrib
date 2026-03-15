@@ -27,7 +27,7 @@
     "karma-requirejs": "^1",
     "karma-sourcemap-loader": "^0.4",
     "karma-spec-reporter": "0.0.20",
-    "karma": "^0.13",
+    "karma": "^6.3.16",
     "string-replace-loader": "^3",
     "webpack-cli": "^5"
   }
