@@ -248,7 +248,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 'enable_discussion_home_panel': settings.FEATURES.get("ENABLE_DISCUSSION_HOME_PANEL", True),
             }
             fragment.add_content(
-                render_to_string('discussion/_discussion_inline.html', context)
+                render_to_string('discussion_templates/_discussion_inline.html', context)
             )
 
         fragment.initialize_js('DiscussionInlineBlock')
