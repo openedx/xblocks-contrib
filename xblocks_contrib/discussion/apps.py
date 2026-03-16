@@ -34,7 +34,7 @@ class DiscussionAppConfig(AppConfig):
 
     - Django App Directories Loader:
       https://docs.djangoproject.com/en/stable/ref/templates/api/#django.template.loaders.app_directories.Loader
-    
+
     """
 
     name = "xblocks_contrib.discussion"
