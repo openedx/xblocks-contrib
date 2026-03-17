@@ -14,6 +14,14 @@ Change Log
 Unreleased
 **********
 
+0.15.0 - 2026-03-18
+**********************************************
+
+Added
+=====
+
+* Implemented the Discussion XBlock, extracted from edx-platform.
+
 0.13.1 - 2026-03-09
 **********************************************
 
