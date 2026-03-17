@@ -114,22 +114,6 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
         return self.discussion_config.is_discussion_visible(self.course_key)
 
-    @staticmethod
-    def _discussion_js_resource_path():
-        """
-        Returns the URL for the local resource.
-
-        Note: when running with the full Django pipeline, the file will be accessed
-        as a static asset which will use a CDN in production.
-
-        For more details, see platform's xblock_local_resource_url() define in:
-        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
-        """
-        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
-            return 'discussion/public/js/discussion_bundle.js'
-        else:
-            return 'public/js/discussion_bundle.js'
-
     @property
     def django_user(self):
         """
@@ -147,15 +131,24 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
 
         css_file_path = (
-            'public/css/inline-discussion-rtl.css'
+            '/css/inline-discussion-rtl.css'
             if get_language_bidi()
-            else 'public/css/inline-discussion.css'
+            else '/css/inline-discussion.css'
         )
-        fragment.add_css_url(self.runtime.local_resource_url(self, css_file_path))
 
-        bundle_path = self._discussion_js_resource_path()
-        bundle_url = self.runtime.local_resource_url(self, bundle_path)
-        fragment.add_resource_url(bundle_url, 'application/javascript')
+        # Determine how static assets should be served based on Django settings.
+        # Open edX requires different asset paths for production vs. local development.
+        pipeline = getattr(settings, "PIPELINE", {})
+        use_pipeline = pipeline.get("PIPELINE_ENABLED", True) or not getattr(settings, "REQUIRE_DEBUG", False)
+
+        # When the Django pipeline is active (production), XBlock assets are namespaced
+        # using the package scope (e.g., "discussion/public").
+        # When inactive (local dev fallback), they are served directly from "public".
+        # https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py#L417
+        base_path = "discussion/public" if use_pipeline else "public"
+
+        fragment.add_css_url(self.runtime.local_resource_url(self, f"{base_path}{css_file_path}"))
+        fragment.add_javascript_url(self.runtime.local_resource_url(self, f"{base_path}/js/discussion_bundle.js"))
 
     def has_permission(self, permission):  # pylint: disable=unused-argument
         """
