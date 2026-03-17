@@ -18,9 +18,9 @@ cffi==2.0.0
     # via
     #   cryptography
     #   pynacl
-chardet==7.0.1
+chardet==7.1.0
     # via pysrt
-charset-normalizer==3.4.5
+charset-normalizer==3.4.6
     # via requests
 chem==2.0.0
     # via -r requirements/base.in
@@ -29,7 +29,7 @@ click==8.3.1
     #   code-annotations
     #   edx-django-utils
     #   nltk
-code-annotations==2.3.2
+code-annotations==3.0.0
     # via edx-toggles
 cryptography==46.0.5
     # via pyjwt
@@ -146,7 +146,7 @@ numpy==2.4.3
     #   shapely
 oauthlib==3.3.1
     # via -r requirements/base.in
-openedx-calc==4.0.3
+openedx-calc==5.0.0
     # via -r requirements/base.in
 path==17.1.1
     # via -r requirements/base.in
@@ -156,7 +156,7 @@ psutil==7.2.2
     # via edx-django-utils
 pycparser==3.0
     # via cffi
-pyjwt[crypto]==2.11.0
+pyjwt[crypto]==2.12.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
