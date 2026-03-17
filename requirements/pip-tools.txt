@@ -19,8 +19,17 @@ pyproject-hooks==1.2.0
     #   build
     #   pip-tools
 wheel==0.46.3
-    # via pip-tools
+    # via
+    #   -r requirements/pip-tools.in
+    #   pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
-# setuptools
+pip==26.0.1
+    # via
+    #   -r requirements/pip-tools.in
+    #   pip-tools
+setuptools==80.9.0
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/pip-tools.in
+    #   pip-tools

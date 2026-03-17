@@ -8,143 +8,220 @@ appdirs==1.4.4
     # via
     #   -r requirements/base.txt
     #   fs
-arrow==1.4.0
-    # via cookiecutter
 asgiref==3.11.1
     # via
     #   -r requirements/base.txt
     #   django
-binaryornot==0.4.4
-    # via cookiecutter
-boto3==1.42.49
+beautifulsoup4==4.14.3
+    # via -r requirements/base.txt
+cachetools==7.0.4
     # via
     #   -r requirements/base.txt
-    #   fs-s3fs
-botocore==1.42.49
-    # via
-    #   -r requirements/base.txt
-    #   boto3
-    #   s3transfer
-cachetools==7.0.1
-    # via tox
-certifi==2026.1.4
-    # via requests
-chardet==5.2.0
-    # via
-    #   binaryornot
+    #   edxval
     #   tox
-charset-normalizer==3.4.4
-    # via requests
+certifi==2026.2.25
+    # via
+    #   -r requirements/base.txt
+    #   requests
+cffi==2.0.0
+    # via
+    #   -r requirements/base.txt
+    #   cryptography
+    #   pynacl
+chardet==7.0.1
+    # via
+    #   -r requirements/base.txt
+    #   pysrt
+charset-normalizer==3.4.5
+    # via
+    #   -r requirements/base.txt
+    #   requests
+chem==2.0.0
+    # via -r requirements/base.txt
 click==8.3.1
     # via
+    #   -r requirements/base.txt
     #   code-annotations
-    #   cookiecutter
-code-annotations==2.3.0
-    # via -r requirements/test.in
+    #   edx-django-utils
+    #   nltk
+code-annotations==2.3.2
+    # via
+    #   -r requirements/base.txt
+    #   edx-toggles
 colorama==0.4.6
     # via tox
-cookiecutter==2.6.0
-    # via xblock-sdk
 coverage[toml]==7.13.4
     # via pytest-cov
+cryptography==46.0.5
+    # via
+    #   -r requirements/base.txt
+    #   pyjwt
 ddt==1.7.2
     # via -r requirements/test.in
+defusedxml==0.7.1
+    # via -r requirements/base.txt
 distlib==0.4.0
     # via virtualenv
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
-    #   django-appconf
-    #   django-statici18n
-    #   edx-i18n-tools
-    #   openedx-django-pyfs
-    #   xblock-sdk
-django-appconf==1.2.0
+    #   django-crum
+    #   django-model-utils
+    #   django-storages
+    #   django-waffle
+    #   djangorestframework
+    #   drf-jwt
+    #   edx-django-release-util
+    #   edx-django-utils
+    #   edx-drf-extensions
+    #   edx-submissions
+    #   edx-toggles
+    #   edxval
+    #   jsonfield
+django-crum==0.7.9
     # via
     #   -r requirements/base.txt
-    #   django-statici18n
-django-statici18n==2.6.0
-    # via -r requirements/base.txt
+    #   edx-django-utils
+    #   edx-toggles
+django-model-utils==5.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-submissions
+    #   edxval
+django-storages==1.14.6
+    # via
+    #   -r requirements/base.txt
+    #   edxval
+django-waffle==5.0.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+    #   edx-drf-extensions
+    #   edx-toggles
+djangorestframework==3.16.1
+    # via
+    #   -r requirements/base.txt
+    #   drf-jwt
+    #   edx-drf-extensions
+    #   edx-submissions
 dnspython==2.8.0
     # via
     #   -r requirements/base.txt
     #   pymongo
-edx-i18n-tools==1.9.0
-    # via -r requirements/base.txt
-edx-opaque-keys==3.0.0
+drf-jwt==1.19.2
     # via
     #   -r requirements/base.txt
-    #   -r requirements/test.in
-filelock==3.24.1
+    #   edx-drf-extensions
+edx-codejail==4.1.0
+    # via -r requirements/base.txt
+edx-django-release-util==1.5.0
     # via
+    #   -r requirements/base.txt
+    #   edx-submissions
+    #   edxval
+edx-django-utils==8.0.1
+    # via
+    #   -r requirements/base.txt
+    #   edx-drf-extensions
+    #   edx-toggles
+edx-drf-extensions==10.6.0
+    # via
+    #   -r requirements/base.txt
+    #   edxval
+edx-opaque-keys==3.1.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-drf-extensions
+edx-submissions==3.12.2
+    # via -r requirements/base.txt
+edx-toggles==5.4.1
+    # via
+    #   -r requirements/base.txt
+    #   edxval
+edxval==3.2.0
+    # via -r requirements/base.txt
+filelock==3.25.0
+    # via
+    #   python-discovery
     #   tox
     #   virtualenv
 fs==2.4.16
     # via
     #   -r requirements/base.txt
-    #   fs-s3fs
-    #   openedx-django-pyfs
     #   xblock
-fs-s3fs==1.1.1
+html5lib==1.1
+    # via -r requirements/base.txt
+idna==3.11
     # via
     #   -r requirements/base.txt
-    #   openedx-django-pyfs
-    #   xblock-sdk
-idna==3.11
-    # via requests
+    #   requests
 iniconfig==2.3.0
     # via pytest
 jinja2==3.1.6
     # via
+    #   -r requirements/base.txt
     #   code-annotations
-    #   cookiecutter
-jmespath==1.1.0
+joblib==1.5.3
     # via
     #   -r requirements/base.txt
-    #   boto3
-    #   botocore
-lxml[html-clean]==6.0.2
+    #   nltk
+jsonfield==3.2.0
     # via
     #   -r requirements/base.txt
-    #   edx-i18n-tools
-    #   lxml-html-clean
+    #   edx-submissions
+lxml==6.0.2
+    # via
+    #   -r requirements/base.txt
+    #   edxval
+    #   openedx-calc
     #   xblock
-    #   xblock-sdk
-lxml-html-clean==0.4.3
-    # via
-    #   -r requirements/base.txt
-    #   lxml
 mako==1.3.10
     # via
     #   -r requirements/base.txt
     #   xblock
-markdown-it-py==4.0.0
-    # via rich
 markupsafe==3.0.3
     # via
     #   -r requirements/base.txt
+    #   chem
     #   jinja2
     #   mako
+    #   openedx-calc
     #   xblock
-mdurl==0.1.2
-    # via markdown-it-py
+mpmath==1.3.0
+    # via
+    #   -r requirements/base.txt
+    #   sympy
 nh3==0.3.3
     # via -r requirements/base.txt
+nltk==3.9.3
+    # via
+    #   -r requirements/base.txt
+    #   chem
+numpy==2.4.2
+    # via
+    #   -r requirements/base.txt
+    #   chem
+    #   openedx-calc
+    #   scipy
+    #   shapely
 oauthlib==3.3.1
     # via -r requirements/base.txt
-openedx-django-pyfs==3.8.0
+openedx-calc==4.0.3
     # via -r requirements/base.txt
 packaging==26.0
     # via
     #   pyproject-api
     #   pytest
     #   tox
-path==16.16.0
+path==17.1.1
+    # via -r requirements/base.txt
+pillow==12.1.1
     # via
     #   -r requirements/base.txt
-    #   edx-i18n-tools
-platformdirs==4.9.1
+    #   edxval
+platformdirs==4.9.4
     # via
+    #   python-discovery
     #   tox
     #   virtualenv
 pluggy==1.6.0
@@ -152,24 +229,43 @@ pluggy==1.6.0
     #   pytest
     #   pytest-cov
     #   tox
-polib==1.2.0
+psutil==7.2.2
     # via
     #   -r requirements/base.txt
-    #   edx-i18n-tools
-pygments==2.19.2
+    #   edx-django-utils
+pycparser==3.0
     # via
-    #   pytest
-    #   rich
+    #   -r requirements/base.txt
+    #   cffi
+pygments==2.19.2
+    # via pytest
+pyjwt[crypto]==2.11.0
+    # via
+    #   -r requirements/base.txt
+    #   drf-jwt
+    #   edx-drf-extensions
 pymongo==4.16.0
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
-pypng==0.20220715.0
-    # via xblock-sdk
+pynacl==1.6.2
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-utils
+pyparsing==3.3.2
+    # via
+    #   -r requirements/base.txt
+    #   chem
+    #   openedx-calc
 pyproject-api==1.10.0
     # via tox
+pysrt==1.1.2
+    # via
+    #   -r requirements/base.txt
+    #   edxval
 pytest==9.0.2
     # via
+    #   -r requirements/test.in
     #   pytest-cov
     #   pytest-django
 pytest-cov==7.0.0
@@ -179,87 +275,114 @@ pytest-django==4.12.0
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements/base.txt
-    #   arrow
-    #   botocore
     #   xblock
+python-discovery==1.1.1
+    # via virtualenv
 python-slugify==8.0.4
     # via
+    #   -r requirements/base.txt
     #   code-annotations
-    #   cookiecutter
-pytz==2025.2
+pytz==2026.1.post1
     # via
     #   -r requirements/base.txt
+    #   edx-submissions
     #   xblock
 pyyaml==6.0.3
     # via
     #   -r requirements/base.txt
     #   code-annotations
-    #   cookiecutter
-    #   edx-i18n-tools
+    #   edx-django-release-util
     #   xblock
-requests==2.32.5
-    # via
-    #   cookiecutter
-    #   xblock-sdk
-rich==14.3.2
-    # via cookiecutter
-s3transfer==0.16.0
+random2==1.0.2
+    # via -r requirements/base.txt
+regex==2026.2.28
     # via
     #   -r requirements/base.txt
-    #   boto3
+    #   nltk
+requests==2.32.5
+    # via
+    #   -r requirements/base.txt
+    #   edx-drf-extensions
+scipy==1.17.1
+    # via
+    #   -r requirements/base.txt
+    #   chem
+semantic-version==2.10.0
+    # via
+    #   -r requirements/base.txt
+    #   edx-drf-extensions
+shapely==2.1.2
+    # via -r requirements/base.txt
 simplejson==3.20.2
     # via
     #   -r requirements/base.txt
     #   xblock
-    #   xblock-sdk
 six==1.17.0
     # via
     #   -r requirements/base.txt
+    #   -r requirements/test.in
+    #   edx-codejail
+    #   edx-django-release-util
     #   fs
-    #   fs-s3fs
+    #   html5lib
     #   python-dateutil
+soupsieve==2.8.3
+    # via
+    #   -r requirements/base.txt
+    #   beautifulsoup4
 sqlparse==0.5.5
     # via
     #   -r requirements/base.txt
     #   django
-stevedore==5.6.0
+stevedore==5.7.0
     # via
     #   -r requirements/base.txt
     #   code-annotations
+    #   edx-django-utils
     #   edx-opaque-keys
+sympy==1.14.0
+    # via
+    #   -r requirements/base.txt
+    #   openedx-calc
 text-unidecode==1.3
-    # via python-slugify
-tox==4.36.0
+    # via
+    #   -r requirements/base.txt
+    #   python-slugify
+tomli-w==1.2.0
+    # via tox
+tox==4.49.0
     # via -r requirements/test.in
+tqdm==4.67.3
+    # via
+    #   -r requirements/base.txt
+    #   nltk
 typing-extensions==4.15.0
     # via
     #   -r requirements/base.txt
+    #   beautifulsoup4
     #   edx-opaque-keys
-tzdata==2025.3
-    # via arrow
 urllib3==2.6.3
     # via
     #   -r requirements/base.txt
-    #   botocore
     #   requests
-virtualenv==20.36.1
+virtualenv==21.1.0
     # via tox
 web-fragments==3.1.0
     # via
     #   -r requirements/base.txt
     #   xblock
-    #   xblock-sdk
+webencodings==0.5.1
+    # via
+    #   -r requirements/base.txt
+    #   html5lib
 webob==1.8.9
     # via
     #   -r requirements/base.txt
     #   xblock
-    #   xblock-sdk
+wrapt==2.1.2
+    # via -r requirements/base.txt
 xblock==5.3.0
-    # via
-    #   -r requirements/base.txt
-    #   xblock-sdk
-xblock-sdk==0.13.0
-    # via -r requirements/test.in
+    # via -r requirements/base.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

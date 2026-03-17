@@ -54,15 +54,9 @@ def HTML(html):                                 # pylint: disable=invalid-name
     return markupsafe.Markup(html)
 
 
-def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
-    """
-    Return True if discussions are enabled; else False
-    """
-    return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
-
-
 @XBlock.needs("i18n")
-@XBlock.wants("user")
+@XBlock.needs("user")
+@XBlock.wants('discussion_config_service')
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     """
@@ -103,6 +97,13 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     has_author_view = True  # Tells Studio to use author_view
 
     @property
+    def discussion_config(self):
+        """
+        Returns discussion service.
+        """
+        return self.runtime.service(self, 'discussion_config_service')
+
+    @property
     def course_key(self):
         return getattr(self.scope_ids.usage_id, 'course_key', None)
 
@@ -111,10 +112,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
         Discussion Xblock does not support new OPEN_EDX provider
         """
-        # TO-DO: Need to fix import issues
-        # provider = DiscussionsConfiguration.get(self.course_key)
-        # return provider.provider_type == Provider.LEGACY
-        return True
+        return self.discussion_config.is_discussion_visible(self.course_key)
 
     @staticmethod
     def _discussion_js_resource_path():
@@ -168,9 +166,10 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         :param str permission: Permission
         :rtype: bool
         """
-        # TO-DO: Need to fix import issues
-        # return has_permission(self.django_user, permission, self.course_key)
-        return True
+        if self.discussion_config:
+            return self.discussion_config.has_permission(self.django_user, permission, self.course_key)
+        else:
+            return False
 
     def student_view(self, context=None):
         """
@@ -203,7 +202,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 ),
             )
 
-        if is_discussion_enabled(self.course_key):
+        if self.discussion_config.is_discussion_enabled:
             context = {
                 'discussion_id': self.discussion_id,
                 'display_name': self.display_name if self.display_name else _("Discussion"),
@@ -215,9 +214,11 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 'can_create_comment': self.has_permission("create_comment"),
                 'can_create_subcomment': self.has_permission("create_sub_comment"),
                 'login_msg': login_msg,
+                'PLATFORM_NAME': settings.PLATFORM_NAME,
+                'enable_discussion_home_panel': settings.FEATURES.get("ENABLE_DISCUSSION_HOME_PANEL", False),
             }
             fragment.add_content(
-                render_to_string('discussion/_discussion_inline.html', context)
+                render_to_string('discussion_templates/_discussion_inline.html', context)
             )
 
         fragment.initialize_js('DiscussionInlineBlock')

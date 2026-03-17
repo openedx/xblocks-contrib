@@ -22,14 +22,19 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install npm dependencies and build
+        run: |
+          npm ci
+          npm run build
+
       - name: Install dependencies
-        run: pip install -r requirements/pip.txt
+        run: pip install -r requirements/pip-tools.txt
 
       - name: Build package
         run: python setup.py sdist bdist_wheel
 
       - name: Publish to PyPi
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
