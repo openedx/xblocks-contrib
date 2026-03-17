@@ -28,11 +28,11 @@ cffi==2.0.0
     #   -r requirements/base.txt
     #   cryptography
     #   pynacl
-chardet==7.0.1
+chardet==7.1.0
     # via
     #   -r requirements/base.txt
     #   pysrt
-charset-normalizer==3.4.5
+charset-normalizer==3.4.6
     # via
     #   -r requirements/base.txt
     #   requests
@@ -44,7 +44,7 @@ click==8.3.1
     #   code-annotations
     #   edx-django-utils
     #   nltk
-code-annotations==2.3.2
+code-annotations==3.0.0
     # via
     #   -r requirements/base.txt
     #   edx-toggles
@@ -140,7 +140,7 @@ edx-toggles==5.4.1
     #   edxval
 edxval==3.2.0
     # via -r requirements/base.txt
-filelock==3.25.1
+filelock==3.25.2
     # via
     #   python-discovery
     #   tox
@@ -206,7 +206,7 @@ numpy==2.4.3
     #   shapely
 oauthlib==3.3.1
     # via -r requirements/base.txt
-openedx-calc==4.0.3
+openedx-calc==5.0.0
     # via -r requirements/base.txt
 packaging==26.0
     # via
@@ -239,7 +239,7 @@ pycparser==3.0
     #   cffi
 pygments==2.19.2
     # via pytest
-pyjwt[crypto]==2.11.0
+pyjwt[crypto]==2.12.1
     # via
     #   -r requirements/base.txt
     #   drf-jwt
