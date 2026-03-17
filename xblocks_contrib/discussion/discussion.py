@@ -54,15 +54,9 @@ def HTML(html):                                 # pylint: disable=invalid-name
     return markupsafe.Markup(html)
 
 
-def is_discussion_enabled(course_id):  # pylint: disable=unused-argument
-    """
-    Return True if discussions are enabled; else False
-    """
-    return settings.FEATURES.get('ENABLE_DISCUSSION_SERVICE')
-
-
 @XBlock.needs("i18n")
-@XBlock.wants("user")
+@XBlock.needs("user")
+@XBlock.wants('discussion_config_service')
 # pylint: disable=abstract-method
 class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     """
@@ -103,6 +97,13 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
     has_author_view = True  # Tells Studio to use author_view
 
     @property
+    def discussion_config(self):
+        """
+        Returns discussion service.
+        """
+        return self.runtime.service(self, 'discussion_config_service')
+
+    @property
     def course_key(self):
         return getattr(self.scope_ids.usage_id, 'course_key', None)
 
@@ -111,26 +112,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
         Discussion Xblock does not support new OPEN_EDX provider
         """
-        # TO-DO: Need to fix import issues
-        # provider = DiscussionsConfiguration.get(self.course_key)
-        # return provider.provider_type == Provider.LEGACY
-        return True
-
-    @staticmethod
-    def _discussion_js_resource_path():
-        """
-        Returns the URL for the local resource.
-
-        Note: when running with the full Django pipeline, the file will be accessed
-        as a static asset which will use a CDN in production.
-
-        For more details, see platform's xblock_local_resource_url() define in:
-        https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py
-        """
-        if settings.PIPELINE.get('PIPELINE_ENABLED', False) or not getattr(settings, 'REQUIRE_DEBUG', False):
-            return 'discussion/public/js/discussion_bundle.js'
-        else:
-            return 'public/js/discussion_bundle.js'
+        return self.discussion_config.is_discussion_visible(self.course_key)
 
     @property
     def django_user(self):
@@ -149,15 +131,24 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         """
 
         css_file_path = (
-            'public/css/inline-discussion-rtl.css'
+            '/css/inline-discussion-rtl.css'
             if get_language_bidi()
-            else 'public/css/inline-discussion.css'
+            else '/css/inline-discussion.css'
         )
-        fragment.add_css_url(self.runtime.local_resource_url(self, css_file_path))
 
-        bundle_path = self._discussion_js_resource_path()
-        bundle_url = self.runtime.local_resource_url(self, bundle_path)
-        fragment.add_resource_url(bundle_url, 'application/javascript')
+        # Determine how static assets should be served based on Django settings.
+        # Open edX requires different asset paths for production vs. local development.
+        pipeline = getattr(settings, "PIPELINE", {})
+        use_pipeline = pipeline.get("PIPELINE_ENABLED", True) or not getattr(settings, "REQUIRE_DEBUG", False)
+
+        # When the Django pipeline is active (production), XBlock assets are namespaced
+        # using the package scope (e.g., "discussion/public").
+        # When inactive (local dev fallback), they are served directly from "public".
+        # https://github.com/openedx/openedx-platform/blob/master/openedx/core/lib/xblock_utils/__init__.py#L417
+        base_path = "discussion/public" if use_pipeline else "public"
+
+        fragment.add_css_url(self.runtime.local_resource_url(self, f"{base_path}{css_file_path}"))
+        fragment.add_javascript_url(self.runtime.local_resource_url(self, f"{base_path}/js/discussion_bundle.js"))
 
     def has_permission(self, permission):  # pylint: disable=unused-argument
         """
@@ -168,9 +159,10 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
         :param str permission: Permission
         :rtype: bool
         """
-        # TO-DO: Need to fix import issues
-        # return has_permission(self.django_user, permission, self.course_key)
-        return True
+        if self.discussion_config:
+            return self.discussion_config.has_permission(self.django_user, permission, self.course_key)
+        else:
+            return False
 
     def student_view(self, context=None):
         """
@@ -203,7 +195,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 ),
             )
 
-        if is_discussion_enabled(self.course_key):
+        if self.discussion_config.is_discussion_enabled:
             context = {
                 'discussion_id': self.discussion_id,
                 'display_name': self.display_name if self.display_name else _("Discussion"),
@@ -215,9 +207,11 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
                 'can_create_comment': self.has_permission("create_comment"),
                 'can_create_subcomment': self.has_permission("create_sub_comment"),
                 'login_msg': login_msg,
+                'PLATFORM_NAME': settings.PLATFORM_NAME,
+                'enable_discussion_home_panel': settings.FEATURES.get("ENABLE_DISCUSSION_HOME_PANEL", False),
             }
             fragment.add_content(
-                render_to_string('discussion/_discussion_inline.html', context)
+                render_to_string('discussion_templates/_discussion_inline.html', context)
             )
 
         fragment.initialize_js('DiscussionInlineBlock')

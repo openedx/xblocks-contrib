@@ -27,7 +27,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install -r requirements/pip.txt tox
+        run: pip install -r requirements/pip-tools.txt tox
 
       - name: Run tests with Tox (${{ matrix.toxenv }})
         env:

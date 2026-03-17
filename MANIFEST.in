@@ -1,18 +1,33 @@
-include CHANGELOG.rst
-include LICENSE.txt
-include README.rst
+# --- ROOT FILES ---
+include CHANGELOG.rst LICENSE.txt README.rst
 include requirements/base.in
 include requirements/constraints.txt
-recursive-include xblocks_contrib *.html *.png *.gif *.jpg *.jpeg *.svg
-recursive-include xblocks_contrib/*/public *.js *.css
-recursive-include xblocks_contrib/*/static *.js *.css
+
+# --- PACKAGE DATA ---
+recursive-include xblocks_contrib *.html *.js *.css *.jar *.png *.gif *.jpg *.jpeg *.svg *.yaml *.underscore
+recursive-include xblock_pdf *.html *.js *.css
 
 # --- EXCLUSIONS ---
+# Prevent raw frontend source files and node_modules from bloating the Python wheel.
 prune xblocks_contrib/*/assets
 prune xblocks_contrib/*/node_modules
+global-exclude webpack*.config.js karma*.js package*.json package-lock.json .gitignore
+
+# Exclude top-level tests and JS specs by default to keep the distribution size small.
+# NOTE: The `*` here only looks one directory deep (e.g., `foo/tests`). 
 prune */tests
 prune */spec
-global-exclude webpack*.config.js
-global-exclude karma*.js
-global-exclude package*.json
-global-exclude .gitignore
+
+# Because MANIFEST.in does not support `**` (globstar) for infinite folder depth,
+# generic wildcards cannot reach deeply nested folders. We must explicitly prune
+# these deep directories to prevent them from being swept up by `recursive-include`.
+prune xblocks_contrib/problem/capa/static/js/capa/spec
+prune xblocks_contrib/problem/capa/static/js/capa/fixtures
+prune xblocks_contrib/problem/capa/tests/test_files
+
+# --- TEST UTILITY INCLUSIONS ---
+# Re-include specific test files that are excluded above.
+# We do this because openedx-platform imports these specific test helpers.
+include xblocks_contrib/problem/capa/tests/test_util.py
+include xblocks_contrib/problem/capa/tests/helpers.py
+include xblocks_contrib/problem/capa/tests/response_xml_factory.py
