@@ -1,13 +1,51 @@
 {
-  "private": true,
   "workspaces": [
     "xblocks_contrib/*/*",
-    "xblock_pdf/*/*/"
+    "xblock_pdf/*/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build-dev": "npm run build-dev --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test-ci": "npm run test-ci --workspaces --if-present"
+  },
+  "devDependencies": {
+    "append-prepend-loader": "^1",
+    "babel-loader": "^9",
+    "backbone": "^1",
+    "backbone-associations": "^0.6",
+    "backbone.paginator": "^2",
+    "bootstrap": "4.0.0",
+    "clean-webpack-plugin": "^4",
+    "copy-webpack-plugin": "^13",
+    "draggabilly": "^3",
+    "edx-ui-toolkit": "^1",
+    "exports-loader": "^0.6",
+    "hls.js": "^1",
+    "imports-loader": "^0.8",
+    "jasmine-core": "2.6.4",
+    "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
+    "jquery": "^2",
+    "jquery-ui": "1.14.1",
+    "karma": "^0.13",
+    "karma-chrome-launcher": "^3",
+    "karma-coverage": "^2",
+    "karma-firefox-launcher": "^2",
+    "karma-jasmine": "^1",
+    "karma-jasmine-html-reporter": "^0.2",
+    "karma-junit-reporter": "^2",
+    "karma-regex-preprocessor": "^1.0.1",
+    "karma-requirejs": "^1",
+    "karma-selenium-webdriver-launcher": "github:openedx/karma-selenium-webdriver-launcher#0.0.4-openedx.0",
+    "karma-sourcemap-loader": "^0.4",
+    "karma-spec-reporter": "0.0.20",
+    "karma-webpack": "^5",
+    "popper.js": "^1",
+    "requirejs": "^2",
+    "string-replace-loader": "^3",
+    "underscore": "^1",
+    "webpack": "^5",
+    "webpack-cli": "^5",
+    "webpack-merge": "^6"
   }
 }

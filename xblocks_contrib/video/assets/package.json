@@ -1,45 +1,9 @@
 {
   "name": "video-xblock",
-  "version": "1.0.0",
-  "directories": {
-    "test": "tests"
-  },
   "scripts": {
     "build": "webpack --config webpack.prod.config.js",
     "build-dev": "webpack --config webpack.dev.config.js",
-
-    "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js",
-    "test": "karma start karma.conf.js --log-level debug"
-  },
-  "dependencies": {
-    "draggabilly": "^3",
-    "edx-ui-toolkit": "^1",
-    "hls.js": "^1",
-    "underscore": "^1",
-    "webpack-merge": "^6"
-  },
-  "devDependencies": {
-    "bootstrap": "^4.6",
-    "copy-webpack-plugin": "^13",
-    "clean-webpack-plugin": "^4",
-    "webpack": "^5",
-    "webpack-cli": "^5",
-    "webpack-manifest-plugin": "^5",
-    "jasmine-core": "2.6.4",
-    "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
-    "jquery-ui": "^1.14.1",
-    "popper.js": "^1",
-    "karma": "0.13",
-    "karma-chrome-launcher": "^3",
-    "karma-coverage": "^2",
-    "karma-firefox-launcher": "^2",
-    "karma-jasmine": "^0.3",
-    "karma-jasmine-html-reporter": "^0.2",
-    "karma-junit-reporter": "^2",
-    "karma-requirejs": "^1",
-    "karma-selenium-webdriver-launcher": "github:openedx/karma-selenium-webdriver-launcher#0.0.4-openedx.0",
-    "karma-sourcemap-loader": "^0.4",
-    "karma-spec-reporter": "^0.0",
-    "karma-webpack": "^5"
+    "test": "karma start karma.conf.js --log-level debug",
+    "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js"
   }
 }
