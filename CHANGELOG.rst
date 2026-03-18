@@ -14,6 +14,14 @@ Change Log
 Unreleased
 **********
 
+0.15.1 - 2026-03-18
+**********************************************
+
+Added
+=====
+
+* Implemented JSON-based view to fetch a PDF-block's settings.
+
 0.15.0 - 2026-03-18
 **********************************************
 
