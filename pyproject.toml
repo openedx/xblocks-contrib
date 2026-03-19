@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xblocks-contrib"
+dynamic = ["version", "readme"]
+description = "core xblocks"
+requires-python = ">=3.12"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE.txt"]
+authors = [{ name = "Open edX Project", email = "oscm@openedx.org" }]
+keywords = ["Python", "edx"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "beautifulsoup4",
+    "chem",
+    "defusedxml",
+    "django",
+    "edx-codejail",
+    "edx-django-utils",
+    "edx-opaque-keys",
+    "edx-submissions",
+    "edx-toggles",
+    "edxval",
+    "fs",
+    "html5lib",
+    "lxml",
+    "markupsafe",
+    "nh3",
+    "numpy",
+    "oauthlib",
+    "openedx-calc",
+    "path",
+    "pyparsing",
+    "pytz",
+    "random2",
+    "requests",
+    "shapely",
+    "simplejson",
+    "web-fragments",
+    "webob",
+    "wrapt",
+    "xblock",
+]
+
+[project.urls]
+Homepage = "https://github.com/openedx/xblocks-contrib"
+
+[project.entry-points."xblock.v1"]
+# _extracted suffix is added for testing only.
+_annotatable_extracted = "xblocks_contrib:AnnotatableBlock"
+_discussion_extracted = "xblocks_contrib:DiscussionXBlock"
+_html_extracted = "xblocks_contrib:HtmlBlock"
+_lti_extracted = "xblocks_contrib:LTIBlock"
+_poll_question_extracted = "xblocks_contrib:PollBlock"
+_problem_extracted = "xblocks_contrib:ProblemBlock"
+_video_extracted = "xblocks_contrib:VideoBlock"
+_word_cloud_extracted = "xblocks_contrib:WordCloudBlock"
+# 'Done' XBlocks-- ones that are ready for general use today,
+# and have been migrated fully from edx-platform or their original
+# repository.
+pdf = "xblock_pdf:PDFBlock"
+
+[project.entry-points."lms.djangoapp"]
+xblocks_contrib_problem_capa = "xblocks_contrib.problem.capa.apps:CapaAppConfig"
+xblocks_contrib_discussion = "xblocks_contrib.discussion.apps:DiscussionAppConfig"
+
+[project.entry-points."cms.djangoapp"]
+xblocks_contrib_problem_capa = "xblocks_contrib.problem.capa.apps:CapaAppConfig"
+xblocks_contrib_discussion = "xblocks_contrib.discussion.apps:DiscussionAppConfig"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "xblocks_contrib.__version__" }
+readme = { file = ["README.rst", "CHANGELOG.rst"] }
+
+[tool.setuptools.packages.find]
+include = ["xblocks_contrib", "xblocks_contrib.*", "xblock_pdf"]
+exclude = ["*tests"]
+namespaces = false
+
+[tool.isort]
+include_trailing_comma = true
+indent = "    "
+line_length = 120
+multi_line_output = 3
+skip = ["migrations"]

@@ -32,7 +32,7 @@ The possible XBlock statuses are:
 * Placeholder: It's just a cookiecutter thumbs-up block.
 * In Development: We're building and testing this block.
 * Ready to Use: You can try this on your site using the Waffle flag.
-* Done The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
+* Done The built-in block has been removed. The pyproject.toml entrypoint has been removed from edx-platform and added to xblock-contrib.
 
 
 Additional XBlocks that belong here

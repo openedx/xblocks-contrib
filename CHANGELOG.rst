@@ -14,6 +14,26 @@ Change Log
 Unreleased
 **********
 
+0.16.0 - 2026-03-19
+*******************
+
+Added
+=====
+* Added a ``pyproject.toml`` file to handle our package settings and build configuration in a more modern, standard way.
+* Added the ``build`` package to ``requirements/pip-tools.in`` so we can easily build our package in clean, isolated environments.
+
+Changed
+=======
+* Updated how we manage dependencies: ``requirements/base.in`` now reads directly from our new ``pyproject.toml`` file, which keeps our existing ``pip-tools`` setup working perfectly.
+* Updated our license declaration to use the standard ``AGPL-3.0-or-later`` format to clear up recent build warnings.
+
+Removed
+=======
+* Removed the old ``setup.py`` and ``setup.cfg`` files, as everything is now neatly organized inside ``pyproject.toml``.
+* Removed the ``universal=1`` build setting, as we no longer need to support Python 2.
+* Removed ``setuptools`` and ``wheel`` from ``requirements/pip-tools.in``, as our new build process handles these automatically behind the scenes.
+* Removed the custom ``load_requirements()`` script. Our core dependencies are now simply written as a plain, easy-to-read list directly inside ``pyproject.toml``.
+
 0.15.1 - 2026-03-18
 **********************************************
 

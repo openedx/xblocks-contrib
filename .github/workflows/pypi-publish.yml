@@ -1,11 +1,11 @@
-name: Publish package to PyPi
+name: Publish package to PyPI
 
 on:
   release:
     types: [published]
 
 jobs:
-  push:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,7 +15,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.12
+          python-version: "3.12" 
+          cache: "pip"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -27,13 +28,13 @@ jobs:
           npm ci
           npm run build
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: pip install -r requirements/pip-tools.txt
 
       - name: Build package
-        run: python setup.py sdist bdist_wheel
+        run: python -m build 
 
-      - name: Publish to PyPi
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__

@@ -30,6 +30,10 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	# Let tox control the Django version for tests
 	sed '/^[dD]jango==/d' requirements/test.txt > requirements/test.tmp
 	mv requirements/test.tmp requirements/test.txt
+	# Strip absolute local paths and fix PEP 508 direct URLs so the requirements work in CI
+	for req_file in requirements/*.txt; do \
+		sed "s|file://$(CURDIR)|.|g; s|$(CURDIR)|.|g; s|.* @ \.|-e .|g" $$req_file > $$req_file.tmp && mv $$req_file.tmp $$req_file; \
+	done
 
 piptools: ## install pinned version of pip-compile and pip-sync
 	pip install -r requirements/pip-tools.txt

@@ -9,7 +9,7 @@ appdirs==1.4.4
 asgiref==3.11.1
     # via django
 beautifulsoup4==4.14.3
-    # via -r requirements/base.in
+    # via xblocks-contrib
 cachetools==7.0.5
     # via edxval
 certifi==2026.2.25
@@ -18,12 +18,12 @@ cffi==2.0.0
     # via
     #   cryptography
     #   pynacl
-chardet==7.1.0
+chardet==7.2.0
     # via pysrt
 charset-normalizer==3.4.6
     # via requests
 chem==2.0.0
-    # via -r requirements/base.in
+    # via xblocks-contrib
 click==8.3.1
     # via
     #   code-annotations
@@ -34,11 +34,10 @@ code-annotations==3.0.0
 cryptography==46.0.5
     # via pyjwt
 defusedxml==0.7.1
-    # via -r requirements/base.in
+    # via xblocks-contrib
 django==5.2.12
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   -r requirements/base.in
     #   django-crum
     #   django-model-utils
     #   django-storages
@@ -52,6 +51,7 @@ django==5.2.12
     #   edx-toggles
     #   edxval
     #   jsonfield
+    #   xblocks-contrib
 django-crum==0.7.9
     # via
     #   edx-django-utils
@@ -67,7 +67,7 @@ django-waffle==5.0.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.16.1
+djangorestframework==3.17.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -77,36 +77,36 @@ dnspython==2.8.0
 drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-codejail==4.1.0
-    # via -r requirements/base.in
+    # via xblocks-contrib
 edx-django-release-util==1.5.0
     # via
     #   edx-submissions
     #   edxval
 edx-django-utils==8.0.1
     # via
-    #   -r requirements/base.in
     #   edx-drf-extensions
     #   edx-toggles
+    #   xblocks-contrib
 edx-drf-extensions==10.6.0
     # via edxval
 edx-opaque-keys==3.1.0
     # via
-    #   -r requirements/base.in
     #   edx-drf-extensions
+    #   xblocks-contrib
 edx-submissions==3.12.2
-    # via -r requirements/base.in
+    # via xblocks-contrib
 edx-toggles==5.4.1
     # via
-    #   -r requirements/base.in
     #   edxval
+    #   xblocks-contrib
 edxval==3.2.0
-    # via -r requirements/base.in
+    # via xblocks-contrib
 fs==2.4.16
     # via
-    #   -r requirements/base.in
     #   xblock
+    #   xblocks-contrib
 html5lib==1.1
-    # via -r requirements/base.in
+    # via xblocks-contrib
 idna==3.11
     # via requests
 jinja2==3.1.6
@@ -117,39 +117,39 @@ jsonfield==3.2.0
     # via edx-submissions
 lxml==6.0.2
     # via
-    #   -r requirements/base.in
     #   edxval
     #   openedx-calc
     #   xblock
+    #   xblocks-contrib
 mako==1.3.10
     # via xblock
 markupsafe==3.0.3
     # via
-    #   -r requirements/base.in
     #   chem
     #   jinja2
     #   mako
     #   openedx-calc
     #   xblock
+    #   xblocks-contrib
 mpmath==1.3.0
     # via sympy
 nh3==0.3.3
-    # via -r requirements/base.in
+    # via xblocks-contrib
 nltk==3.9.3
     # via chem
 numpy==2.4.3
     # via
-    #   -r requirements/base.in
     #   chem
     #   openedx-calc
     #   scipy
     #   shapely
+    #   xblocks-contrib
 oauthlib==3.3.1
-    # via -r requirements/base.in
+    # via xblocks-contrib
 openedx-calc==5.0.0
-    # via -r requirements/base.in
+    # via xblocks-contrib
 path==17.1.1
-    # via -r requirements/base.in
+    # via xblocks-contrib
 pillow==12.1.1
     # via edxval
 psutil==7.2.2
@@ -166,9 +166,9 @@ pynacl==1.6.2
     # via edx-django-utils
 pyparsing==3.3.2
     # via
-    #   -r requirements/base.in
     #   chem
     #   openedx-calc
+    #   xblocks-contrib
 pysrt==1.1.2
     # via edxval
 python-dateutil==2.9.0.post0
@@ -177,32 +177,32 @@ python-slugify==8.0.4
     # via code-annotations
 pytz==2026.1.post1
     # via
-    #   -r requirements/base.in
     #   edx-submissions
     #   xblock
+    #   xblocks-contrib
 pyyaml==6.0.3
     # via
     #   code-annotations
     #   edx-django-release-util
     #   xblock
 random2==1.0.2
-    # via -r requirements/base.in
+    # via xblocks-contrib
 regex==2026.2.28
     # via nltk
 requests==2.32.5
     # via
-    #   -r requirements/base.in
     #   edx-drf-extensions
+    #   xblocks-contrib
 scipy==1.17.1
     # via chem
 semantic-version==2.10.0
     # via edx-drf-extensions
 shapely==2.1.2
-    # via -r requirements/base.in
+    # via xblocks-contrib
 simplejson==3.20.2
     # via
-    #   -r requirements/base.in
     #   xblock
+    #   xblocks-contrib
 six==1.17.0
     # via
     #   edx-codejail
@@ -233,17 +233,19 @@ urllib3==2.6.3
     # via requests
 web-fragments==4.0.0
     # via
-    #   -r requirements/base.in
     #   xblock
+    #   xblocks-contrib
 webencodings==0.5.1
     # via html5lib
 webob==1.8.9
     # via
-    #   -r requirements/base.in
     #   xblock
+    #   xblocks-contrib
 wrapt==2.1.2
-    # via -r requirements/base.in
+    # via xblocks-contrib
 xblock==5.3.0
+    # via xblocks-contrib
+-e .
     # via -r requirements/base.in
 
 # The following packages are considered to be unsafe in a requirements file:

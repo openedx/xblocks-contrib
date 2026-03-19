@@ -4,5 +4,4 @@
 
 pip
 pip-tools                 # Contains pip-compile, used to generate pip requirements files
-setuptools
-wheel
+build
