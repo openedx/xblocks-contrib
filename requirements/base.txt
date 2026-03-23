@@ -18,7 +18,7 @@ cffi==2.0.0
     # via
     #   cryptography
     #   pynacl
-chardet==7.1.0
+chardet==7.2.0
     # via pysrt
 charset-normalizer==3.4.6
     # via requests
@@ -67,7 +67,7 @@ django-waffle==5.0.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.16.1
+djangorestframework==3.17.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
