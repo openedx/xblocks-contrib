@@ -17,7 +17,7 @@
     "webpack-cli": "^5",
     "draggabilly": "^3.0.0",
     "edx-ui-toolkit": "^1",
-    "jasmine-core": "2.6.4",
+    "jasmine-core": "6.1.0",
     "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
     "jquery": "^2",
     "karma": "^0.13",

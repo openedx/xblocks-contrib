@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "copy-webpack-plugin": "^14.0.0",
-    "jasmine-core": "2.6.4",
+    "jasmine-core": "6.1.0",
     "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
     "karma-coverage": "^2",
     "karma-firefox-launcher": "^2",
