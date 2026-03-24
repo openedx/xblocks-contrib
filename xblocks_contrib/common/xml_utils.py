@@ -506,7 +506,7 @@ class LegacyXmlMixin:
                     logging.exception(
                         'Failed to serialize metadata attribute %s with value %s in module %s. '
                         'This could mean data loss!!!',
-                        attr, val, self.scope_ids.usage_id.block_id
+                        attr, val, self.usage_key.block_id
                     )
 
         for key, value in self.xml_attributes.items():
@@ -515,7 +515,7 @@ class LegacyXmlMixin:
 
         if self.export_to_file():
             # Write the definition to a file
-            url_path = name_to_pathname(self.scope_ids.usage_id.block_id)
+            url_path = name_to_pathname(self.usage_key.block_id)
             filepath = self._format_filepath(self.scope_ids.block_type, url_path)
             self.runtime.export_fs.makedirs(os.path.dirname(filepath), recreate=True)
             with self.runtime.export_fs.open(filepath, 'wb') as fileobj:
@@ -531,7 +531,7 @@ class LegacyXmlMixin:
 
         # Do not override an existing value for the course.
         if not node.get('url_name'):
-            node.set('url_name', self.scope_ids.usage_id.block_id)
+            node.set('url_name', self.usage_key.block_id)
 
         # We do not need to cater the `course` category here in xblocks_contrib,
         # because course export is handled in the edx-platform code.
@@ -539,8 +539,8 @@ class LegacyXmlMixin:
         # Special case for course pointers:
         # if self.scope_ids.block_type == 'course':
         #     # add org and course attributes on the pointer tag
-        #     node.set('org', self.scope_ids.usage_id.org)
-        #     node.set('course', self.scope_ids.usage_id.course)
+        #     node.set('org', self.usage_key.org)
+        #     node.set('course', self.usage_key.course)
 
     def definition_to_xml(self, resource_fs):
         """

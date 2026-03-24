@@ -189,11 +189,11 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
 
     @property
     def category(self):
-        return self.scope_ids.block_type
+        return self.usage_key.block_type
 
     @property
     def location(self):
-        return self.scope_ids.usage_id
+        return self.usage_key
 
     @location.setter
     def location(self, value):
@@ -205,7 +205,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
 
     @property
     def url_name(self):
-        return self.scope_ids.usage_id.block_id
+        return self.usage_key.block_id
 
     @property
     def xblock_kvs(self):
@@ -264,7 +264,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
                     data = data.replace("%%USER_EMAIL%%", email)
 
         # The course ID replacement is always safe to run.
-        data = data.replace("%%COURSE_ID%%", str(self.scope_ids.usage_id.context_key))
+        data = data.replace("%%COURSE_ID%%", str(self.context_key))
         return data
 
     def studio_view(self, context=None):
@@ -324,7 +324,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
             "module": self,
             "editable_metadata_fields": self.editable_metadata_fields,
             "data": self.data,
-            "base_asset_url": self.get_base_url_path_for_course_assets(self.scope_ids.usage_id.course_key),
+            "base_asset_url": self.get_base_url_path_for_course_assets(self.context_key),
             "enable_latex_compiler": self.use_latex_compiler,
             "editor": self.editor,
         }
@@ -545,7 +545,7 @@ class HtmlBlockMixin(LegacyXmlMixin, XBlock):
         """
 
         # Write html to file, return an empty tag
-        pathname = name_to_pathname(self.scope_ids.usage_id.block_id)
+        pathname = name_to_pathname(self.usage_key.block_id)
         filepath = "{category}/{pathname}.html".format(category=self.scope_ids.block_type, pathname=pathname)
 
         resource_fs.makedirs(os.path.dirname(filepath), recreate=True)

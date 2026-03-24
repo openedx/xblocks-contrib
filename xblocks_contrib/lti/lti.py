@@ -381,15 +381,15 @@ class LTIBlock(
     @property
     def category(self):
         """Return the block type/category."""
-        return self.scope_ids.block_type
+        return self.usage_key.block_type
 
     @property
     def url_name(self):
-        return self.location.block_id
+        return self.usage_key.block_id
 
     @property
     def location(self):
-        return self.scope_ids.usage_id
+        return self.usage_key
 
     @location.setter
     def location(self, value):
@@ -513,7 +513,7 @@ class LTIBlock(
 
             # These parameters do not participate in OAuth signing.
             'launch_url': self.launch_url.strip(),
-            'element_id': self.scope_ids.usage_id.html_id(),
+            'element_id': self.usage_key.html_id(),
             'element_class': self.scope_ids.block_type,
             'open_in_a_new_page': self.open_in_a_new_page,
             'display_name': self.display_name,
@@ -747,7 +747,7 @@ class LTIBlock(
         i4x-2-3-lti-31de800015cf4afb973356dbe81496df this part of resource_link_id:
         makes resource_link_id to be unique among courses inside same system.
         """
-        return str(parse.quote(f"{settings.LMS_BASE}-{self.scope_ids.usage_id.html_id()}"))
+        return str(parse.quote(f"{settings.LMS_BASE}-{self.usage_key.html_id()}"))
 
     def get_lis_result_sourcedid(self):
         """
@@ -773,8 +773,8 @@ class LTIBlock(
               In general, please do not add new code that access Modulestore, because it
               will not work with openedx_content. We do it here just to support a legacy feature.
         """
-        if isinstance(self.scope_ids.usage_id.course_key, CourseKey):
-            return self.runtime.modulestore.get_course(self.scope_ids.usage_id.course_key)
+        if isinstance(self.context_key, CourseKey):
+            return self.runtime.modulestore.get_course(self.context_key)
         return None
 
     @property
@@ -785,7 +785,7 @@ class LTIBlock(
         context_id is an opaque identifier that uniquely identifies the context (e.g., a course)
         that contains the link being launched.
         """
-        return str(self.scope_ids.usage_id.course_key)
+        return str(self.context_key)
 
     @property
     def role(self):
@@ -882,8 +882,8 @@ class LTIBlock(
             # Stubbing headers for now:
             log.info(
                 "LTI block %s in course %s does not have oauth parameters correctly configured.",
-                self.scope_ids.usage_id,
-                self.scope_ids.usage_id.course_key,
+                self.usage_key,
+                self.context_key,
             )
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

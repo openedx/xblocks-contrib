@@ -121,19 +121,19 @@ class PollBlock(LegacyXmlMixin, XBlock):
 
     @property
     def url_name(self):
-        return self.scope_ids.usage_id.block_id
+        return self.usage_key.block_id
 
     @property
     def course_id(self):
-        return self.scope_ids.usage_id.course_key
+        return self.context_key
 
     @property
     def category(self):
-        return self.scope_ids.block_type
+        return self.usage_key.block_type
 
     @property
     def location(self):
-        return self.scope_ids.usage_id
+        return self.usage_key
 
     @location.setter
     def location(self, value):
@@ -162,8 +162,8 @@ class PollBlock(LegacyXmlMixin, XBlock):
             resource_loader.render_django_template(
                 "templates/poll.html",
                 {
-                    "element_id": self.scope_ids.usage_id.html_id(),
-                    "element_class": self.scope_ids.usage_id.block_type,
+                    "element_id": self.usage_key.html_id(),
+                    "element_class": self.usage_key.block_type,
                     "configuration_json": self.dump_poll(),
                 },
                 i18n_service=self.runtime.service(self, "i18n"),
@@ -298,7 +298,7 @@ class PollBlock(LegacyXmlMixin, XBlock):
                     result[field.name] = field.read_json(self)
                 except TypeError as exception:
                     exception_message = "{message}, Block-location:{location}, Field-name:{field_name}".format(
-                        message=str(exception), location=str(self.scope_ids.usage_id), field_name=field.name
+                        message=str(exception), location=str(self.usage_key), field_name=field.name
                     )
                     raise TypeError(exception_message)  # pylint: disable=raise-missing-from
         return result

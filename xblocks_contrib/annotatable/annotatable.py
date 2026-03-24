@@ -98,7 +98,7 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
 
     @property
     def location(self):
-        return self.scope_ids.usage_id
+        return self.usage_key
 
     @location.setter
     def location(self, value):
@@ -279,8 +279,8 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
         if not self.data:
             log.warning(
                 "Could not serialize %s: No XBlock installed for '%s' tag.",
-                self.scope_ids.usage_id,
-                self.scope_ids.usage_id.block_type,
+                self.usage_key,
+                self.usage_key.block_type,
             )
             return None
 
@@ -297,6 +297,6 @@ class AnnotatableBlock(LegacyXmlMixin, XBlock):
                 "Context: '{context}'"
             ).format(
                 context=lines[line - 1][offset - 40:offset + 40],
-                loc=self.scope_ids.usage_id,
+                loc=self.usage_key,
             )
-            raise SerializationError(self.scope_ids.usage_id, msg) from err
+            raise SerializationError(self.usage_key, msg) from err
