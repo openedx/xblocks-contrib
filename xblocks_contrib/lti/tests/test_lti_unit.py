@@ -326,9 +326,9 @@ class LTIBlockTest(TestCase):
 
     def test_resource_link_id(self):
         with patch(
-            "xblocks_contrib.lti.lti.LTIBlock.location", new_callable=PropertyMock
+            "xblocks_contrib.lti.lti.LTIBlock.usage_key", new_callable=PropertyMock
         ):
-            self.xblock.location.html_id = (
+            self.xblock.usage_key.html_id = (
                 lambda: "i4x-2-3-lti-31de800015cf4afb973356dbe81496df"
             )
             expected_resource_link_id = str(parse.quote(self.unquoted_resource_link_id))
