@@ -59,7 +59,7 @@ class LTIBlockTest(TestCase):
                   </imsx_POXBody>
                 </imsx_POXEnvelopeRequest>
             """)
-        self.course_id = CourseKey.from_string('org/course/run')
+        self.context_key = CourseKey.from_string('org/course/run')
         self.runtime = get_test_system()
         self.runtime.publish = Mock()
         self.runtime._services['rebind_user'] = Mock()  # pylint: disable=protected-access
@@ -68,7 +68,7 @@ class LTIBlockTest(TestCase):
             self.runtime,
             DictFieldData({}),
             ScopeIds(
-                None, None, None, BlockUsageLocator(self.course_id, "lti", "name")
+                None, None, None, BlockUsageLocator(self.context_key, "lti", "name")
             ),
         )
         current_user = self.runtime.service(self.xblock, "user").get_current_user()
@@ -326,9 +326,9 @@ class LTIBlockTest(TestCase):
 
     def test_resource_link_id(self):
         with patch(
-            "xblocks_contrib.lti.lti.LTIBlock.location", new_callable=PropertyMock
+            "xblocks_contrib.lti.lti.LTIBlock.usage_key", new_callable=PropertyMock
         ):
-            self.xblock.location.html_id = (
+            self.xblock.usage_key.html_id = (
                 lambda: "i4x-2-3-lti-31de800015cf4afb973356dbe81496df"
             )
             expected_resource_link_id = str(parse.quote(self.unquoted_resource_link_id))
@@ -339,7 +339,7 @@ class LTIBlockTest(TestCase):
         expected_sourced_id = ":".join(
             parse.quote(i)
             for i in (
-                str(self.course_id),
+                str(self.context_key),
                 self.xblock.get_resource_link_id(),
                 self.user_id,
             )
@@ -576,4 +576,4 @@ class LTIBlockTest(TestCase):
         """
         Tests that LTI parameter context_id is equal to course_id.
         """
-        assert str(self.course_id) == self.xblock.context_id
+        assert str(self.context_key) == self.xblock.context_id
