@@ -45,12 +45,16 @@ from xblocks_contrib.video.ajax_handler_mixin import AjaxHandlerMixin
 from xblocks_contrib.video.bumper_utils import bumperize
 from xblocks_contrib.video.cache_utils import request_cached
 from xblocks_contrib.video.constants import ATTR_KEY_REQUEST_COUNTRY_CODE, ATTR_KEY_USER_ID, PUBLIC_VIEW, STUDENT_VIEW
-from xblocks_contrib.video.content import VideoBlockStaticContent
 from xblocks_contrib.video.exceptions import TranscriptNotFoundError
 from xblocks_contrib.video.mixin import LicenseMixin
 from xblocks_contrib.video.studio_metadata_mixin import StudioMetadataMixin
 from xblocks_contrib.video.validation import StudioValidation, StudioValidationMessage
 from xblocks_contrib.video.video_handlers import VideoStudentViewHandlers, VideoStudioViewHandlers
+from xblocks_contrib.video.video_static_content_utils import (
+    compute_location,
+    get_location_from_path,
+    serialize_asset_key_with_slash,
+)
 from xblocks_contrib.video.video_transcripts_utils import (
     TranscriptExtensions,
     VideoTranscriptsMixin,
@@ -965,10 +969,10 @@ class VideoBlock(
         course_id = getattr(id_generator, 'target_course_id', None)
         # Update the handout location with current course_id
         if 'handout' in field_data and course_id:
-            handout_location = VideoBlockStaticContent.get_location_from_path(field_data['handout'])
+            handout_location = get_location_from_path(field_data['handout'])
             if isinstance(handout_location, AssetLocator):
-                handout_new_location = VideoBlockStaticContent.compute_location(course_id, handout_location.path)
-                field_data['handout'] = VideoBlockStaticContent.serialize_asset_key_with_slash(handout_new_location)
+                handout_new_location = compute_location(course_id, handout_location.path)
+                field_data['handout'] = serialize_asset_key_with_slash(handout_new_location)
 
         # For backwards compatibility: Add `source` if XML doesn't have `download_video`
         # attribute.
