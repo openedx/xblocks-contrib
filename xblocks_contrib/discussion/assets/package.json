@@ -19,7 +19,7 @@
     "edx-ui-toolkit": "^1",
     "jasmine-core": "2.6.4",
     "jasmine-jquery": "git+https://git@github.com/velesin/jasmine-jquery.git#ebad463d592d3fea00c69f26ea18a930e09c7b58",
-    "jquery": "^2",
+    "jquery": "^4.0.0",
     "karma": "^0.13",
     "karma-chrome-launcher": "^3",
     "karma-coverage": "^2",
