@@ -13,7 +13,7 @@
     "edx-ui-toolkit": "^1",
     "exports-loader": "^0.6",
     "imports-loader": "^0.8",
-    "jquery": "^2",
+    "jquery": "^3.5.0",
     "requirejs": "^2",
     "underscore": "^1"
   },
