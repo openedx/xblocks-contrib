@@ -172,11 +172,11 @@ class TestDescriptorSystem(TestRuntime):
         self, block, handler_name, suffix="", query="", thirdparty=False
     ):
         """Mock handler URL generation to look like edx-platform URLs."""
-        return f"http://testserver/xblock/{block.scope_ids.usage_id}/{handler_name}/{suffix}?{query}"
+        return f"http://testserver/xblock/{block.usage_key}/{handler_name}/{suffix}?{query}"
 
     def local_resource_url(self, block, uri):  # pylint: disable=arguments-differ
         """Mock local resource URL generation."""
-        return f"resource/{block.scope_ids.usage_id}/{uri}"
+        return f"resource/{block.usage_key}/{uri}"
 
     def publish(self, block, event_type, event_data):  # pylint: disable=arguments-differ,unused-argument
         return None

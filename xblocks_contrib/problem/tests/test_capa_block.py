@@ -161,7 +161,7 @@ class CapaFactory:
             field_data["attempts"] = int(attempts)
 
         system = get_test_system(
-            course_id=location.course_key,
+            course_id=location.context_key,
             user_is_staff=kwargs.get("user_is_staff", False),
             render_template=render_template or Mock(return_value="<div>Test Template HTML</div>"),
         )
@@ -250,7 +250,9 @@ class ProblemBlockTest(unittest.TestCase):
 
         other_block = CapaFactory.create()
         assert block.get_score().raw_earned == 0
-        assert block.url_name != other_block.url_name, "Factory should be creating unique names for each problem"
+        assert (
+            block.usage_key.block_id != other_block.usage_key.block_id
+        ), "Factory should be creating unique names for each problem"
 
     def test_correct(self):
         """
@@ -2464,7 +2466,7 @@ class ProblemBlockTest(unittest.TestCase):
             mock_publish.assert_called_with(
                 block,
                 "edx.problem.hint.demandhint_displayed",
-                {"hint_index": 0, "module_id": str(block.location), "hint_text": "Demand 1", "hint_len": 2},
+                {"hint_index": 0, "module_id": str(block.usage_key), "hint_text": "Demand 1", "hint_len": 2},
             )
 
     def test_input_state_consistency(self):
@@ -2867,7 +2869,7 @@ class ProblemBlockTest(unittest.TestCase):
         block.get_problem_html()
         render_args, _ = render_template.call_args
         context = render_args[1]
-        assert context["problem"]["name"] == block.location.block_type
+        assert context["problem"]["name"] == block.usage_key.block_type
 
 
 @ddt.ddt
