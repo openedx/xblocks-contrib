@@ -119,18 +119,6 @@ class PollBlock(LegacyXmlMixin, XBlock):
         self.save()
         return self._field_data._kvs  # pylint: disable=protected-access
 
-    @property
-    def location(self):
-        return self.usage_key
-
-    @location.setter
-    def location(self, value):
-        assert isinstance(value, UsageKey)
-        self.scope_ids = self.scope_ids._replace(
-            def_id=value,  # Note: assigning a UsageKey as def_id is OK in old mongo / import system but wrong in split
-            usage_id=value,
-        )
-
     def handle_ajax(self, dispatch, data):  # legacy support for tests
         """
         Legacy method to mimic old ajax handler behavior for backward compatibility.
@@ -286,7 +274,7 @@ class PollBlock(LegacyXmlMixin, XBlock):
                     result[field.name] = field.read_json(self)
                 except TypeError as exception:
                     exception_message = "{message}, Block-location:{location}, Field-name:{field_name}".format(
-                        message=str(exception), location=str(self.location), field_name=field.name
+                        message=str(exception), location=str(self.usage_key), field_name=field.name
                     )
                     raise TypeError(exception_message)  # pylint: disable=raise-missing-from
         return result
