@@ -14,7 +14,6 @@ from copy import deepcopy
 import markupsafe
 from django.utils.translation import gettext_noop as _
 from lxml import etree
-from opaque_keys.edx.keys import UsageKey
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.fields import Boolean, Dict, List, Scope, String
