@@ -105,7 +105,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
 
     @property
     def course_key(self):
-        return getattr(self.scope_ids.usage_id, 'course_key', None)
+        return getattr(self.usage_key, 'course_key', None)
 
     @property
     def is_visible(self):
@@ -276,7 +276,7 @@ class DiscussionXBlock(XBlock, StudioEditableXBlockMixin, LegacyXmlMixin):
             return
 
         metadata = cls.load_metadata(definition_xml)
-        cls.apply_policy(metadata, runtime.get_policy(block.scope_ids.usage_id))
+        cls.apply_policy(metadata, runtime.get_policy(block.usage_key))
 
         for field_name, value in metadata.items():
             if field_name in block.fields:

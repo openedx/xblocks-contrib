@@ -119,21 +119,21 @@ class PollBlock(LegacyXmlMixin, XBlock):
         self.save()
         return self._field_data._kvs  # pylint: disable=protected-access
 
-    @property
-    def url_name(self):
-        return self.location.block_id
+    # @property
+    # def url_name(self):
+    #     return self.usage_key.block_id
 
-    @property
-    def course_id(self):
-        return self.location.course_key
+    # @property
+    # def course_id(self):
+    #     return self.usage_key.course_key
 
-    @property
-    def category(self):
-        return self.scope_ids.block_type
+    # @property
+    # def category(self):
+    #     return self.usage_key.block_type
 
     @property
     def location(self):
-        return self.scope_ids.usage_id
+        return self.usage_key 
 
     @location.setter
     def location(self, value):
@@ -162,8 +162,8 @@ class PollBlock(LegacyXmlMixin, XBlock):
             resource_loader.render_django_template(
                 "templates/poll.html",
                 {
-                    "element_id": self.scope_ids.usage_id.html_id(),
-                    "element_class": self.scope_ids.usage_id.block_type,
+                    "element_id": self.usage_key.html_id(),
+                    "element_class": self.usage_key.block_type,
                     "configuration_json": self.dump_poll(),
                 },
                 i18n_service=self.runtime.service(self, "i18n"),
@@ -251,11 +251,10 @@ class PollBlock(LegacyXmlMixin, XBlock):
         return self.submit_answer(answer)
 
     @XBlock.json_handler
-    def handle_reset_state(self):
+    def handle_reset_state(self, data, suffix=""):  # pylint: disable=unused-argument
         """
         handler to Reset poll answer.
         """
-
         self.voted = False
 
         # FIXME: fix this, when xblock will support mutable types.
