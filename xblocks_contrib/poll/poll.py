@@ -119,21 +119,9 @@ class PollBlock(LegacyXmlMixin, XBlock):
         self.save()
         return self._field_data._kvs  # pylint: disable=protected-access
 
-    # @property
-    # def url_name(self):
-    #     return self.usage_key.block_id
-
-    # @property
-    # def course_id(self):
-    #     return self.usage_key.course_key
-
-    # @property
-    # def category(self):
-    #     return self.usage_key.block_type
-
     @property
     def location(self):
-        return self.usage_key 
+        return self.usage_key
 
     @location.setter
     def location(self, value):
@@ -255,6 +243,7 @@ class PollBlock(LegacyXmlMixin, XBlock):
         """
         handler to Reset poll answer.
         """
+
         self.voted = False
 
         # FIXME: fix this, when xblock will support mutable types.
