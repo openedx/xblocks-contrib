@@ -14,6 +14,14 @@ Change Log
 Unreleased
 **********
 
+0.15.2 - 2026-03-30
+**********************************************
+
+Added
+=====
+
+* Removed XModuleMixin legacy attibs from wordcloud, video block, lti block
+
 0.15.1 - 2026-03-18
 **********************************************
 

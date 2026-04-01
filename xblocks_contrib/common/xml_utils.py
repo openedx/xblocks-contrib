@@ -537,10 +537,10 @@ class LegacyXmlMixin:
         # because course export is handled in the edx-platform code.
 
         # Special case for course pointers:
-        # if self.category == 'course':
+        # if self.usage_key.block_type == 'course':
         #     # add org and course attributes on the pointer tag
-        #     node.set('org', self.location.org)
-        #     node.set('course', self.location.course)
+        #     node.set('org', self.usage_key.org)
+        #     node.set('course', self.usage_key.course)
 
     def definition_to_xml(self, resource_fs):
         """

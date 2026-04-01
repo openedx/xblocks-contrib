@@ -765,7 +765,7 @@ class VideoExportTestCase(VideoBlockTestBase):
             video_id=edx_video_id,
             static_dir=EXPORT_IMPORT_STATIC_DIR,
             resource_fs=self.file_system,
-            course_id=self.block.scope_ids.usage_id.context_key,
+            course_id=self.block.context_key,
         )
 
     def test_export_to_xml_without_video_id(self):
