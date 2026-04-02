@@ -14,6 +14,15 @@ Change Log
 Unreleased
 **********
 
+0.15.3 - 2026-04-02
+**********************************************
+
+Fixed
+=====
+
+* Removed XModuleMixin legacy attibs from Annotatable Block, Discussion XBlock, Html Block, Poll Block, Problem Block.
+* Match video download link font size with transcripts
+
 0.15.2 - 2026-03-30
 **********************************************
 
