@@ -35,7 +35,7 @@ class AnnotatableBlockTestCase(unittest.TestCase):
     def setUp(self):
         super().setUp()
         runtime = TestRuntime()
-        scope_ids = ScopeIds("user_id", "block_type", "block_id", "course_id")
+        scope_ids = ScopeIds("user_id", "block_type", "block_id", "context_key")
         field_data = DictFieldData({"data": self.sample_xml})
         self.annotatable = AnnotatableBlock(runtime, field_data, scope_ids)
 

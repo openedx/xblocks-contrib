@@ -19,6 +19,8 @@ def xqueue_service():
     """
     location = BlockUsageLocator(CourseLocator("test_org", "test_course", "test_run"), "problem", "ExampleProblem")
     block = Mock(scope_ids=ScopeIds("user1", "problem", location, location))
+    block.usage_key = location
+    block.context_key = location.course_key
     block.max_score = Mock(return_value=10)
     return XQueueInterfaceSubmission(block)
 
