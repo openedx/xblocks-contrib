@@ -49,7 +49,7 @@ chardet==7.4.0.post2
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   pysrt
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -58,7 +58,7 @@ chem==2.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-click==8.3.1
+click==8.3.2
     # via
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
@@ -193,7 +193,7 @@ edx-drf-extensions==10.6.0
     #   edxval
 edx-lint==6.0.0
     # via -r requirements/quality.txt
-edx-opaque-keys==3.1.0
+edx-opaque-keys==4.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -325,7 +325,7 @@ path==17.1.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-pillow==12.1.1
+pillow==12.2.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -470,12 +470,12 @@ random2==1.0.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-regex==2026.3.32
+regex==2026.4.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   nltk
-requests==2.33.0
+requests==2.33.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -549,7 +549,7 @@ tomlkit==0.14.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.51.0
+tox==4.52.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
