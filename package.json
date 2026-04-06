@@ -7,6 +7,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build-dev": "npm run build-dev --workspaces --if-present",
+    "watch-build-dev": "for w in xblocks_contrib/*/assets; do npm run watch-build-dev --if-present -w \"$w\" & done; wait",
     "test": "npm run test --workspaces --if-present",
     "test-ci": "npm run test-ci --workspaces --if-present"
   }
