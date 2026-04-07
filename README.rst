@@ -47,6 +47,20 @@ Over time, more XBlocks may be moved here. An XBlock belongs here if and only if
    Otherwise, perhaps the block belongs in its own repository with a separate dedicated maintainer,
    such as `ora2 <https://github.com/openedx/edx-ora2>`_.
 
+
+Installation and Development Guide
+**********************************
+
+Study scripts in the ``package.json`` file to understand the available commands.
+
+1. Install this repository into your runtime (for example ``openedx-platform``) as an editable dependency. For Tutor, you can mount this repository for local development.
+2. Run ``npm run build`` to generate production public assets for the XBlocks.
+3. Run ``npm run build-dev`` to generate development public assets for the XBlocks.
+4. Run ``npm run watch-build-dev`` to watch for relevant file changes and regenerate public assets.
+   Recommended during development. Run it in a separate terminal; you will still need to refresh the browser to pick up rebuilt assets.
+5. Run ``npm run test`` to run the repository tests.
+
+
 Translating
 *************
 
@@ -63,7 +77,7 @@ The general steps to provide multilingual messages for a Python program (or an X
 3. Create language specific translations for each message in the catalogs.
 4. Use ``gettext`` to translate strings.
 
-5. Mark translatable strings
+1. Mark translatable strings
 ----------------------------
 
 Mark translatable strings in python::
