@@ -23,16 +23,15 @@ These are the XBlocks being moved here, and each of their statuses:
 * ``lti`` -- Ready to Use
 * ``pdf`` -- Done
 * ``html`` -- Ready to Use
-* ``discussion`` -- In Development
-* ``problem`` -- In Development
-* ``video`` -- In Development
+* ``discussion`` -- Ready to Use
+* ``problem`` -- Ready to Use
+* ``video`` -- Ready to Use
 
 The possible XBlock statuses are:
 
-* Placeholder: It's just a cookiecutter thumbs-up block.
 * In Development: We're building and testing this block.
 * Ready to Use: You can try this on your site using the Waffle flag.
-* Done The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
+* Done: The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
 
 
 Additional XBlocks that belong here
@@ -47,30 +46,6 @@ Over time, more XBlocks may be moved here. An XBlock belongs here if and only if
 2. **The maintainers of this repository have capacity to maintain the additional block.**
    Otherwise, perhaps the block belongs in its own repository with a separate dedicated maintainer,
    such as `ora2 <https://github.com/openedx/edx-ora2>`_.
-
-Developing a new XBlock
-=======================
-
-There's a handy script ``utils/create_xblock.sh`` that you can use to create XBlock here. just run ::
-
-    $ utils/create_xblock.sh
-
-It will ask for XBlock name and XBlock class name that you want to use. Just enter these values and XBlock should be ready to work.
-
-If faced with permission or access error run::
-
-    $ chmod +x utils/create_xblock.sh
-
-and run it.
-
-Testing with Docker
-********************
-
-This XBlock comes with a Docker test environment ready to build, based on the xblock-sdk workbench. To build and run it::
-
-    $ make dev.run
-
-The XBlock SDK Workbench, including this XBlock, will be available on the list of XBlocks at http://localhost:8000
 
 Translating
 *************
@@ -183,8 +158,6 @@ transifex credentials.
 
 See `transifex documentation <https://developers.transifex.com/docs/django-file-based>`_ for more details about integrating
 django with transiflex.
-
- **Note:** The ``dev.run`` make target will automatically compile any translations.
 
  **Note:** To check if the source translation files (``.po``) are up-to-date run::
 
