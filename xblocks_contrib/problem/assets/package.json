@@ -5,6 +5,7 @@
   "scripts": {
     "build": "webpack --config=webpack.prod.config.js",
     "build-dev": "webpack --config=webpack.config.js",
+    "watch-build-dev": "npm run build-dev -- --watch",
     "test": "karma start karma.conf.js",
     "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js"
   },

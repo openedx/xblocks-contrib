@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.config.js",
     "build-dev": "webpack --config webpack.dev.config.js",
-
+    "watch-build-dev": "npm run build-dev -- --watch",
     "test-ci": "xvfb-run --auto-servernum karma start karma.conf.js",
     "test": "karma start karma.conf.js --log-level debug"
   },

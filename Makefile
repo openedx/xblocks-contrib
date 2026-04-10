@@ -1,11 +1,10 @@
 .DEFAULT_GOAL := help
 
-.PHONY: dev.clean dev.build dev.run upgrade help requirements
+.PHONY: upgrade help requirements
 .PHONY: extract_translations compile_translations
 .PHONY: detect_changed_source_translations dummy_translations build_dummy_translations
 .PHONY: validate_translations pull_translations push_translations install_transifex_clients
 
-REPO_NAME := xblocks-contrib
 PACKAGE_NAME := xblocks_contrib
 EXTRACT_DIR := $(PACKAGE_NAME)/conf/locale/en/LC_MESSAGES
 JS_TARGET := $(PACKAGE_NAME)/public/js/translations
@@ -36,26 +35,6 @@ piptools: ## install pinned version of pip-compile and pip-sync
 
 requirements: piptools ## install development environment requirements
 	pip-sync -q requirements/dev.txt requirements/private.*
-
-dev.clean:
-	-docker rm $(REPO_NAME)-dev
-	-docker rmi $(REPO_NAME)-dev
-
-dev.build:
-	docker build --no-cache -t $(REPO_NAME)-dev $(CURDIR)
-
-check-log:
-	@if [ ! -d "$(CURDIR)/var" ]; then \
-		echo "Creating var directory"; \
-		mkdir -p $(CURDIR)/var; \
-	fi
-	@if [ ! -f "$(CURDIR)/var/workbench.log" ]; then \
-		echo "Creating empty workbench.log"; \
-		touch $(CURDIR)/var/workbench.log; \
-	fi
-
-dev.run: dev.clean dev.build check-log
-	docker run -p 8000:8000 -v $(CURDIR):/usr/local/src/$(REPO_NAME) --name $(REPO_NAME)-dev $(REPO_NAME)-dev
 
 # XBlock directories
 XBLOCKS=$(shell find $(shell pwd)/$(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)

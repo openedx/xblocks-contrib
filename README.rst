@@ -23,16 +23,15 @@ These are the XBlocks being moved here, and each of their statuses:
 * ``lti`` -- Ready to Use
 * ``pdf`` -- Done
 * ``html`` -- Ready to Use
-* ``discussion`` -- In Development
-* ``problem`` -- In Development
-* ``video`` -- In Development
+* ``discussion`` -- Ready to Use
+* ``problem`` -- Ready to Use
+* ``video`` -- Ready to Use
 
 The possible XBlock statuses are:
 
-* Placeholder: It's just a cookiecutter thumbs-up block.
 * In Development: We're building and testing this block.
 * Ready to Use: You can try this on your site using the Waffle flag.
-* Done The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
+* Done: The built-in block has been removed. The setup.py entrypoint has been removed from edx-platform and added to xblock-contrib.
 
 
 Additional XBlocks that belong here
@@ -48,29 +47,19 @@ Over time, more XBlocks may be moved here. An XBlock belongs here if and only if
    Otherwise, perhaps the block belongs in its own repository with a separate dedicated maintainer,
    such as `ora2 <https://github.com/openedx/edx-ora2>`_.
 
-Developing a new XBlock
-=======================
 
-There's a handy script ``utils/create_xblock.sh`` that you can use to create XBlock here. just run ::
+Installation and Development Guide
+**********************************
 
-    $ utils/create_xblock.sh
+Study scripts in the ``package.json`` file to understand the available commands.
 
-It will ask for XBlock name and XBlock class name that you want to use. Just enter these values and XBlock should be ready to work.
+1. Install this repository into your runtime (for example ``openedx-platform``) as an editable dependency. For Tutor, you can mount this repository for local development.
+2. Run ``npm run build`` to generate production public assets for the XBlocks.
+3. Run ``npm run build-dev`` to generate development public assets for the XBlocks.
+4. Run ``npm run watch-build-dev`` to watch for relevant file changes and regenerate public assets.
+   Recommended during development. Run it in a separate terminal; you will still need to refresh the browser to pick up rebuilt assets.
+5. Run ``npm run test`` to run the repository tests.
 
-If faced with permission or access error run::
-
-    $ chmod +x utils/create_xblock.sh
-
-and run it.
-
-Testing with Docker
-********************
-
-This XBlock comes with a Docker test environment ready to build, based on the xblock-sdk workbench. To build and run it::
-
-    $ make dev.run
-
-The XBlock SDK Workbench, including this XBlock, will be available on the list of XBlocks at http://localhost:8000
 
 Translating
 *************
@@ -88,7 +77,7 @@ The general steps to provide multilingual messages for a Python program (or an X
 3. Create language specific translations for each message in the catalogs.
 4. Use ``gettext`` to translate strings.
 
-5. Mark translatable strings
+1. Mark translatable strings
 ----------------------------
 
 Mark translatable strings in python::
@@ -183,8 +172,6 @@ transifex credentials.
 
 See `transifex documentation <https://developers.transifex.com/docs/django-file-based>`_ for more details about integrating
 django with transiflex.
-
- **Note:** The ``dev.run`` make target will automatically compile any translations.
 
  **Note:** To check if the source translation files (``.po``) are up-to-date run::
 
