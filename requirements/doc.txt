@@ -38,7 +38,7 @@ cffi==2.0.0
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
-chardet==7.4.0.post2
+chardet==7.4.1
     # via
     #   -r requirements/test.txt
     #   pysrt
@@ -66,7 +66,7 @@ coverage[toml]==7.13.5
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.6
+cryptography==46.0.7
     # via
     #   -r requirements/test.txt
     #   pyjwt
@@ -78,7 +78,7 @@ distlib==0.4.0
     # via
     #   -r requirements/test.txt
     #   virtualenv
-django==5.2.12
+django==5.2.13
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
@@ -157,13 +157,13 @@ edx-opaque-keys==4.0.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-edx-submissions==3.12.2
+edx-submissions==4.0.0
     # via -r requirements/test.txt
-edx-toggles==5.4.1
+edx-toggles==6.0.0
     # via
     #   -r requirements/test.txt
     #   edxval
-edxval==3.2.0
+edxval==4.0.0
     # via -r requirements/test.txt
 filelock==3.25.2
     # via
@@ -200,7 +200,7 @@ jsonfield==3.2.0
     # via
     #   -r requirements/test.txt
     #   edx-submissions
-lxml==6.0.2
+lxml==6.0.4
     # via
     #   -r requirements/test.txt
     #   edxval
@@ -252,7 +252,7 @@ pillow==12.2.0
     # via
     #   -r requirements/test.txt
     #   edxval
-platformdirs==4.9.4
+platformdirs==4.9.6
     # via
     #   -r requirements/test.txt
     #   python-discovery
@@ -308,7 +308,7 @@ pysrt==1.1.2
     # via
     #   -r requirements/test.txt
     #   edxval
-pytest==9.0.2
+pytest==9.0.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -321,7 +321,7 @@ python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   xblock
-python-discovery==1.2.1
+python-discovery==1.2.2
     # via
     #   -r requirements/test.txt
     #   tox
@@ -426,7 +426,7 @@ tomli-w==1.2.0
     # via
     #   -r requirements/test.txt
     #   tox
-tox==4.52.0
+tox==4.52.1
     # via -r requirements/test.txt
 tqdm==4.67.3
     # via
@@ -442,7 +442,7 @@ urllib3==2.6.3
     # via
     #   -r requirements/test.txt
     #   requests
-virtualenv==21.2.0
+virtualenv==21.2.1
     # via
     #   -r requirements/test.txt
     #   tox

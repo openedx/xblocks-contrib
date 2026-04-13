@@ -18,7 +18,7 @@ cffi==2.0.0
     # via
     #   cryptography
     #   pynacl
-chardet==7.4.0.post2
+chardet==7.4.1
     # via pysrt
 charset-normalizer==3.4.7
     # via requests
@@ -31,11 +31,11 @@ click==8.3.2
     #   nltk
 code-annotations==3.0.0
     # via edx-toggles
-cryptography==46.0.6
+cryptography==46.0.7
     # via pyjwt
 defusedxml==0.7.1
     # via -r requirements/base.in
-django==5.2.12
+django==5.2.13
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -93,13 +93,13 @@ edx-opaque-keys==4.0.0
     # via
     #   -r requirements/base.in
     #   edx-drf-extensions
-edx-submissions==3.12.2
+edx-submissions==4.0.0
     # via -r requirements/base.in
-edx-toggles==5.4.1
+edx-toggles==6.0.0
     # via
     #   -r requirements/base.in
     #   edxval
-edxval==3.2.0
+edxval==4.0.0
     # via -r requirements/base.in
 fs==2.4.16
     # via
@@ -115,7 +115,7 @@ joblib==1.5.3
     # via nltk
 jsonfield==3.2.0
     # via edx-submissions
-lxml==6.0.2
+lxml==6.0.4
     # via
     #   -r requirements/base.in
     #   edxval
