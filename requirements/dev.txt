@@ -44,7 +44,7 @@ cffi==2.0.0
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
-chardet==7.4.1
+chardet==7.4.3
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -211,7 +211,7 @@ edxval==4.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-filelock==3.25.2
+filelock==3.29.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -256,14 +256,14 @@ jsonfield==3.2.0
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edx-submissions
-lxml==6.0.4
+lxml==6.1.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   edxval
     #   openedx-calc
     #   xblock
-mako==1.3.10
+mako==1.3.11
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -311,7 +311,7 @@ openedx-calc==5.0.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-packaging==26.0
+packaging==26.1
     # via
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
@@ -494,7 +494,7 @@ shapely==2.1.2
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
-simplejson==3.20.2
+simplejson==4.0.1
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -549,7 +549,7 @@ tomlkit==0.14.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.52.1
+tox==4.53.0
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
@@ -569,7 +569,7 @@ urllib3==2.6.3
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
     #   requests
-virtualenv==21.2.1
+virtualenv==21.2.4
     # via
     #   -r requirements/quality.txt
     #   -r requirements/test.txt
