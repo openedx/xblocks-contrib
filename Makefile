@@ -6,7 +6,8 @@
 .PHONY: validate_translations pull_translations push_translations install_transifex_clients
 
 PACKAGE_NAME := xblocks_contrib
-EXTRACT_DIR := $(PACKAGE_NAME)/conf/locale/en/LC_MESSAGES
+EXTRACT_DIR := conf/locale/en/LC_MESSAGES
+COMBINED_LOCALE_DIR := $(PACKAGE_NAME)/conf/locale/en/LC_MESSAGES
 JS_TARGET := $(PACKAGE_NAME)/public/js/translations
 
 help:
@@ -37,21 +38,40 @@ requirements: piptools ## install development environment requirements
 	pip-sync -q requirements/dev.txt requirements/private.*
 
 # XBlock directories
-XBLOCKS=$(shell find $(shell pwd)/$(PACKAGE_NAME) -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
+XBLOCKS=$(shell find $(shell pwd)/$(PACKAGE_NAME) -mindepth 2 -maxdepth 2 -type d -name 'conf' -exec dirname {} \;)
 
 ## Localization targets
 
 extract_translations: ## extract strings to be translated, outputting .po files for each XBlock
 	@for xblock in $(XBLOCKS); do \
 		echo "Extracting translations for $$xblock..."; \
-		cd $$xblock && i18n_tool extract --no-segment --merge-po-files; \
-		if [ -f $(EXTRACT_DIR)/django.po ]; then \
-			mv $(EXTRACT_DIR)/django.po $(EXTRACT_DIR)/text.po; \
+		cd $$xblock && i18n_tool extract --no-segment; \
+		if [ -f $$xblock/$(EXTRACT_DIR)/djangojs.po ]; then \
+			cd $$xblock/$(EXTRACT_DIR) && msgcat django.po djangojs.po -o django.po && rm -f djangojs.po; \
+		fi; \
+		if [ -f $$xblock/$(EXTRACT_DIR)/django.po ]; then \
+			mv $$xblock/$(EXTRACT_DIR)/django.po $$xblock/$(EXTRACT_DIR)/text.po; \
 		fi; \
 	done
+	@# Merge all per-xblock text.po files into a single combined file for the
+	@# openedx-translations pipeline (OEP-58), which expects one conf/locale/en per repo.
+	@mkdir -p $(COMBINED_LOCALE_DIR)
+	@PO_FILES=""; \
+	for xblock in $(XBLOCKS); do \
+		if [ -f $$xblock/$(EXTRACT_DIR)/text.po ]; then \
+			PO_FILES="$$PO_FILES $$xblock/$(EXTRACT_DIR)/text.po"; \
+		fi; \
+	done; \
+	if [ -n "$$PO_FILES" ]; then \
+		msgcat --use-first $$PO_FILES -o $(COMBINED_LOCALE_DIR)/django.po; \
+		echo "Combined translation source file written to $(COMBINED_LOCALE_DIR)/django.po"; \
+	fi
 
 compile_translations: ## compile translation files, outputting .mo files for each supported language for each XBlock
-	django-admin compilemessages --locale en
+	@for xblock in $(XBLOCKS); do \
+		echo "Compiling translations for $$xblock..."; \
+		cd $$xblock && django-admin compilemessages --locale en; \
+	done
 
 detect_changed_source_translations:
 	@for xblock in $(XBLOCKS); do \
@@ -65,7 +85,7 @@ dummy_translations: ## generate dummy translation (.po) files for each XBlock
 		cd $$xblock && i18n_tool dummy; \
 	done
 
-build_dummy_translations: dummy_translations compile_translations ## generate and compile dummy translation files
+build_dummy_translations: extract_translations dummy_translations compile_translations ## generate and compile dummy translation files
 
 validate_translations: build_dummy_translations detect_changed_source_translations ## validate translations
 
