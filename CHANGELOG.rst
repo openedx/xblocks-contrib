@@ -14,6 +14,15 @@ Change Log
 Unreleased
 **********
 
+0.16.0 - 2026-04-21
+**********************************************
+
+Fixed
+=====
+
+* Removed XModuleMixin usage and related duplicated logic from all xblocks
+* Renames xblocks_contrib/common → xblocks_contrib/legacy_utils
+
 0.15.3 - 2026-04-02
 **********************************************
 
