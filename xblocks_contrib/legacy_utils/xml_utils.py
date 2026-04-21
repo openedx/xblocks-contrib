@@ -1,4 +1,20 @@
 """
+⚠️⚠️⚠️  LEGACY FILE — DO NOT USE IN NEW XBLOCKS  ⚠️⚠️⚠️
+
+This file is part of an older implementation and is considered **legacy**.
+
+🚫 Do NOT import, extend, or rely on this file when developing new XBlocks.
+🚫 Do NOT copy patterns or logic from this file into new code.
+
+This file is maintained ONLY for backward compatibility with existing systems.
+It is scheduled for removal in a future cleanup.
+
+If you are building something new, please use the latest supported patterns,
+utilities, and modules from the current codebase.
+
+If you are unsure what to use instead, please check the updated documentation
+or reach out to the maintainers.
+
 XML utility functions and classes for XBlocks.
 Note: Most of the functionality is taken from the edx-platform's XmlMixin.
 https://github.com/openedx/edx-platform/blob/master/xmodule/xml_block.py
