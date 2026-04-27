@@ -7,8 +7,8 @@
 
 PACKAGE_NAME := xblocks_contrib
 EXTRACT_DIR := conf/locale/en/LC_MESSAGES
-COMBINED_LOCALE_DIR := $(PACKAGE_NAME)/conf/locale/en/LC_MESSAGES
 JS_TARGET := $(PACKAGE_NAME)/public/js/translations
+REPO_ROOT := $(shell pwd)
 
 help:
 	@perl -nle'print $& if m{^[\.a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-25s\033[0m %s\n", $$1, $$2}'
@@ -42,30 +42,28 @@ XBLOCKS=$(shell find $(shell pwd)/$(PACKAGE_NAME) -mindepth 2 -maxdepth 2 -type 
 
 ## Localization targets
 
-extract_translations: ## extract strings to be translated, outputting .po files for each XBlock
+extract_translations: ## extract strings to be translated, outputting one django.po per XBlock module
+	@# Each XBlock gets its own conf/locale/en directory at the repo root, e.g.:
+	@#   audio_xblock/conf/locale/en/LC_MESSAGES/django.po
+	@#
+	@# This layout matches the path pattern openedx-platform atlas pull expects:
+	@#   translations/*/<module_name>/conf/locale:<module_name>
+	@# so that atlas can pull each XBlock's translations independently when they
+	@# are stored under the xblocks-contrib repo in openedx-translations.
 	@for xblock in $(XBLOCKS); do \
-		echo "Extracting translations for $$xblock..."; \
+		xblock_name=$$(basename $$xblock); \
+		echo "Extracting translations for $$xblock_name..."; \
 		cd $$xblock && i18n_tool extract --no-segment; \
 		if [ -f $$xblock/$(EXTRACT_DIR)/djangojs.po ]; then \
 			cd $$xblock/$(EXTRACT_DIR) && msgcat django.po djangojs.po -o django.po && rm -f djangojs.po; \
 		fi; \
 		if [ -f $$xblock/$(EXTRACT_DIR)/django.po ]; then \
-			mv $$xblock/$(EXTRACT_DIR)/django.po $$xblock/$(EXTRACT_DIR)/text.po; \
+			dest=$(REPO_ROOT)/$$xblock_name/$(EXTRACT_DIR); \
+			mkdir -p $$dest; \
+			cp $$xblock/$(EXTRACT_DIR)/django.po $$dest/django.po; \
 		fi; \
+		rm -rf $$xblock/conf/locale; \
 	done
-	@# Merge all per-xblock text.po files into a single combined file for the
-	@# openedx-translations pipeline (OEP-58), which expects one conf/locale/en per repo.
-	@mkdir -p $(COMBINED_LOCALE_DIR)
-	@PO_FILES=""; \
-	for xblock in $(XBLOCKS); do \
-		if [ -f $$xblock/$(EXTRACT_DIR)/text.po ]; then \
-			PO_FILES="$$PO_FILES $$xblock/$(EXTRACT_DIR)/text.po"; \
-		fi; \
-	done; \
-	if [ -n "$$PO_FILES" ]; then \
-		msgcat --use-first $$PO_FILES -o $(COMBINED_LOCALE_DIR)/django.po; \
-		echo "Combined translation source file written to $(COMBINED_LOCALE_DIR)/django.po"; \
-	fi
 
 compile_translations: ## compile translation files, outputting .mo files for each supported language for each XBlock
 	@for xblock in $(XBLOCKS); do \
