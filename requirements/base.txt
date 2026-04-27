@@ -10,9 +10,9 @@ asgiref==3.11.1
     # via django
 beautifulsoup4==4.14.3
     # via -r requirements/base.in
-cachetools==7.0.5
+cachetools==7.0.6
     # via edxval
-certifi==2026.2.25
+certifi==2026.4.22
     # via requests
 cffi==2.0.0
     # via
@@ -24,14 +24,14 @@ charset-normalizer==3.4.7
     # via requests
 chem==2.0.0
     # via -r requirements/base.in
-click==8.3.2
+click==8.3.3
     # via
     #   code-annotations
     #   edx-django-utils
     #   nltk
 code-annotations==3.0.0
     # via edx-toggles
-cryptography==46.0.7
+cryptography==47.0.0
     # via pyjwt
 defusedxml==0.7.1
     # via -r requirements/base.in
@@ -107,7 +107,7 @@ fs==2.4.16
     #   xblock
 html5lib==1.1
     # via -r requirements/base.in
-idna==3.11
+idna==3.13
     # via requests
 jinja2==3.1.6
     # via code-annotations
@@ -133,7 +133,7 @@ markupsafe==3.0.3
     #   xblock
 mpmath==1.3.0
     # via sympy
-nh3==0.3.4
+nh3==0.3.5
     # via -r requirements/base.in
 nltk==3.9.4
     # via chem
@@ -160,7 +160,7 @@ pyjwt[crypto]==2.12.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.16.0
+pymongo==4.17.0
     # via edx-opaque-keys
 pynacl==1.6.2
     # via edx-django-utils
@@ -199,7 +199,7 @@ semantic-version==2.10.0
     # via edx-drf-extensions
 shapely==2.1.2
     # via -r requirements/base.in
-simplejson==4.0.1
+simplejson==4.1.1
     # via
     #   -r requirements/base.in
     #   xblock
@@ -243,7 +243,7 @@ webob==1.8.9
     #   xblock
 wrapt==2.1.2
     # via -r requirements/base.in
-xblock==6.0.0
+xblock==6.1.0
     # via -r requirements/base.in
 
 # The following packages are considered to be unsafe in a requirements file:
