@@ -29,8 +29,6 @@ from lxml import etree
 from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locator import AssetLocator
 from web_fragments.fragment import Fragment
-from webob import Response
-from webob.multidict import MultiDict
 from xblock.completable import XBlockCompletionMode
 from xblock.core import XBlock
 from xblock.fields import ScopeIds
@@ -62,7 +60,6 @@ from xblocks_contrib.video.video_transcripts_utils import (
     VideoTranscriptsMixin,
     clean_video_id,
     get_endonym_or_label,
-    get_html5_ids,
     subs_filename,
 )
 from xblocks_contrib.video.video_utils import (
@@ -485,7 +482,7 @@ class VideoBlock(
             'bumper_metadata': json.dumps(self.bumper['metadata']),  # pylint: disable=E1101
             'cdn_eval': cdn_eval,
             'cdn_exp_group': cdn_exp_group,
-            'display_name': self.display_name_with_default,  # pylint: disable=no-member
+            'display_name': self.display_name_with_default,
             'download_video_link': download_video_link,
             'is_video_from_same_origin': is_video_from_same_origin,
             'handout': self.handout,
