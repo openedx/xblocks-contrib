@@ -19,6 +19,13 @@ Unreleased
 
 Fixed
 =====
+* Fix video block editor issues while editing in the Content Library
+
+0.16.0 - 2026-04-21
+**********************************************
+
+Fixed
+=====
 
 * Removed XModuleMixin usage and related duplicated logic from all xblocks
 * Renames xblocks_contrib/common → xblocks_contrib/legacy_utils
