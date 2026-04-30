@@ -3,7 +3,7 @@ import json
 from typing import Any, Optional
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 from xblock.test.toy_runtime import ToyRuntime
@@ -41,7 +41,6 @@ def mock_handle_request(data: Optional[dict[str, Any]] = None, method: str = "PO
 
 def test_defaults_render():
     """Test the basic view loads."""
-    scope_ids = ScopeIds("1", "2", "3", "4")
     block = make_block()
     content = get_student_content(block)
     assert '<iframe src="https://tutorial.math.lamar.edu/pdf/Trig_Cheat_Sheet.pdf"' in content

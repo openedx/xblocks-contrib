@@ -164,7 +164,7 @@ class DiscussionXBlockImportExportTests(TestCase):
         assert discussion_id_field.default == UNIQUE_ID
 
         block.add_xml_to_node(target_node)
-        assert target_node.tag == 'discussion'  # pylint: disable=W0212
+        assert target_node.tag == 'discussion'
         assert 'discussion_id' not in target_node.attrib
 
     @ddt.data("jediwannabe", "iddqd", "itisagooddaytodie")

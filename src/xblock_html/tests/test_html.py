@@ -1,3 +1,4 @@
+"""Tests for the HTML XBlock."""
 import unittest
 from unittest.mock import Mock
 
@@ -20,7 +21,7 @@ def get_test_descriptor_system():
     return TestRuntime(services={})
 
 
-def get_test_system(
+def get_test_system(  # pylint: disable=too-many-positional-arguments,unused-argument
     course_id=CourseLocator("org", "course", "run"),
     user=None,
     user_is_staff=False,
@@ -62,14 +63,14 @@ def get_test_system(
 
             return user
 
-    class TestRuntimeWithRender(TestRuntime):
+    class TestRuntimeWithRender(TestRuntime):  # pylint: disable=abstract-method
         """Custom runtime that includes a basic render method."""
 
         def __init__(self, services, anonymous_student_id="test-user-id"):
             super().__init__(services=services)
             self.anonymous_student_id = anonymous_student_id
 
-        def render(self, block, view, context):
+        def render(self, block, view_name, context):  # pylint: disable=signature-differs
             return Mock(content=block.get_html())
 
     services = {
@@ -103,7 +104,7 @@ class HtmlBlockCourseApiTestCase(unittest.TestCase):
     Test the HTML XModule's student_view_data method.
     """
 
-    @ddt.data({}, dict(FEATURES={}), dict(FEATURES=dict(ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA=False)))
+    @ddt.data({}, {"FEATURES": {}}, {"FEATURES": {"ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA": False}})
     def test_disabled(self, settings):
         """
         Ensure that student_view_data does not return html if the ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA feature flag
@@ -114,9 +115,9 @@ class HtmlBlockCourseApiTestCase(unittest.TestCase):
         block = HtmlBlock(module_system, field_data, Mock())
 
         with override_settings(**settings):
-            assert block.student_view_data() == dict(
-                enabled=False, message='To enable, set FEATURES["ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"]'
-            )
+            assert block.student_view_data() == {
+                "enabled": False, "message": 'To enable, set FEATURES["ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA"]'
+            }
 
     @ddt.data(
         "<h1>Some content</h1>",  # Valid HTML
@@ -127,7 +128,7 @@ class HtmlBlockCourseApiTestCase(unittest.TestCase):
         '<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">',  # Images allowed
         "short string " * 100,  # May contain long strings
     )
-    @override_settings(FEATURES=dict(ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA=True))
+    @override_settings(FEATURES={"ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA": True})
     def test_common_values(self, html):
         """
         Ensure that student_view_data will return HTML data when enabled,
@@ -141,7 +142,7 @@ class HtmlBlockCourseApiTestCase(unittest.TestCase):
         field_data = DictFieldData({"data": html})
         module_system = get_test_system()
         block = HtmlBlock(module_system, field_data, Mock())
-        assert block.student_view_data() == dict(enabled=True, html=html)
+        assert block.student_view_data() == {"enabled": True, "html": html}
 
     @ddt.data("student_view")
     def test_student_preview_view(self, view):
@@ -157,6 +158,7 @@ class HtmlBlockCourseApiTestCase(unittest.TestCase):
 
 
 class HtmlBlockSubstitutionTestCase(unittest.TestCase):
+    """Tests for HTML XBlock variable substitution."""
 
     def test_substitution_user_id(self):
         sample_xml = """%%USER_ID%%"""
@@ -191,7 +193,7 @@ class HtmlBlockSubstitutionTestCase(unittest.TestCase):
         field_data = DictFieldData({"data": sample_xml})
         module_system = get_test_system(user=AnonymousUser())
         block = HtmlBlock(module_system, field_data, Mock())
-        block.runtime.service(block, "user")._deprecated_anonymous_user_id = ""
+        block.runtime.service(block, "user")._deprecated_anonymous_user_id = ""  # pylint: disable=protected-access
         assert block.get_html() == sample_xml
 
 

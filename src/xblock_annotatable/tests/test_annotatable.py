@@ -1,3 +1,4 @@
+"""Tests for the AnnotatableBlock."""
 import json
 import unittest
 from unittest.mock import MagicMock
@@ -11,6 +12,10 @@ from xblock_annotatable.annotatable import AnnotatableBlock
 
 
 class AnnotatableBlockTestCase(unittest.TestCase):
+    """Tests for AnnotatableBlock."""
+
+    # pylint: disable=protected-access
+
     sample_xml = """
     <annotatable display_name="Iliad">
         <instructions>Read the text.</instructions>
@@ -148,7 +153,7 @@ class AnnotatableBlockTestCase(unittest.TestCase):
 
         response = self.annotatable.submit_studio_edits(mock_request)
 
-        response_body = json.loads(response.body.decode("utf-8"))
+        response_body = json.loads(response.body.decode("utf-8"))  # pylint: disable=no-member
 
         self.assertEqual(response_body["result"], "success")
         self.assertEqual(self.annotatable.display_name, "New Display Name")

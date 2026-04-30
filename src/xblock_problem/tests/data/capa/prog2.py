@@ -1,4 +1,4 @@
-# prog2
+"""Test data file for capa safe exec upload tests."""
 # Make this file long, since that seems to affect how uploaded files are
 # handled in webob or cgi.FieldStorage.
 
