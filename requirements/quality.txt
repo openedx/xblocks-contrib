@@ -18,7 +18,7 @@ astroid==4.0.4
     #   pylint-celery
 beautifulsoup4==4.14.3
     # via -r requirements/test.txt
-cachetools==7.0.6
+cachetools==7.1.1
     # via
     #   -r requirements/test.txt
     #   edxval
@@ -146,7 +146,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/test.txt
     #   edxval
-edx-lint==6.0.0
+edx-lint==6.1.0
     # via -r requirements/quality.in
 edx-opaque-keys==4.0.0
     # via
@@ -202,7 +202,7 @@ lxml==6.1.0
     #   edxval
     #   openedx-calc
     #   xblock
-mako==1.3.11
+mako==1.3.12
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -413,8 +413,10 @@ tomli-w==1.2.0
     #   -r requirements/test.txt
     #   tox
 tomlkit==0.14.0
-    # via pylint
-tox==4.53.0
+    # via
+    #   edx-lint
+    #   pylint
+tox==4.53.1
     # via -r requirements/test.txt
 tqdm==4.67.3
     # via
@@ -429,7 +431,7 @@ urllib3==2.6.3
     # via
     #   -r requirements/test.txt
     #   requests
-virtualenv==21.2.4
+virtualenv==21.3.0
     # via
     #   -r requirements/test.txt
     #   tox
