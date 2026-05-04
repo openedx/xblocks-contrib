@@ -8,7 +8,7 @@ from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 from xblock.test.tools import TestRuntime
 
-from xblock_poll import PollBlock
+from xblock_poll_question import PollBlock
 
 
 class PollBlockTest(TestCase):

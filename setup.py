@@ -159,7 +159,7 @@ setup(
             "_discussion_extracted = xblock_discussion:DiscussionXBlock",
             "_html_extracted = xblock_html:HtmlBlock",
             "_lti_extracted = xblock_lti:LTIBlock",
-            "_poll_question_extracted = xblock_poll:PollBlock",
+            "_poll_question_extracted = xblock_poll_question:PollBlock",
             "_problem_extracted = xblock_problem:ProblemBlock",
             "_video_extracted = xblock_video:VideoBlock",
             "_word_cloud_extracted = xblock_word_cloud:WordCloudBlock",
