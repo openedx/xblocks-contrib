@@ -2,4 +2,4 @@
 Init for the PollBlock.
 """
 
-from .poll import PollBlock
+from .block import PollBlock

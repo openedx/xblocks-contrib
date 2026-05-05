@@ -8,7 +8,7 @@ from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 from xblock.test.tools import TestRuntime
 
-from xblock_annotatable.annotatable import AnnotatableBlock
+from xblock_annotatable.block import AnnotatableBlock
 
 
 class AnnotatableBlockTestCase(unittest.TestCase):

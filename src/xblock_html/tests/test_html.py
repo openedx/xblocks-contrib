@@ -11,7 +11,7 @@ from xblock.fields import ScopeIds
 from xblock.reference.user_service import UserService, XBlockUser
 from xblock.test.tools import TestRuntime
 
-from xblock_html.html import HtmlBlock
+from xblock_html.block import HtmlBlock
 
 
 def get_test_descriptor_system():

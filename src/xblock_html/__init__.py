@@ -2,4 +2,4 @@
 Init for the HtmlBlock.
 """
 
-from .html import HtmlBlock, HtmlBlockMixin
+from .block import HtmlBlock, HtmlBlockMixin

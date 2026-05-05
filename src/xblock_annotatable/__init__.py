@@ -2,4 +2,4 @@
 Init for the AnnotatableBlock.
 """
 
-from .annotatable import AnnotatableBlock
+from .block import AnnotatableBlock

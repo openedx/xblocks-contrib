@@ -2,4 +2,4 @@
 Init for the DiscussionXBlock.
 """
 
-from .discussion import DiscussionXBlock
+from .block import DiscussionXBlock

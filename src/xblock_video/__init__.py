@@ -2,4 +2,4 @@
 Init for the VideoBlock.
 """
 
-from .video import VideoBlock
+from .block import VideoBlock

@@ -28,15 +28,15 @@ from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 from xblock.scorable import Score
 
+from xblock_problem.block import ComplexEncoder, ProblemBlock
 from xblock_problem.capa import responsetypes
 from xblock_problem.capa.correctmap import CorrectMap
 from xblock_problem.capa.responsetypes import LoncapaProblemError, ResponseError, StudentInputError
 from xblock_problem.capa.tests.test_util import UseUnsafeCodejail
 from xblock_problem.capa.xqueue_interface import XQueueInterface
-from xblock_problem.capa_block import ComplexEncoder, ProblemBlock
 from xblock_problem.tests import DATA_DIR
 
-from ..capa_block import RANDOMIZATION, SHOWANSWER
+from ..block import RANDOMIZATION, SHOWANSWER
 from . import get_test_system
 
 
@@ -839,7 +839,7 @@ class ProblemBlockTest(unittest.TestCase):
         # what the input is, by patching CorrectMap.is_correct()
         # Also simulate rendering the HTML
         with patch("xblock_problem.capa.correctmap.CorrectMap.is_correct") as mock_is_correct:
-            with patch("xblock_problem.capa_block.ProblemBlock.get_problem_html") as mock_html:
+            with patch("xblock_problem.block.ProblemBlock.get_problem_html") as mock_html:
                 mock_is_correct.return_value = True
                 mock_html.return_value = "Test HTML"
 
@@ -859,7 +859,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.lcp.context["attempt"] == 2
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_with_grading_method_disable(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test that without a specific grading method, the score behaves as
@@ -899,7 +899,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=1, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_with_grading_method_enable(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test that the grading method is enabled when submit a problem.
@@ -921,7 +921,7 @@ class ProblemBlockTest(unittest.TestCase):
             mock_get_score.assert_called()
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_grading_method_always_enabled(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test problem submission when grading method is always enabled by default.
@@ -974,7 +974,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=1, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_grading_method_always_enabled_highest_score(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test problem submission when grading method is always enabled by default
@@ -1027,7 +1027,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=1, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_correct_last_score(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test the `last_score` grading method.
@@ -1060,7 +1060,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=0, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_correct_highest_score(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test the `highest_score` grading method.
@@ -1092,7 +1092,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=1, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_correct_first_score(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test the `first_score` grading method.
@@ -1124,7 +1124,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert block.score == Score(raw_earned=0, raw_possible=1)
 
     @patch("xblock_problem.capa.correctmap.CorrectMap.is_correct")
-    @patch("xblock_problem.capa_block.ProblemBlock.get_problem_html")
+    @patch("xblock_problem.block.ProblemBlock.get_problem_html")
     def test_submit_problem_correct_average_score(self, mock_html: Mock, mock_is_correct: Mock):
         """
         Test the `average_score` grading method.
@@ -1202,7 +1202,7 @@ class ProblemBlockTest(unittest.TestCase):
 
         # Problem closed -- cannot submit
         # Simulate that ProblemBlock.closed() always returns True
-        with patch("xblock_problem.capa_block.ProblemBlock.closed") as mock_closed:
+        with patch("xblock_problem.block.ProblemBlock.closed") as mock_closed:
             mock_closed.return_value = True
             with pytest.raises(NotFoundError):
                 get_request_dict = {CapaFactory.input_key(): "3.14"}
@@ -1556,7 +1556,7 @@ class ProblemBlockTest(unittest.TestCase):
         block.choose_new_seed = Mock(wraps=block.choose_new_seed)
 
         # Stub out HTML rendering
-        with patch("xblock_problem.capa_block.ProblemBlock.get_problem_html") as mock_html:
+        with patch("xblock_problem.block.ProblemBlock.get_problem_html") as mock_html:
             mock_html.return_value = "<div>Test HTML</div>"
 
             # Reset the problem
@@ -1579,7 +1579,7 @@ class ProblemBlockTest(unittest.TestCase):
         block = CapaFactory.create(rerandomize=RANDOMIZATION.ALWAYS)
 
         # Simulate that the problem is closed
-        with patch("xblock_problem.capa_block.ProblemBlock.closed") as mock_closed:
+        with patch("xblock_problem.block.ProblemBlock.closed") as mock_closed:
             mock_closed.return_value = True
 
             # Try to reset the problem
@@ -1722,7 +1722,7 @@ class ProblemBlockTest(unittest.TestCase):
             assert block.lcp.context["attempt"] == 1
             mock_get_rescore.assert_called()
 
-    @patch("xblock_problem.capa_block.ProblemBlock.publish_grade")
+    @patch("xblock_problem.block.ProblemBlock.publish_grade")
     def test_rescore_problem_grading_method_always_enabled(self, mock_publish_grade: Mock):
         """
         Test the rescore method when grading method is always enabled by default.
@@ -1764,7 +1764,7 @@ class ProblemBlockTest(unittest.TestCase):
 
         mock_publish_grade.assert_called_with(score=Score(raw_earned=0.33, raw_possible=1), only_if_higher=False)
 
-    @patch("xblock_problem.capa_block.ProblemBlock.publish_grade")
+    @patch("xblock_problem.block.ProblemBlock.publish_grade")
     def test_rescore_problem_grading_method_always_enabled_with_various_methods(self, mock_publish_grade: Mock):
         """
         Test the rescore method when grading method is always enabled by default
@@ -1806,7 +1806,7 @@ class ProblemBlockTest(unittest.TestCase):
         block.rescore(only_if_higher=False)
         assert block.score == Score(raw_earned=1, raw_possible=1)
 
-    @patch("xblock_problem.capa_block.ProblemBlock.publish_grade")
+    @patch("xblock_problem.block.ProblemBlock.publish_grade")
     def test_rescore_problem_update_grading_method(self, mock_publish_grade: Mock):
         """
         Test the rescore method when the grading method is updated.
@@ -1970,7 +1970,7 @@ class ProblemBlockTest(unittest.TestCase):
         self.assertEqual(score, expected_score)
         self.assertEqual(block.score, expected_score)
 
-    @patch("xblock_problem.capa_block.ProblemBlock.score_from_lcp")
+    @patch("xblock_problem.block.ProblemBlock.score_from_lcp")
     def test_get_score_with_grading_method_updates_score(self, mock_score_from_lcp: Mock):
         """
         Test that the `get_score_with_grading_method` method returns the correct score.
@@ -1995,7 +1995,7 @@ class ProblemBlockTest(unittest.TestCase):
         block = CapaFactory.create(attempts=1)
         current_score = Score(raw_earned=0, raw_possible=1)
 
-        with patch("xblock_problem.capa_block.GradingMethodHandler") as mock_handler:
+        with patch("xblock_problem.block.GradingMethodHandler") as mock_handler:
             mock_handler.return_value.get_score.return_value = current_score
             block.get_score_with_grading_method(current_score)
             mock_handler.assert_called_once_with(
@@ -2089,7 +2089,7 @@ class ProblemBlockTest(unittest.TestCase):
         block = CapaFactory.create(done=False)
 
         # Simulate that the problem is closed
-        with patch("xblock_problem.capa_block.ProblemBlock.closed") as mock_closed:
+        with patch("xblock_problem.block.ProblemBlock.closed") as mock_closed:
             mock_closed.return_value = True
 
             # Try to save the problem
@@ -2302,7 +2302,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert html is not None
         # assert that we got here without exploding
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_get_problem_html(self, render_template):
         """Verify problem HTML rendering uses correct template context and encapsulation."""
         render_template.return_value = "<div>Test Template HTML</div>"
@@ -2364,7 +2364,7 @@ class ProblemBlockTest(unittest.TestCase):
         </demandhint>
         </problem>"""
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_demand_hint(self, render_template):
         """Verify image-based demand hints render correctly without static URL issues."""
         # HTML generation is mocked out to be meaningless here, so instead we check
@@ -2389,7 +2389,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert result["hint_index"] == 0
         assert result["should_enable_next_hint"]
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_single_demand_hint(self, render_template):
         """
         Test the hint button enabled state when there is just a single hint.
@@ -2420,7 +2420,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert result["hint_index"] == 0
         assert not result["should_enable_next_hint"]
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_image_hint(self, render_template):
         """
         Test the hint button shows an image without the static url.
@@ -2483,7 +2483,7 @@ class ProblemBlockTest(unittest.TestCase):
         intersection = set(block2.input_state.keys()).intersection(set(block1.input_state.keys()))
         assert len(intersection) == 0
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_get_problem_html_error(self, render_template):
         """
         In production, when an error occurs with the problem HTML
@@ -2513,7 +2513,7 @@ class ProblemBlockTest(unittest.TestCase):
         # Expect that the block has created a new dummy problem with the error
         assert original_problem != block.lcp
 
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_get_problem_html_error_preview(self, render_template):
         """
         Test the html response when an error occurs with DEBUG off in Studio.
@@ -2539,7 +2539,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert error_msg in context["problem"]["html"]
 
     @override_settings(DEBUG=True)
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_get_problem_html_error_w_debug(self, render_template):
         """
         Test the html response when an error occurs with DEBUG on
@@ -2704,8 +2704,8 @@ class ProblemBlockTest(unittest.TestCase):
             assert 0 <= block.seed < 1000
             i -= 1
 
-    @patch("xblock_problem.capa_block.log")
-    @patch("xblock_problem.capa_block.Progress")
+    @patch("xblock_problem.block.log")
+    @patch("xblock_problem.block.Progress")
     def test_get_progress_error(self, mock_progress, mock_log):
         """
         Check that an exception given in `Progress` produces a `log.exception` call.
@@ -2718,7 +2718,7 @@ class ProblemBlockTest(unittest.TestCase):
             mock_log.exception.assert_called_once_with("Got bad progress")
             mock_log.reset_mock()
 
-    @patch("xblock_problem.capa_block.Progress")
+    @patch("xblock_problem.block.Progress")
     def test_get_progress_no_error_if_weight_zero(self, mock_progress):
         """
         Check that if the weight is 0 get_progress does not try to create a Progress object.
@@ -2730,7 +2730,7 @@ class ProblemBlockTest(unittest.TestCase):
         assert progress is None
         assert not mock_progress.called
 
-    @patch("xblock_problem.capa_block.Progress")
+    @patch("xblock_problem.block.Progress")
     def test_get_progress_calculate_progress_fraction(self, mock_progress):
         """
         Check that score and total are calculated correctly for the progress fraction.
@@ -2859,7 +2859,7 @@ class ProblemBlockTest(unittest.TestCase):
         "",
         "   ",
     )
-    @patch("xblock_problem.capa_block.render_to_string")
+    @patch("xblock_problem.block.render_to_string")
     def test_problem_no_display_name(self, display_name, render_template):
         """
         Verify that if problem display name is not provided then a default name is used.
@@ -4100,7 +4100,7 @@ class ProblemBlockReportGenerationTest(unittest.TestCase):
         """Verify LonCapa errors are captured and reported instead of aborting."""
         # Test to make sure reports continue despite loncappa errors, and write them into the report.
         block = self._get_block()
-        with patch("xblock_problem.capa_block.LoncapaProblem") as mock_loncapa_problem:
+        with patch("xblock_problem.block.LoncapaProblem") as mock_loncapa_problem:
             mock_loncapa_problem.side_effect = LoncapaProblemError
             report_data = list(
                 block.generate_report_data(

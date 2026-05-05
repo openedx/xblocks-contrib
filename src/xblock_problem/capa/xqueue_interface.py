@@ -13,7 +13,7 @@ from requests.auth import HTTPBasicAuth
 from xblock_problem.capa.xqueue_submission import XQueueInterfaceSubmission
 
 if TYPE_CHECKING:
-    from xblock_problem.capa_block import ProblemBlock
+    from xblock_problem.block import ProblemBlock
 
 log = logging.getLogger(__name__)
 DATEFORMAT = "%Y%m%d%H%M%S"

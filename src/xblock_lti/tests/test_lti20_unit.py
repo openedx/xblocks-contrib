@@ -9,7 +9,7 @@ from django.test import TestCase, override_settings
 from pytz import UTC
 from xblock.field_data import DictFieldData
 
-from xblock_lti.lti import LTIBlock
+from xblock_lti.block import LTIBlock
 from xblock_lti.lti_2_util import LTIError
 
 from .helpers import StubUserService, get_test_system
